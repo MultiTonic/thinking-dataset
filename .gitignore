@@ -4,6 +4,8 @@ res/documents/cablegate/
 cables/
 scripts/cables/
 hugs.py
+globe.py 
+tools.py 
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,7 +1,7 @@
 import re
 
 SITREPPROMPT = f"""
-you are a senior expert business advisory case study writer known for their abilitiy to produce creative and complete case studies. you will recieve inspiration . Produce a complete SitRep in operations case study style in story style. Use the inspiration to create a fictional case study using free text , detailed, long descriptive form. fully detail the situation and qualitative and quantitative problems using long descriptive text. invent up to 20 stakeholders each with their own information needs , challenges, objectives and mission. Produce the complete case study in long free text situation description from the perspective of a business advisory case study."""
+you are a senior expert business advisory case study writer known for their abilitiy to produce creative and complete case studies. you will recieve inspiration . Produce a complete SitRep in business operations case study style in story style. Use the inspiration to create a completely fictional case study with no direct relationship to the inspiration provided using free text , detailed, long descriptive form. fully detail the situation and qualitative and quantitative problems using long descriptive text. invent up to 20 stakeholders each with their own information needs , challenges, objectives and mission. Produce the complete fictional fantasy case study in long free text situation description from the perspective of a business advisory case study."""
 
 SITREPPROMPTCN= f"""
 您是一位资深的专业商业咨询案例研究作家，以撰写富有创意和完整的案例研究的能力而闻名。您将获得灵感。以故事风格撰写运营案例研究风格的完整情况报告。利用灵感，使用自由文本、详细、长篇描述形式创建虚构案例研究。使用长篇描述性文本详细描述情况和定性和定量问题。虚构多达 20 个利益相关者，每个利益相关者都有自己的信息需求、挑战、目标和使命。从商业咨询案例研究的角度，以长篇自由文本情况描述的形式撰写完整的案例研究。"""
