@@ -1,7 +1,7 @@
 from distilabel.llms import InferenceEndpointsLLM
 from distilabel.pipeline import Pipeline
 from distilabel.steps.tasks import MagpieGenerator, TextGeneration
-from globe import REASONING_PROMPT, REFLECTION_SYSTEM_PROMPT
+from prompts import REASONING_PROMPT, REFLECTION_SYSTEM_PROMPT
 
 with Pipeline(name="reflection-tuning") as pipeline:
     generate_instructions = MagpieGenerator(

@@ -20,7 +20,7 @@ from datasets import Dataset, load_dataset, DatasetDict
 
 from dotenv import load_dotenv
 
-from globe import SITREPPROMPT
+from prompts import SITREPPROMPT
 import logging
 
 # Configure logging to use UTF-8 encoding with timestamps and step info

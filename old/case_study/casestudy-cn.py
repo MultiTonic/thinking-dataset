@@ -10,7 +10,7 @@ import openai
 from openai import OpenAI
 from dotenv import load_dotenv
 
-from globe import SITREPPROMPTCN
+from prompts import SITREPPROMPTCN
 
 # Set the base URL for the OpenAI API
 openai.api_base = "https://api.lingyiwanwu.com/v1"  

@@ -9,7 +9,7 @@ from datasets import Dataset, load_dataset
 import openai
 from openai import OpenAI
 from dotenv import load_dotenv
-from globe import SITREPPROMPT
+from prompts import SITREPPROMPT
 
 # Set the base URL for the OpenAI API
 openai.api_base = "https://api.lingyiwanwu.com/v1"  # Replace with your actual base URL

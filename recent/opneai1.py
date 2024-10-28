@@ -20,7 +20,7 @@ from datasets import Dataset, load_dataset
 
 from dotenv import load_dotenv
 
-from globe import SITREPPROMPT
+from prompts import SITREPPROMPT
 
 sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', handlers=[logging.StreamHandler(sys.stdout)], encoding='utf-8')
@@ -58,7 +58,7 @@ def clean_content(text: str) -> str:
     return text.strip()
 
 class LoadLocalDataset(GeneratorStep):
-    file_path: str = Field(description="Path to the local parquet file")
+    file_path: str = Field(default= "", description="Path to the local parquet file")
     input_batch_size: int = Field(default=32, description="Number of items to process in each batch")
 
     @property
@@ -87,7 +87,8 @@ class LoadLocalDataset(GeneratorStep):
                 else:
                     logging.warning(f"Row {i} missing 'cleaned_content', skipping.")
 
-            yield batch, end >= len(dataset)    
+            if batch:
+                yield batch, end >= len(dataset)
             start = end
             end = min(start + self.input_batch_size, len(dataset))
 
@@ -102,7 +103,8 @@ class PrepareContentStep(Step):
     
     def process(self, inputs: StepInput) -> StepOutput:
         prepared_batch = [{"prepared_content": item["cables"]} for item in inputs if "cables" in item]
-        yield prepared_batch
+        if prepared_batch:
+            yield prepared_batch
 
 class PrepareMessagesStep(Step):
     @property
@@ -125,8 +127,6 @@ class PrepareMessagesStep(Step):
         
         if output_batch:
             yield output_batch
-        else:
-            logging.error("No valid messages generated to yield.")
 
 class RandomSampleForComparison(Step):
     num_comparisons: int = Field(default=200000, description="Number of comparisons to generate")
@@ -142,7 +142,7 @@ class RandomSampleForComparison(Step):
 
     def process(self, inputs: StepInput) -> StepOutput:
         cable_sample = [item for item in inputs if "prepared_content" in item]
-        while len(cable_sample) >= 3:
+        if len(cable_sample) >= 3:
             sampled = random.sample(cable_sample, 3)
             comparison_prompt = COMPARISON_PROMPT.format(
                 cable_1=sampled[0]["prepared_content"],
@@ -175,7 +175,6 @@ def create_pipeline():
         prepare_messages_comparison = PrepareMessagesStep(
             name="prepare_messages_comparison",
             input_batch_size=32,
-            
         )
 
         compare_cables = ChatGeneration(
@@ -201,7 +200,7 @@ if __name__ == "__main__":
     # Process comparisons
     comparison_distiset = process_dataset(pipeline, {
         "load_cablegate_dataset": {
-            "file_path": os.path.join("scripts", "cables", "cleaned_data.parquet"),
+            "input_batch_size": 32,
         },
         "compare_cables": {
             "llm": {
@@ -212,8 +211,7 @@ if __name__ == "__main__":
             },
         },
         "sample_for_comparison": {
-            "num_comparisons": 2000,
-            "sample_size": 200,
+            "input_batch_size": 32,
         },
     })
     

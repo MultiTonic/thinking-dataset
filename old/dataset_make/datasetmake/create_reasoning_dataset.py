@@ -11,7 +11,7 @@ from distilabel.steps import (
     KeepColumns,
 )
 from distilabel.steps.tasks import TextGeneration
-from globe import QUERY_PROMPT, SYSTEM_PROMPT
+from prompts import QUERY_PROMPT, SYSTEM_PROMPT
 
 from datasets import Dataset, load_dataset
 from hugs import UniqueDatasetRepository, BatchCounter

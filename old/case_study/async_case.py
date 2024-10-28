@@ -21,7 +21,7 @@ from datasets import Dataset, load_dataset, DatasetDict
 
 from dotenv import load_dotenv
 
-from globe import SITREPPROMPT
+from prompts import SITREPPROMPT
 
 sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', handlers=[logging.StreamHandler(sys.stdout)])

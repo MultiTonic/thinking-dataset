@@ -9,7 +9,7 @@ from distilabel.steps import (
     make_generator_step,
 )
 from distilabel.steps.tasks import TextGeneration, Magpie
-from globe import FINANCIAL_PROMPT
+from prompts import FINANCIAL_PROMPT
 from datasets import Dataset, load_dataset
 from hugs import UniqueDatasetRepository, BatchCounter
 from pdfloader import DatasetGenerator

@@ -14,7 +14,7 @@ from distilabel.steps import (
     make_generator_step,
 )
 from distilabel.steps.tasks import TextGeneration, Magpie, EvolInstruct, EvolQuality, EvolComplexity
-from globe import QUERY_PROMPT, SYSTEM_PROMPT, REASONING_PROMPT, FINANCIAL_PROMPT, MEDICAL_PROMPT
+from prompts import QUERY_PROMPT, SYSTEM_PROMPT, REASONING_PROMPT, FINANCIAL_PROMPT, MEDICAL_PROMPT
 from datasets import Dataset, load_dataset
 from hugs import UniqueDatasetRepository, BatchCounter
 from pdfloader import DatasetGenerator

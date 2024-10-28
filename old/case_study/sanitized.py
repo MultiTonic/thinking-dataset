@@ -20,7 +20,7 @@ from datasets import Dataset, load_dataset, DatasetDict
 
 from dotenv import load_dotenv
 
-from globe import SITREPPROMPT
+from prompts import SITREPPROMPT
 
 # Configure logging to use UTF-8 encoding
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, encoding='utf-8')
