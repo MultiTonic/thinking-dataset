@@ -5,3 +5,5 @@ PyPDF2
 pyarrow
 openai
 python-dotenv
+testcontainers
+requests
