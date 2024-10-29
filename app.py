@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 
 from prompts import SITREPPROMPT
 
-from tcollamadistilabel import TestContainerOllamaLLM, OptimizedTestContainerOllamaLLM, ContainerConfig
+from scripts.utilities_scripts.tcollamad import OptimizedTestContainerOllamaLLM, ContainerConfig
 
 # Load environment variables from .env file
 load_dotenv()
@@ -38,51 +38,6 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
     encoding='utf-8'
 )
-
-import torch
-
-class OptimizedVLLM(vLLM):
-    """Optimized vLLM implementation with multi-GPU support and batching"""
-    
-    def __init__(
-        self,
-        model: str,
-        num_gpus: int = 1,
-        batch_size: int = 32,
-        max_model_len: int = 8192,
-        quantization: Optional[str] = "int8",
-        dtype: str = "float16",
-        trust_remote_code: bool = True,
-        **kwargs
-    ):
-        super().__init__(
-            model=model,
-            dtype=dtype,
-            trust_remote_code=trust_remote_code,
-            quantization=quantization,
-            **kwargs
-        )
-        self.num_gpus = num_gpus
-        self.batch_size = batch_size
-        self.max_model_len = max_model_len
-        
-        # Configure multi-GPU settings
-        self.extra_kwargs = {
-            "tensor_parallel_size": num_gpus,
-            "max_model_len": max_model_len,
-            "gpu_memory_utilization": 0.95,
-            "max_num_batched_tokens": batch_size * max_model_len,
-            "max_num_seqs": batch_size,
-            "quantization": quantization,
-        }
-
-    def load(self) -> None:
-        """Load the model with optimized settings"""
-        try:
-            super().load()
-        except Exception as e:
-            raise RuntimeError(f"Failed to load vLLM model: {e}")
-
 
 # Step Input/Output Schemas
 class CableContent(BaseModel):
@@ -249,45 +204,16 @@ def create_pipeline():
             name="prepare_messages_comparison"
         )
 
-        # # Initialize optimized LLM with multiple containers
-        # ollama_llm = OptimizedTestContainerOllamaLLM(
-        #     model="yi:6b",
-        #     num_containers=4,  # Adjust based on available GPUs
-        #     container_configs=[
-        #         ContainerConfig(
-        #             model_name="yi:6b-q4_K_M",
-        #             quantization="q4_k_m",
-        #             gpu_id=0,
-        #             num_ctx=8192,
-        #             num_batch=512
-        #         ),
-        #         ContainerConfig(
-        #             model_name="yi:6b-q4_K_M",
-        #             quantization="q4_k_m",
-        #             gpu_id=1,
-        #             num_ctx=8192,
-        #             num_batch=512
-        #         ),
-        #         # Add more configurations as needed
-        #     ],
-        #     batch_size=32
-        # )
-
-        # Initialize optimized vLLM
-        vllm_model = OptimizedVLLM(
-            model="01-ai/Yi-6B", # Using Yi-6B model
-            num_gpus=torch.cuda.device_count(),  # Use all available GPUs
-            batch_size=32,
-            max_model_len=8192,
-            quantization="int8",  # Enable int8 quantization
-            dtype="float16",      # Use float16 for better performance
-            trust_remote_code=True,
-            structured_output=None # No structured output needed for this case
+        # Initialize optimized LLM with multiple containers
+        ollama_llm = OptimizedTestContainerOllamaLLM(
+            model="yi:6b-q4_K_M",  # Using Q4_K_M quantization for all instances
+            num_instances=4,  # Number of parallel instances
+            base_port=11434  # Base port for the first instance
         )
 
         compare_cables_step = ChatGeneration(
             name="compare_cables",
-            llm=vllm_model,
+            llm=ollama_llm,
             input_batch_size=32,
             input_mappings={"messages": "messages"}, 
             output_mappings={"generation": "generation"},  

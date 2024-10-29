@@ -33,6 +33,57 @@ from typing_extensions import TypedDict
 
 import torch
 
+import os
+import asyncio
+import logging
+from pathlib import Path
+from typing import List, Dict, Optional
+from dataclasses import dataclass
+import torch
+from pydantic import Field, BaseModel, PrivateAttr
+from testcontainers.ollama import OllamaContainer
+import requests
+
+from scripts.utilities_scripts.runpod_utils import (
+    get_gpu_stats,
+    calculate_container_configs,
+    get_optimal_thread_count
+)
+
+class RunPodOllamaManager:
+    """Manages Ollama containers for RunPod environment."""
+    
+    def __init__(self, num_containers: int = 4):
+        self.num_containers = num_containers
+        self.gpu_stats = get_gpu_stats()
+        self.container_configs = self._initialize_configs()
+        
+    def _initialize_configs(self) -> List[ContainerConfig]:
+        if not self.gpu_stats:
+            raise RuntimeError("No GPU detected")
+            
+        # Get total GPU memory from first GPU (RunPod single GPU setup)
+        total_memory = self.gpu_stats[0].total_memory
+        configs = calculate_container_configs(total_memory, self.num_containers)
+        
+        return [
+            ContainerConfig(
+                model_name=config["model_name"],
+                quantization=config["quantization"],
+                gpu_id=0,  # Single GPU setup
+                num_ctx=config["num_ctx"],
+                num_batch=config["num_batch"],
+                num_thread=config["num_thread"],
+                num_gpu=1
+            )
+            for config in configs
+        ]
+
+# Modify OptimizedTestContainerOllamaLLM.__init__
+def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.manager = RunPodOllamaManager(num_containers=self.num_containers)
+    self.container_configs = self.manager.container_configs
 
 @dataclass
 class ContainerConfig:
@@ -194,134 +245,37 @@ class BatchProcessor:
         return [item for sublist in results for item in sublist]
 
 
-# class Options(TypedDict, total=False):
-#     numa: bool
-#     num_ctx: int
-#     num_batch: int
-#     num_gqa: int
-#     num_gpu: int
-#     main_gpu: int
-#     low_vram: bool
-#     f16_kv: bool
-#     logits_all: bool
-#     vocab_only: bool
-#     use_mmap: bool
-#     use_mlock: bool
-#     embedding_only: bool
-#     rope_frequency_base: float
-#     rope_frequency_scale: float
-#     num_thread: int
-#     num_keep: int
-#     seed: int
-#     num_predict: int
-#     top_k: int
-#     top_p: float
-#     tfs_z: float
-#     typical_p: float
-#     repeat_last_n: int
-#     temperature: float
-#     repeat_penalty: float
-#     presence_penalty: float
-#     frequency_penalty: float
-#     mirostat: int
-#     mirostat_tau: float
-#     mirostat_eta: float
-#     penalize_newline: bool
-#     stop: Sequence[str]
-
-# class TestContainerOllamaLLM(AsyncLLM):
-#     """
-#     TestContainers Ollama implementation that follows the Distilabel AsyncLLM interface.
-#     """
-#     model: str
-#     host: Optional[RuntimeParameter[str]] = Field(
-#         default=None, description="The host of the Ollama API."
-#     )
-#     timeout: RuntimeParameter[int] = Field(
-#         default=120, description="The timeout for the Ollama API."
-#     )
-#     follow_redirects: bool = True
-#     structured_output: Optional[RuntimeParameter[InstructorStructuredOutputType]] = Field(
-#         default=None,
-#         description="The structured output format to use across all the generations.",
-#     )
-
-#     _num_generations_param_supported = False
-#     _container: Optional[OllamaContainer] = PrivateAttr(default=None)
-#     _endpoint: Optional[str] = PrivateAttr(default=None)
-
-#     def load(self) -> None:
-#         """Initialize the Ollama container and setup the endpoint."""
-#         super().load()
-        
-#         try:
-#             ollama_home = Path.home() / ".ollama"
-#             self._container = OllamaContainer(ollama_home=ollama_home)
-#             self._container.start()
-            
-#             # Store the endpoint
-#             self._endpoint = self._container.get_endpoint()
-            
-#             # Check if model exists and pull if necessary
-#             models = self._container.list_models()
-#             if self.model not in [model["name"] for model in models]:
-#                 self._container.pull_model(self.model)
-                
-#         except Exception as e:
-#             raise RuntimeError(f"Failed to initialize Ollama container: {e}")
-
-#     @property
-#     def model_name(self) -> str:
-#         """Returns the model name used for the LLM."""
-#         return self.model
-
-#     async def agenerate(
-#         self,
-#         input: StandardInput,
-#         format: str = "",
-#         options: Union[Options, None] = None,
-#         keep_alive: Union[bool, None] = None,
-#     ) -> GenerateOutput:
-#         """
-#         Generates a response asynchronously using the TestContainers Ollama implementation.
-
-#         Args:
-#             input: the input to use for the generation.
-#             format: the format to use for the generation.
-#             options: the options to use for the generation.
-#             keep_alive: whether to keep the connection alive.
-
-#         Returns:
-#             A list of strings as completion for the given input.
-#         """
-#         if not self._endpoint:
-#             raise RuntimeError("Container not initialized. Call load() first.")
-
-#         try:
-#             response = requests.post(
-#                 f"{self._endpoint}/api/chat",
-#                 json={
-#                     "model": self.model,
-#                     "messages": input,
-#                     "stream": False,
-#                     "format": format,
-#                     "options": options,
-#                     "keep_alive": keep_alive
-#                 }
-#             )
-#             response.raise_for_status()
-#             result = response.json()
-#             return [result["message"]["content"]]
-#         except Exception as e:
-#             self._logger.warning(
-#                 f"⚠️ Error using Ollama client (model: '{self.model_name}'): {e}"
-#             )
-#             return [""]
-
-#     def __del__(self):
-#         """Cleanup the container on deletion."""
-#         if self._container:
-#             try:
-#                 self._container.stop()
-#             except Exception as e:
-#                 logging.warning(f"Failed to stop Ollama container: {e}")
+class Options(TypedDict, total=False):
+    numa: bool
+    num_ctx: int
+    num_batch: int
+    num_gqa: int
+    num_gpu: int
+    main_gpu: int
+    low_vram: bool
+    f16_kv: bool
+    logits_all: bool
+    vocab_only: bool
+    use_mmap: bool
+    use_mlock: bool
+    embedding_only: bool
+    rope_frequency_base: float
+    rope_frequency_scale: float
+    num_thread: int
+    num_keep: int
+    seed: int
+    num_predict: int
+    top_k: int
+    top_p: float
+    tfs_z: float
+    typical_p: float
+    repeat_last_n: int
+    temperature: float
+    repeat_penalty: float
+    presence_penalty: float
+    frequency_penalty: float
+    mirostat: int
+    mirostat_tau: float
+    mirostat_eta: float
+    penalize_newline: bool
+    stop: Sequence[str]

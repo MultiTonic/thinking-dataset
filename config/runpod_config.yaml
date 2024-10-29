@@ -1,0 +1,10 @@
+runpod:
+  gpu:
+    memory_buffer: 0.1  # Keep 10% memory buffer
+    min_memory_per_container: 4000  # Minimum MB per container
+  containers:
+    max_count: 4
+    default_batch_size: 32
+  model:
+    base_name: "yi:6b"
+    quantization_preference: ["q4_k_m", "q4_0", "q4_1"]
