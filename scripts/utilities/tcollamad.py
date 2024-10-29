@@ -1,3 +1,5 @@
+# scripts\utilities\tcollamad.py
+
 import os
 import asyncio
 import logging
@@ -36,6 +38,15 @@ class OptimizedTestContainerOllamaLLM(AsyncLLM):
     _current_instance: int = PrivateAttr(default=0)
     _lock: asyncio.Lock = PrivateAttr(default_factory=asyncio.Lock)
     _logger: logging.Logger = PrivateAttr()
+
+
+    @property
+    def model_name(self) -> str:
+        """
+        Implementation of the abstract model_name property required by AsyncLLM
+        Returns the model name being used by this LLM instance
+        """
+        return self.model
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
