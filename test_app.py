@@ -205,23 +205,19 @@ def create_pipeline():
             name="prepare_messages_comparison"
         )
 
-        # Initialize optimized LLM with multiple containers
         ollama_llm = OptimizedTestContainerOllamaLLM(
-            model="yi:6b-q4_K_M",  # Using Q4_K_M quantization for all instances
-            num_instances=4,  # Number of parallel instances
-            base_port=11434  # Base port for the first instance
+            model="yi:6b-q4_K_M",
+            num_instances=4,
+            base_port=11434
         )
 
+        # Modified ChatGeneration step
         compare_cables_step = ChatGeneration(
             name="compare_cables",
             llm=ollama_llm,
             input_batch_size=32,
             input_mappings={"messages": "messages"}, 
-            output_mappings={"generation": "generation"},  
-            generation_kwargs={
-                "temperature": 0.9,
-                "max_new_tokens": 4095,
-            }
+            output_mappings={"generation": "generation"}
         )
 
         # Define the pipeline flow
@@ -235,7 +231,17 @@ def create_pipeline():
 
 def process_dataset(pipeline: Pipeline, parameters: Dict[str, Any]) -> Distiset:
     try:
-        return pipeline.run(parameters=parameters, use_cache=False)
+        # Update the parameters structure
+        run_parameters = {
+            "load_cablegate_dataset": {
+                "file_path": os.path.join("scripts", "cables", "cleaned_data.parquet"),
+            },
+            "sample_for_comparison": {
+                "num_comparisons": 2000,
+                "sample_size": 200,
+            }
+        }
+        return pipeline.run(parameters=run_parameters, use_cache=False)
     except Exception as e:
         logging.error(f"Error running the pipeline: {e}")
         raise
@@ -250,24 +256,19 @@ def test_pipeline_dry_run():
         # Create the pipeline
         pipeline = create_pipeline()
 
-        # Execute dry run with sample data
-        dry_run_data = [
-            {
-                "cables": "Sample cable content 1",
+        # Execute dry run with sample parameters
+        dry_run_params = {
+            "load_cablegate_dataset": {
+                "file_path": os.path.join("scripts", "cables", "cleaned_data.parquet"),
             },
-            {
-                "cables": "Sample cable content 2",
-            },
-            {
-                "cables": "Sample cable content 3",
+            "sample_for_comparison": {
+                "num_comparisons": 3,  # Small number for testing
+                "sample_size": 3,
             }
-        ]
+        }
 
-        # Run the dry run
-        pipeline.dry_run(
-            data=dry_run_data,
-            step="load_cablegate_dataset"  # Starting step
-        )
+        # Run the dry run with parameters instead of data
+        pipeline.dry_run(parameters=dry_run_params)
 
         logging.info("Dry run completed successfully")
         return True
@@ -289,24 +290,15 @@ if __name__ == "__main__":
     success = test_pipeline_dry_run()
     
     if success:
-        logging.info("Pipeline dry run validation completed successfully")
-        
-        # Proceed with actual pipeline execution if dry run successful
         pipeline = create_pipeline()
         comparison_distiset = process_dataset(pipeline, {
             "load_cablegate_dataset": {
                 "file_path": os.path.join("scripts", "cables", "cleaned_data.parquet"),
             },
-            "compare_cables": {
-                "generation_kwargs": {
-                    "temperature": 0.9,
-                    "max_new_tokens": 4095,
-                }
-            },
             "sample_for_comparison": {
                 "num_comparisons": 2000,
                 "sample_size": 200,
-            },
+            }
         })
         
         # Process results
@@ -326,7 +318,7 @@ if __name__ == "__main__":
                     comparison_dataset.push_to_hub(
                         "DataTonic/BusinessCaseStudies",
                         private=True,
-                        token=os.getenv("HUGGINGFACE_TOKEN", "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")
+                        token=os.getenv("HUGGINGFACE_TOKEN")
                     )
                     logging.info("Dataset successfully pushed to the Hub")
                 except Exception as e:

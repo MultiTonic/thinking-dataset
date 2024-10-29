@@ -140,17 +140,25 @@ class OptimizedTestContainerOllamaLLM(AsyncLLM):
 
         try:
             endpoint = self._endpoints[instance_idx]
+            
+            # Default generation parameters
+            generation_params = {
+                "temperature": 0.9,
+                "num_ctx": 8192,
+                "num_batch": 512,
+                "max_tokens": 4095,
+            }
+            
+            # Update with any provided options
+            if options:
+                generation_params.update(options)
+
             response = requests.post(
                 f"{endpoint}/api/generate",
                 json={
                     "model": self.model,
                     "prompt": input,
-                    "options": {
-                        "num_ctx": 8192,
-                        "num_batch": 512,
-                        "temperature": 0.7,
-                        **(options or {})
-                    }
+                    "options": generation_params
                 },
                 timeout=30
             )
