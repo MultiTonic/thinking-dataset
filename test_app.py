@@ -1,3 +1,5 @@
+# test_app.py
+
 import os
 import random
 import sys
@@ -9,6 +11,9 @@ from pydantic import Field, BaseModel
 # from testcontainers.ollama import OllamaContainer
 import requests
 from distilabel.llms.base import LLM, AsyncLLM
+
+import locale
+import codecs
 
 from distilabel.llms import OpenAILLM, AzureOpenAILLM, OllamaLLM, vLLM
 from distilabel.pipeline import Pipeline
@@ -29,16 +34,57 @@ from scripts.utilities.tcollamad import OptimizedTestContainerOllamaLLM, Contain
 # Load environment variables from .env file
 load_dotenv()
 
-# Redirect stdout to support UTF-8 encoding
-sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
+import sys
+import logging
+import locale
+import codecs
+import io
+import asyncio
+
+# Force UTF-8 for Windows
+if sys.platform.startswith('win'):
+    try:
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+    except locale.Error:
+        locale.setlocale(locale.LC_ALL, '')
+# Set up UTF-8 encoding for Windows console
+if sys.platform.startswith('win'):
+    # Force UTF-8 output encoding
+    sys.stdout = io.TextIOWrapper(
+        sys.stdout.buffer,
+        encoding='utf-8',
+        errors='replace'
+    )
+    sys.stderr = io.TextIOWrapper(
+        sys.stderr.buffer,
+        encoding='utf-8',
+        errors='replace'
+    )
+
+# Create a custom formatter that handles UTF-8
+class UTF8Formatter(logging.Formatter):
+    def __init__(self, fmt=None, datefmt=None):
+        super().__init__(fmt, datefmt)
+    
+    def format(self, record):
+        # Ensure the message is properly encoded
+        if isinstance(record.msg, bytes):
+            record.msg = record.msg.decode('utf-8', errors='replace')
+        return super().format(record)
 
 # Configure logging
+formatter = UTF8Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(formatter)
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)],
-    encoding='utf-8'
+    handlers=[handler],
+    force=True
 )
+
+# Ensure all loggers use UTF-8
+logging.getLogger().handlers = [handler]
 
 # Step Input/Output Schemas
 class CableContent(BaseModel):
@@ -74,20 +120,20 @@ def clean_content(text: str) -> str:
 
 class LoadLocalDataset(GeneratorStep):
     file_path: str = Field(description="Path to the local parquet file")
-    input_batch_size: int = Field(default=32, description="Number of items to process in each batch")
+    batch_size: int = Field(default=32, description="Number of items to process in each batch")
 
     @property
     def inputs(self) -> List[str]:
-        return []  # No inputs, this step generates data from file
+        return []
 
     @property
     def outputs(self) -> List[str]:
-        return ["cables"]  # Outputs the loaded cables
+        return ["cables"]
 
     def process(self, offset: Optional[int] = None) -> StepOutput:
         dataset = load_dataset("parquet", data_files={"train": self.file_path})["train"]
         start = offset or 0
-        end = min(start + self.input_batch_size, len(dataset))
+        end = min(start + self.batch_size, len(dataset))
 
         while start < len(dataset):
             batch = []
@@ -95,20 +141,16 @@ class LoadLocalDataset(GeneratorStep):
                 cable_row = dataset[i]
                 if "cleaned_content" in cable_row:
                     cable_content = clean_content(cable_row["cleaned_content"])
-                    if cable_content:  # Ensure the cleaned content is not empty
+                    if cable_content:
                         batch.append({"cables": cable_content})
-                    else:
-                        logging.warning(f"Row {i} has empty 'cleaned_content', skipping.")
-                else:
-                    logging.warning(f"Row {i} missing 'cleaned_content', skipping.")
 
+            # Yield batch with last_batch flag
+            is_last_batch = end >= len(dataset)
             if batch:
-                yield batch
-            else:
-                logging.warning(f"No valid cables found in batch starting at index {start}.")
+                yield batch, is_last_batch
 
             start = end
-            end = min(start + self.input_batch_size, len(dataset))
+            end = min(start + self.batch_size, len(dataset))
 
 class PrepareContentStep(Step):
     @property
@@ -183,12 +225,12 @@ class RandomSampleForComparison(Step):
 def create_pipeline():
     with Pipeline(
         name="openai-casestudy-pipeline",
-        description="A pipeline to summarize and compare diplomatic cables from the Cablegate dataset"
+        description="A pipeline to summarize and compare diplomatic cables"
     ) as pipeline:
         load_dataset_step = LoadLocalDataset(
             name="load_cablegate_dataset",
             file_path=os.path.join("scripts", "cables", "cleaned_data.parquet"),
-            input_batch_size=32
+            batch_size=32  # Changed from input_batch_size to batch_size
         )
 
         prepare_content_step = PrepareContentStep(
@@ -197,8 +239,7 @@ def create_pipeline():
 
         sample_for_comparison_step = RandomSampleForComparison(
             name="sample_for_comparison",
-            num_comparisons=2000,
-            sample_size=200
+            input_batch_size=32  # Added correct parameter name
         )
 
         prepare_messages_comparison_step = PrepareMessagesStep(
@@ -210,35 +251,31 @@ def create_pipeline():
             num_instances=4,
             base_port=11434
         )
+        
+        # Ensure LLM is loaded properly
+        asyncio.run(ollama_llm.load())
 
-        # Modified ChatGeneration step
         compare_cables_step = ChatGeneration(
             name="compare_cables",
             llm=ollama_llm,
             input_batch_size=32,
-            input_mappings={"messages": "messages"}, 
+            input_mappings={"messages": "messages"},
             output_mappings={"generation": "generation"}
         )
 
-        # Define the pipeline flow
-        load_dataset_step \
-            >> prepare_content_step \
-            >> sample_for_comparison_step \
-            >> prepare_messages_comparison_step \
-            >> compare_cables_step
+        # Define pipeline flow
+        load_dataset_step >> prepare_content_step >> sample_for_comparison_step >> prepare_messages_comparison_step >> compare_cables_step
 
     return pipeline
 
 def process_dataset(pipeline: Pipeline, parameters: Dict[str, Any]) -> Distiset:
     try:
-        # Update the parameters structure
         run_parameters = {
             "load_cablegate_dataset": {
-                "file_path": os.path.join("scripts", "cables", "cleaned_data.parquet"),
+                "batch_size": 32
             },
             "sample_for_comparison": {
-                "num_comparisons": 2000,
-                "sample_size": 200,
+                "input_batch_size": 32
             }
         }
         return pipeline.run(parameters=run_parameters, use_cache=False)
@@ -278,53 +315,52 @@ def test_pipeline_dry_run():
         return False
 
 if __name__ == "__main__":
-    # Configure logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[logging.StreamHandler(sys.stdout)],
-        encoding='utf-8'
-    )
-
-    # Run the dry run test
-    success = test_pipeline_dry_run()
-    
-    if success:
-        pipeline = create_pipeline()
-        comparison_distiset = process_dataset(pipeline, {
-            "load_cablegate_dataset": {
-                "file_path": os.path.join("scripts", "cables", "cleaned_data.parquet"),
-            },
-            "sample_for_comparison": {
-                "num_comparisons": 2000,
-                "sample_size": 200,
-            }
-        })
+    try:
+        # Run the dry run test
+        success = test_pipeline_dry_run()
         
-        # Process results
-        compare_cables_output = comparison_distiset.get("compare_cables", {})
-        generation_data = compare_cables_output.get("generation", [])
+        if success:
+            pipeline = create_pipeline()
+            comparison_distiset = process_dataset(pipeline, {
+                "load_cablegate_dataset": {
+                    "batch_size": 32
+                },
+                "sample_for_comparison": {
+                    "input_batch_size": 32
+                }
+            })
+            
+            # Process results
+            compare_cables_output = comparison_distiset.get("compare_cables", {})
+            generation_data = compare_cables_output.get("generation", [])
 
-        if isinstance(generation_data, list) and generation_data:
-            dataset_dict = {}
-            for entry in generation_data:
-                for key, value in entry.items():
-                    dataset_dict.setdefault(key, []).append(value)
+            if isinstance(generation_data, list) and generation_data:
+                dataset_dict = {}
+                for entry in generation_data:
+                    for key, value in entry.items():
+                        dataset_dict.setdefault(key, []).append(value)
+                
+                comparison_dataset = Dataset.from_dict(dataset_dict)
+                
+                if len(comparison_dataset) > 0:
+                    try:
+                        comparison_dataset.push_to_hub(
+                            "DataTonic/BusinessCaseStudies",
+                            private=True,
+                            token=os.getenv("HUGGINGFACE_TOKEN")
+                        )
+                        logging.info("Dataset successfully pushed to the Hub")
+                    except Exception as e:
+                        logging.error(f"Failed to push dataset to the Hub: {e}")
+                else:
+                    logging.warning("Comparison dataset is empty")
+        else:
+            logging.error("Pipeline dry run validation failed")
+            sys.exit(1)
             
-            comparison_dataset = Dataset.from_dict(dataset_dict)
-            
-            if len(comparison_dataset) > 0:
-                try:
-                    comparison_dataset.push_to_hub(
-                        "DataTonic/BusinessCaseStudies",
-                        private=True,
-                        token=os.getenv("HUGGINGFACE_TOKEN")
-                    )
-                    logging.info("Dataset successfully pushed to the Hub")
-                except Exception as e:
-                    logging.error(f"Failed to push dataset to the Hub: {e}")
-            else:
-                logging.warning("Comparison dataset is empty")
-    else:
-        logging.error("Pipeline dry run validation failed")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}", exc_info=True)
         sys.exit(1)
+    finally:
+        # Ensure proper cleanup
+        logging.shutdown()

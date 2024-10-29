@@ -12,7 +12,7 @@ from typing_extensions import TypedDict
 from dataclasses import dataclass
 import torch
 from distilabel.llms.base import LLM, AsyncLLM
-
+import asyncio
 
 @dataclass
 class ContainerConfig:
@@ -39,19 +39,17 @@ class OptimizedTestContainerOllamaLLM(AsyncLLM):
     _lock: asyncio.Lock = PrivateAttr(default_factory=asyncio.Lock)
     _logger: logging.Logger = PrivateAttr()
 
-
-    @property
-    def model_name(self) -> str:
-        """
-        Implementation of the abstract model_name property required by AsyncLLM
-        Returns the model name being used by this LLM instance
-        """
-        return self.model
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.setLevel(logging.INFO)
+
+    @property
+    def model_name(self) -> str:
+        """
+        Returns the model name being used by this LLM instance
+        """
+        return self.model
 
     def _create_container_configs(self) -> List[ContainerConfig]:
         """Create configurations for each container instance"""
@@ -72,8 +70,6 @@ class OptimizedTestContainerOllamaLLM(AsyncLLM):
 
     async def load(self) -> None:
         """Initialize multiple instances of the same quantized model"""
-        super().load()
-        
         configs = self._create_container_configs()
         
         try:
@@ -89,7 +85,6 @@ class OptimizedTestContainerOllamaLLM(AsyncLLM):
                     }
                 )
                 
-                # Configure container
                 container.with_exposed_ports(config.port)
                 container.start()
                 
@@ -97,7 +92,6 @@ class OptimizedTestContainerOllamaLLM(AsyncLLM):
                 self._containers.append(container)
                 self._endpoints.append(endpoint)
                 
-                # Pull model for this instance
                 await self._pull_model(container, config)
                 
                 self._logger.info(f"Container instance {i+1} initialized at {endpoint}")
