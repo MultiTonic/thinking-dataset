@@ -1,4 +1,4 @@
-git+https://github.com/Josephrp/distilabel.git@ead67d15fb5fc149128fb25c27104ad37669fdb2#egg=distilabel
+distilabel
 huggingface_hub
 datasets
 PyPDF2
@@ -7,3 +7,4 @@ openai
 python-dotenv
 testcontainers
 requests
+typing-extensions

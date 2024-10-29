@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 import io
 from pydantic import Field, BaseModel
-from testcontainers.ollama import OllamaContainer
+# from testcontainers.ollama import OllamaContainer
 import requests
 
-from distilabel.llms import OpenAILLM, AzureOpenAILLM, OllamaLLM
+from distilabel.llms import OpenAILLM, AzureOpenAILLM, OllamaLLM, vLLM
 from distilabel.pipeline import Pipeline
 from distilabel.steps import Step, GeneratorStep
 from distilabel.steps.tasks import ChatGeneration
@@ -22,6 +22,8 @@ from datasets import Dataset, load_dataset
 from dotenv import load_dotenv
 
 from prompts import SITREPPROMPT
+
+from tcollamadistilabel import TestContainerOllamaLLM, OptimizedTestContainerOllamaLLM, ContainerConfig
 
 # Load environment variables from .env file
 load_dotenv()
@@ -37,50 +39,50 @@ logging.basicConfig(
     encoding='utf-8'
 )
 
-# Custom TestContainer Ollama LLM Implementation
-class TestContainerOllamaLLM:
-    def __init__(self, model_name: str = "llama2"):
-        self.model_name = model_name
-        self.ollama_home = Path.home() / ".ollama"
-        self._container = None
+import torch
 
-    def load(self):
-        """Initialize the Ollama container"""
-        self._container = OllamaContainer(ollama_home=self.ollama_home)
-        self._container.start()
+class OptimizedVLLM(vLLM):
+    """Optimized vLLM implementation with multi-GPU support and batching"""
+    
+    def __init__(
+        self,
+        model: str,
+        num_gpus: int = 1,
+        batch_size: int = 32,
+        max_model_len: int = 8192,
+        quantization: Optional[str] = "int8",
+        dtype: str = "float16",
+        trust_remote_code: bool = True,
+        **kwargs
+    ):
+        super().__init__(
+            model=model,
+            dtype=dtype,
+            trust_remote_code=trust_remote_code,
+            quantization=quantization,
+            **kwargs
+        )
+        self.num_gpus = num_gpus
+        self.batch_size = batch_size
+        self.max_model_len = max_model_len
         
-        # Check if model exists and pull if necessary
-        models = self._container.list_models()
-        if self.model_name not in [model["name"] for model in models]:
-            self._container.pull_model(self.model_name)
+        # Configure multi-GPU settings
+        self.extra_kwargs = {
+            "tensor_parallel_size": num_gpus,
+            "max_model_len": max_model_len,
+            "gpu_memory_utilization": 0.95,
+            "max_num_batched_tokens": batch_size * max_model_len,
+            "max_num_seqs": batch_size,
+            "quantization": quantization,
+        }
 
-    async def agenerate(self, messages: List[Dict[str, str]], **kwargs) -> List[str]:
-        """Async generation method compatible with the pipeline"""
-        if not self._container:
-            raise RuntimeError("Container not initialized. Call load() first.")
-
+    def load(self) -> None:
+        """Load the model with optimized settings"""
         try:
-            endpoint = self._container.get_endpoint()
-            response = requests.post(
-                f"{endpoint}/api/chat",
-                json={
-                    "model": self.model_name,
-                    "messages": messages,
-                    "stream": False,
-                    **kwargs
-                }
-            )
-            response.raise_for_status()
-            result = response.json()
-            return [result["message"]["content"]]
+            super().load()
         except Exception as e:
-            logging.error(f"Generation error: {e}")
-            return [""]
+            raise RuntimeError(f"Failed to load vLLM model: {e}")
 
-    def __del__(self):
-        """Cleanup the container"""
-        if self._container:
-            self._container.stop()
 
 # Step Input/Output Schemas
 class CableContent(BaseModel):
@@ -247,14 +249,45 @@ def create_pipeline():
             name="prepare_messages_comparison"
         )
 
+        # # Initialize optimized LLM with multiple containers
+        # ollama_llm = OptimizedTestContainerOllamaLLM(
+        #     model="yi:6b",
+        #     num_containers=4,  # Adjust based on available GPUs
+        #     container_configs=[
+        #         ContainerConfig(
+        #             model_name="yi:6b-q4_K_M",
+        #             quantization="q4_k_m",
+        #             gpu_id=0,
+        #             num_ctx=8192,
+        #             num_batch=512
+        #         ),
+        #         ContainerConfig(
+        #             model_name="yi:6b-q4_K_M",
+        #             quantization="q4_k_m",
+        #             gpu_id=1,
+        #             num_ctx=8192,
+        #             num_batch=512
+        #         ),
+        #         # Add more configurations as needed
+        #     ],
+        #     batch_size=32
+        # )
+
+        # Initialize optimized vLLM
+        vllm_model = OptimizedVLLM(
+            model="01-ai/Yi-6B", # Using Yi-6B model
+            num_gpus=torch.cuda.device_count(),  # Use all available GPUs
+            batch_size=32,
+            max_model_len=8192,
+            quantization="int8",  # Enable int8 quantization
+            dtype="float16",      # Use float16 for better performance
+            trust_remote_code=True,
+            structured_output=None # No structured output needed for this case
+        )
+
         compare_cables_step = ChatGeneration(
             name="compare_cables",
-            llm=AzureOpenAILLM(
-                api_version="2024-02-15-preview",
-                model="gptonic",
-                api_key=os.getenv("AZURE_OPENAI_API_KEY"),  # Securely loaded from environment
-                base_url=os.getenv("AZURE_OPENAI_BASE_URL")  # Securely loaded from environment
-            ),
+            llm=vllm_model,
             input_batch_size=32,
             input_mappings={"messages": "messages"}, 
             output_mappings={"generation": "generation"},  
