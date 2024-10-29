@@ -9,6 +9,8 @@ from testcontainers.ollama import OllamaContainer
 from typing_extensions import TypedDict
 from dataclasses import dataclass
 import torch
+from distilabel.llms.base import LLM, AsyncLLM
+
 
 @dataclass
 class ContainerConfig:

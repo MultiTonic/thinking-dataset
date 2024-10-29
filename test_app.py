@@ -8,6 +8,7 @@ import io
 from pydantic import Field, BaseModel
 # from testcontainers.ollama import OllamaContainer
 import requests
+from distilabel.llms.base import LLM, AsyncLLM
 
 from distilabel.llms import OpenAILLM, AzureOpenAILLM, OllamaLLM, vLLM
 from distilabel.pipeline import Pipeline
@@ -23,7 +24,7 @@ from dotenv import load_dotenv
 
 from prompts import SITREPPROMPT
 
-from scripts.utilities_scripts.tcollamad import OptimizedTestContainerOllamaLLM, ContainerConfig
+from scripts.utilities.tcollamad import OptimizedTestContainerOllamaLLM, ContainerConfig
 
 # Load environment variables from .env file
 load_dotenv()

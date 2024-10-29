@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 
 from prompts import SITREPPROMPT
 
-from scripts.utilities_scripts.tcollamad import OptimizedTestContainerOllamaLLM, ContainerConfig
+from scripts.utilities.tcollamad import OptimizedTestContainerOllamaLLM, ContainerConfig
 
 # Load environment variables from .env file
 load_dotenv()

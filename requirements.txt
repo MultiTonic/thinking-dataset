@@ -9,3 +9,4 @@ testcontainers
 requests
 typing-extensions
 torch
+psutil
