@@ -11,3 +11,9 @@ requests
 typing-extensions
 torch==2.2.2+cu121
 psutil
+numpy<2.0.0  # Pin numpy to 1.x version
+pandas>=2.0.0
+transformers>=4.30.0
+scikit-learn>=1.0.0
+tqdm>=4.65.0
+pydantic>=2.0.0

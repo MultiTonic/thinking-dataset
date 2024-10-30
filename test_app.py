@@ -31,6 +31,22 @@ from prompts import SITREPPROMPT
 
 from scripts.utilities.tcollamad import OptimizedTestContainerOllamaLLM, ContainerConfig
 
+import numpy as np
+import warnings
+
+# Suppress numpy-related warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='numpy')
+
+# Version check
+if np.__version__.startswith('2'):
+    import subprocess
+    import sys
+    
+    print("Detected NumPy 2.x. Downgrading to compatible version...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "numpy<2.0.0", "--force-reinstall"])
+    print("NumPy downgrade complete. Please restart the application.")
+    sys.exit(0)
+
 # Load environment variables from .env file
 load_dotenv()
 

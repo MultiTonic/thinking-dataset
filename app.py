@@ -25,19 +25,9 @@ from prompts import SITREPPROMPT
 
 from scripts.utilities.tcollamad import OptimizedTestContainerOllamaLLM, ContainerConfig
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Redirect stdout to support UTF-8 encoding
-sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)],
-    encoding='utf-8'
-)
+from scripts.utilities.easylog import EasyLogger
+easy_logger = EasyLogger()
+easy_logger.initialize()
 
 # Step Input/Output Schemas
 class CableContent(BaseModel):
