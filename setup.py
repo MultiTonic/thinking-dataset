@@ -2,12 +2,22 @@ from setuptools import setup, find_packages
 
 setup(
     name='thinking-dataset',
-    version='0.1',
+    version='0.0.1',
     packages=find_packages(),
     install_requires=[
-        'distillabel',
+        'distilabel',
+        'huggingface_hub',
+        'datasets',
+        'PyPDF2',
+        'pyarrow',
+        'openai',
         'ollama',
-        # Add other dependencies here
+        'python-dotenv',
+        'testcontainers',
+        'requests',
+        'typing-extensions',
+        'torch',
+        'psutil'
     ],
     entry_points={
         'console_scripts': [

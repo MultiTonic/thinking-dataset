@@ -12,9 +12,9 @@
      ```
 
 3. **Create a virtual environment**:
-   - Run the following command to create a new virtual environment named `venv` (or any name you prefer).
+   - Run the following command to create a new virtual environment named `.venv` (or any name you prefer).
      ```bash
-     python3 -m venv venv
+     python3 -m venv .venv
      ```
 
 4. **Activate the virtual environment**:
@@ -28,9 +28,9 @@
      ```
 
 5. **Install the required packages**:
-   - With the virtual environment activated, install the dependencies listed in the `requirements.txt` file.
+   - With the virtual environment activated, install the project as a package with dependencies by running the following in the project root:
      ```bash
-     pip install -r requirements.txt
+     pip install -e .
      ```
 
 7. **Deactivate the virtual environment** (optional):
