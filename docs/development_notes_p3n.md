@@ -148,3 +148,5 @@
 - Set up configuration management using `Microsoft.Extensions.Configuration`.
 - Integrate MediatR for a robust event system.
 - Document and refine the case study generation pipeline.
+
+After some review now I am building out a simple main task to test the ollama connector
