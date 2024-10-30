@@ -1,0 +1,13 @@
+torch
+distilabel
+huggingface_hub
+datasets
+PyPDF2
+pyarrow
+openai
+python-dotenv
+testcontainers
+requests
+typing-extensions
+psutil
+numpy<2.0.0  # Pin numpy to 1.x version
