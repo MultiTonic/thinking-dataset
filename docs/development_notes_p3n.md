@@ -150,3 +150,6 @@
 - Document and refine the case study generation pipeline.
 
 After some review now I am building out a simple main task to test the ollama connector
+
+giving up on trying to get semantic kernel to work with ollama, switching gears to go back to using python and distilabel
+
