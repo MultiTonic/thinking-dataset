@@ -33,6 +33,7 @@ from scripts.utilities.tcollamad import OptimizedTestContainerOllamaLLM, Contain
 
 import numpy as np
 import warnings
+import asyncio
 
 # Suppress numpy-related warnings
 warnings.filterwarnings('ignore', category=UserWarning, module='numpy')
@@ -47,60 +48,14 @@ if np.__version__.startswith('2'):
     print("NumPy downgrade complete. Please restart the application.")
     sys.exit(0)
 
+#logger
+from scripts.utilities.easylog import EasyLogger
+easy_logger = EasyLogger()
+easy_logger.initialize()
+
 # Load environment variables from .env file
 load_dotenv()
 
-import sys
-import logging
-import locale
-import codecs
-import io
-import asyncio
-
-# Force UTF-8 for Windows
-if sys.platform.startswith('win'):
-    try:
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-    except locale.Error:
-        locale.setlocale(locale.LC_ALL, '')
-# Set up UTF-8 encoding for Windows console
-if sys.platform.startswith('win'):
-    # Force UTF-8 output encoding
-    sys.stdout = io.TextIOWrapper(
-        sys.stdout.buffer,
-        encoding='utf-8',
-        errors='replace'
-    )
-    sys.stderr = io.TextIOWrapper(
-        sys.stderr.buffer,
-        encoding='utf-8',
-        errors='replace'
-    )
-
-# Create a custom formatter that handles UTF-8
-class UTF8Formatter(logging.Formatter):
-    def __init__(self, fmt=None, datefmt=None):
-        super().__init__(fmt, datefmt)
-    
-    def format(self, record):
-        # Ensure the message is properly encoded
-        if isinstance(record.msg, bytes):
-            record.msg = record.msg.decode('utf-8', errors='replace')
-        return super().format(record)
-
-# Configure logging
-formatter = UTF8Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(formatter)
-
-logging.basicConfig(
-    level=logging.INFO,
-    handlers=[handler],
-    force=True
-)
-
-# Ensure all loggers use UTF-8
-logging.getLogger().handlers = [handler]
 
 # Step Input/Output Schemas
 class CableContent(BaseModel):

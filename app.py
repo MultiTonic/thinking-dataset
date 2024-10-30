@@ -25,6 +25,7 @@ from prompts import SITREPPROMPT
 
 from scripts.utilities.tcollamad import OptimizedTestContainerOllamaLLM, ContainerConfig
 
+#logger
 from scripts.utilities.easylog import EasyLogger
 easy_logger = EasyLogger()
 easy_logger.initialize()
