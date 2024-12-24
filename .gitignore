@@ -169,3 +169,4 @@ cython_debug/
 #.idea/
 .vs/slnx.sqlite
 .vs/VSWorkspaceState.json
+.vscode/settings.json
