@@ -5,19 +5,20 @@ setup(
     version='0.0.1',
     packages=find_packages(),
     install_requires=[
-        'distilabel',
-        'huggingface_hub',
+        'huggingface_hub[cli]',
         'datasets',
         'PyPDF2',
-        'pyarrow',
-        'openai',
-        'ollama',
         'python-dotenv',
-        'testcontainers',
         'requests',
-        'typing-extensions',
-        'torch',
-        'psutil'
+        'rich',
+        'sqlite-utils',
+        'pytest',
+        'loguru',
+        'pandas',
+        'numpy',
+        'scikit-learn',
+        'sqlalchemy',
+        'tqdm'
     ],
     entry_points={
         'console_scripts': [
