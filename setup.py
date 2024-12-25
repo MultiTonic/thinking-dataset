@@ -13,12 +13,15 @@ setup(
         'rich',
         'sqlite-utils',
         'pytest',
+        'pytest-html',
+        'pytest-cov',
         'loguru',
         'pandas',
         'numpy',
         'scikit-learn',
         'sqlalchemy',
-        'tqdm'
+        'tqdm',
+        'pydantic',
     ],
     entry_points={
         'console_scripts': [
