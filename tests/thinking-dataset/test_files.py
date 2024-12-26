@@ -14,6 +14,9 @@ from thinking_dataset.files import Files
 
 
 def test_ensure_directories(monkeypatch, tmp_path):
+    """
+    Test the ensure_directories method of the Files class.
+    """
     files = Files(base_dir=tmp_path)
     files.ensure_directories()
 
@@ -22,6 +25,9 @@ def test_ensure_directories(monkeypatch, tmp_path):
 
 
 def test_list_files(monkeypatch, tmp_path):
+    """
+    Test the list_files method of the Files class.
+    """
     files = Files(base_dir=tmp_path)
     files.ensure_directories()
 

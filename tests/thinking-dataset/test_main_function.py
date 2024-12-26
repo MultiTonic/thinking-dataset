@@ -39,5 +39,15 @@ def test_main_function(monkeypatch):
         assert "Downloaded 1 files to data\\raw/cablegate" in result.output
 
 
+def test_clean_function(monkeypatch):
+    runner = CliRunner()
+    result = runner.invoke(cli, ['clean'])
+
+    assert result.exit_code == 0
+    assert "Removed directory" in result.output or \
+           "No directory found" in result.output
+    assert "Created clean directory" in result.output
+
+
 if __name__ == "__main__":
     pytest.main()
