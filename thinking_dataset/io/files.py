@@ -12,8 +12,13 @@ import os
 
 
 class Files:
-    def ensure_directories(self, directories):
-        for directory in directories:
+    def __init__(self, base_dir):
+        self.base_dir = base_dir
+        self.raw_dir = os.path.join(self.base_dir, "raw")
+        self.processed_dir = os.path.join(self.base_dir, "processed")
+
+    def ensure_directories(self):
+        for directory in [self.raw_dir, self.processed_dir]:
             os.makedirs(directory, exist_ok=True)
 
     def list_files(self, dir_path):

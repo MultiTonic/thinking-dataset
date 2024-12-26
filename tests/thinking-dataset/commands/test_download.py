@@ -12,11 +12,9 @@ import pytest
 from rich.console import Console
 from dotenv import load_dotenv
 from thinking_dataset.commands.download import (
-    load_env_variables, construct_paths,
-    validate_env_variables
+    load_env_variables, construct_paths, validate_env_variables
 )
 import os
-
 
 # Load environment variables from .env file
 load_dotenv()

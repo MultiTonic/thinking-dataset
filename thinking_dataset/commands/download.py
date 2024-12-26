@@ -14,8 +14,9 @@ import stat
 from dotenv import load_dotenv
 from rich.console import Console
 import click
-from huggingface_hub import HfApi, hf_hub_download
+from huggingface_hub import hf_hub_download
 from thinking_dataset.io.files import Files
+from thinking_dataset.tonics.data_tonic import DataTonic
 
 
 def load_env_variables():
@@ -24,7 +25,7 @@ def load_env_variables():
         "HF_TOKEN": os.getenv("HF_TOKEN"),
         "HF_DATASET": os.getenv("HF_DATASET"),
         "HF_ORGANIZATION": os.getenv("HF_ORGANIZATION"),
-        "ROOT_DIR": os.path.expanduser(os.getenv("ROOT_DIR", ".")),
+        "ROOT_DIR": os.getenv("ROOT_DIR", "."),
         "DATA_DIR": os.getenv("DATA_DIR", "data")
     }
 
@@ -38,52 +39,44 @@ def construct_paths(root_dir, data_dir):
     # Construct the directory paths
     base_dir = os.path.join(root_dir, data_dir)
     raw_dir = os.path.join(base_dir, raw_dir_name, cablegate_dir_name)
-    processed_dir = os.path.join(base_dir, processed_dir_name,
-                                 cablegate_dir_name)
+    processed_dir = os.path.join(
+        base_dir, processed_dir_name, cablegate_dir_name
+    )
 
     return raw_dir, processed_dir
 
 
 def validate_env_variables(env_vars, console):
     if not all(env_vars.values()):
-        console.print("\n[bold red]HF_TOKEN, HF_DATASET, or HF_ORGANIZATION"
-                      " is not set. Please check your .env file.[/bold red]\n")
+        console.print(
+            "\n[bold red]HF_TOKEN, HF_DATASET, or HF_ORGANIZATION"
+            " is not set. Please check your .env file.[/bold red]\n"
+        )
         return False
     return True
 
 
 def download_files(env_vars, raw_dir, console):
     console.print(f"\n[green]Using HF_TOKEN: {env_vars['HF_TOKEN']}[/green]")
-    console.print("[green]Downloading all parquet files in the Cablegate"
-                  " dataset...[/green]\n")
+    console.print(
+        "[green]Downloading all parquet files in the Cablegate"
+        " dataset...[/green]\n"
+    )
 
-    files = Files()
-    files.ensure_directories([raw_dir])
+    files = Files(base_dir=raw_dir)
+    files.ensure_directories()
 
-    api = HfApi()
+    # Use DataTonic for downloading files
+    datatonic = DataTonic(token=env_vars['HF_TOKEN'])
     dataset_id = f"{env_vars['HF_ORGANIZATION']}/{env_vars['HF_DATASET']}"
+    urls = datatonic.downloads.get_dataset_download_urls(dataset_id)
 
-    try:
-        # List all files in the repository
-        repo_files = api.list_repo_files(repo_id=dataset_id,
-                                         token=env_vars['HF_TOKEN'],
-                                         repo_type="dataset")
-        console.print(f"[green]Found {len(repo_files)} files in the dataset."
-                      f"[/green]")
-        # Filter for parquet files
-        parquet_files = [file for file in repo_files if file.endswith(
-            '.parquet')]
-    except Exception as e:
-        console.print(
-            f"\n[bold red]Error fetching dataset files: {e}[/bold red]\n")
-        return
-
-    if not parquet_files:
+    if not urls:
         console.print("\n[bold red]No parquet files found in the dataset."
                       "[/bold red]\n")
         return
 
-    for file in parquet_files:
+    for file in urls:
         dest = files.get_file_path(raw_dir, file)
         console.print(f"[green]Downloading {file}...[/green]")
         if os.path.exists(dest):
@@ -93,18 +86,25 @@ def download_files(env_vars, raw_dir, console):
             except PermissionError as e:
                 console.print(f"\n[bold red]PermissionError: {e}[/bold red]\n")
         try:
-            hf_hub_download(repo_id=dataset_id, filename=file,
-                            local_dir=raw_dir, token=env_vars['HF_TOKEN'],
-                            repo_type="dataset")
-            console.print("[green]Downloaded " + file + " to "
-                          f"{os.path.normpath(dest)}[/green]\n")
+            hf_hub_download(
+                repo_id=dataset_id, filename=file,
+                local_dir=raw_dir, token=env_vars['HF_TOKEN'],
+                repo_type="dataset"
+            )
+            console.print(
+                "[green]Downloaded " + file + " to "
+                f"{os.path.normpath(dest)}[/green]\n"
+            )
         except Exception as e:
             console.print(
-                f"\n[bold red]Failed to download {file}: {e}[/bold red]\n")
+                f"\n[bold red]Failed to download {file}: {e}[/bold red]\n"
+            )
 
-    console.print("[green]Downloaded " + str(len(parquet_files)) +
-                  " parquet files to " +
-                  f"{os.path.normpath(raw_dir)}[/green]\n")
+    console.print(
+        "[green]Downloaded " + str(len(urls)) +
+        " parquet files to " +
+        f"{os.path.normpath(raw_dir)}[/green]\n"
+    )
 
 
 @click.command()
@@ -123,10 +123,10 @@ def download():
         return
 
     # Construct paths
-    raw_dir, processed_dir = \
-        construct_paths(
-            env_vars['ROOT_DIR'],
-            env_vars['DATA_DIR'])
+    raw_dir, processed_dir = construct_paths(
+        env_vars['ROOT_DIR'],
+        env_vars['DATA_DIR']
+    )
 
     # Download files
     download_files(env_vars, raw_dir, console)

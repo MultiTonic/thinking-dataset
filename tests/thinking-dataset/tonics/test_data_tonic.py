@@ -3,7 +3,7 @@
 @description Tests for the DataTonic class in the Thinking Dataset Project.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
+author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -31,8 +31,10 @@ def test_list_datatonic_datasets():
     mock_datasets_id = f"{HF_ORGANIZATION}/{HF_DATASET}"
     mock_datasets = [{'id': mock_datasets_id}]
 
-    with patch.object(client.operations, 'list_organization_datasets',
-                      return_value=mock_datasets):
+    with patch.object(
+        client.operations, 'list_organization_datasets',
+        return_value=mock_datasets
+    ):
         datasets = client.operations.list_organization_datasets()
         logger.info(f"Number of DataTonic datasets listed: {len(datasets)}")
         assert datasets is not None
@@ -47,8 +49,10 @@ def test_get_dataset_metadata():
         last_modified=None, tags=['cleaned-text']
     )
 
-    with patch.object(client.operations, 'get_dataset_metadata',
-                      return_value=mock_dataset_info):
+    with patch.object(
+        client.operations, 'get_dataset_metadata',
+        return_value=mock_dataset_info
+    ):
         dataset_info = client.operations.get_dataset_metadata()
         logger.info(f"Dataset metadata: {dataset_info}")
         assert dataset_info is not None
@@ -66,8 +70,10 @@ def test_get_dataset_tags():
         id=f"{HF_ORGANIZATION}/{HF_DATASET}", tags=['cleaned-text']
     )
 
-    with patch.object(client.operations, 'get_dataset_tags',
-                      return_value=mock_dataset_info.tags):
+    with patch.object(
+        client.operations, 'get_dataset_tags',
+        return_value=mock_dataset_info.tags
+    ):
         tags = client.operations.get_dataset_tags()
         logger.info(f"Dataset tags: {tags}")
         assert "cleaned-text" in tags
@@ -81,8 +87,10 @@ def test_get_dataset_card_content():
         card_data={'pretty_name': 'Cable Gate (Cleaned)', 'language': ['en']}
     )
 
-    with patch.object(client.operations, 'get_dataset_card_content',
-                      return_value=mock_dataset_info.card_data):
+    with patch.object(
+        client.operations, 'get_dataset_card_content',
+        return_value=mock_dataset_info.card_data
+    ):
         card_content = client.operations.get_dataset_card_content()
         logger.info(f"Dataset card data: {card_content}")
         assert "pretty_name" in card_content
@@ -97,9 +105,10 @@ def test_get_dataset_download_urls():
         siblings=[MagicMock(rfilename='file.parquet')]
     )
 
-    with patch.object(client.downloads, 'get_dataset_download_urls',
-                      return_value=[file.rfilename for file in
-                                    mock_dataset_info.siblings]):
+    with patch.object(
+        client.downloads, 'get_dataset_download_urls',
+        return_value=[file.rfilename for file in mock_dataset_info.siblings]
+    ):
         download_urls = client.downloads.get_dataset_download_urls()
         logger.info(f"Dataset download URLs: {download_urls}")
         assert len(download_urls) > 0
@@ -108,11 +117,14 @@ def test_get_dataset_download_urls():
 def test_get_dataset_permissions():
     client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
-    mock_dataset_info = DatasetInfo(id=f"{HF_ORGANIZATION}/{HF_DATASET}",
-                                    private=False)
+    mock_dataset_info = DatasetInfo(
+        id=f"{HF_ORGANIZATION}/{HF_DATASET}", private=False
+    )
 
-    with patch.object(client.downloads, 'get_dataset_permissions',
-                      return_value=mock_dataset_info.private):
+    with patch.object(
+        client.downloads, 'get_dataset_permissions',
+        return_value=mock_dataset_info.private
+    ):
         permissions = client.downloads.get_dataset_permissions()
         logger.info(f"Dataset permissions: {permissions}")
         assert permissions is False
@@ -126,8 +138,10 @@ def test_get_dataset_file_list():
         siblings=[MagicMock(rfilename='README.md')]
     )
 
-    with patch.object(client.downloads, 'get_dataset_file_list',
-                      return_value=mock_dataset_info.siblings):
+    with patch.object(
+        client.downloads, 'get_dataset_file_list',
+        return_value=mock_dataset_info.siblings
+    ):
         file_list = client.downloads.get_dataset_file_list()
         logger.info(f"Dataset files: {file_list}")
         assert len(file_list) > 0
