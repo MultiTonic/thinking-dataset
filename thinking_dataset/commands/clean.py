@@ -16,16 +16,16 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Retrieve BASE_DIR and PROJECT_ROOT from environment variables
-BASE_DIR = os.getenv("BASE_DIR", "data")
-PROJECT_ROOT = os.getenv("PROJECT_ROOT", "/")
+# Retrieve ROOT_DIR and DATA_DIR from environment variables
+ROOT_DIR = os.path.expanduser(os.getenv("ROOT_DIR", "."))
+DATA_DIR = os.getenv("DATA_DIR", "data")
 
 
 def clean_data_directory():
     """
     Cleans the data directory and other dynamic resources.
     """
-    base_dir_path = os.path.abspath(os.path.join(PROJECT_ROOT, BASE_DIR))
+    base_dir_path = os.path.abspath(os.path.join(ROOT_DIR, DATA_DIR))
 
     if os.path.exists(base_dir_path):
         try:
