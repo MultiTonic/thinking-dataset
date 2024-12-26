@@ -9,6 +9,7 @@ setup(
         'datasets',
         'PyPDF2',
         'python-dotenv',
+        'click',
         'requests',
         'rich',
         'sqlite-utils',
@@ -21,11 +22,11 @@ setup(
         'scikit-learn',
         'sqlalchemy',
         'tqdm',
-        'pydantic',
+        'pydantic'
     ],
     entry_points={
         'console_scripts': [
-            'thinking-dataset = thinking_dataset.main:main',
+            'thinking-dataset = thinking_dataset.main:cli',
         ],
     },
 )

@@ -22,7 +22,7 @@ def main():
     activate_venv_script = os.path.join(
         os.path.dirname(__file__), "activate_venv.py"
     )
-    
+
     with open(activate_venv_script) as f:
         exec(f.read(), dict(__file__=activate_venv_script))
 
