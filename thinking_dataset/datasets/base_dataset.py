@@ -1,9 +1,9 @@
 """
-@file thinking_dataset/base_dataset.py
+@file thinking_dataset/datasets/base_dataset.py
 @description Provides common functionalities for dataset operations.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
+author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -22,7 +22,7 @@ class BaseDataset:
 
     Methods
     -------
-    get_dataset_info()
+    get_dataset_info(dataset_id=None)
         Retrieves metadata about the dataset associated with
         the DataTonic instance.
     log_info(message)
@@ -42,19 +42,25 @@ class BaseDataset:
         """
         self.data_tonic = data_tonic
 
-    def get_dataset_info(self):
+    def get_dataset_info(self, dataset_id=None):
         """
         Retrieves metadata about the dataset associated with
         the DataTonic instance.
+
+        Parameters
+        ----------
+        dataset_id : str, optional
+            The ID of the dataset to retrieve information for.
 
         Returns
         -------
         DatasetInfo
             Metadata about the specified dataset.
         """
+        if dataset_id:
+            return self.data_tonic.get_dataset_info(dataset_id)
         return self.data_tonic.get_dataset_info(
-            f"{self.data_tonic.organization}/"
-            f"{self.data_tonic.dataset}"
+            f"{self.data_tonic.organization}/{self.data_tonic.dataset}"
         )
 
     def log_info(self, message):

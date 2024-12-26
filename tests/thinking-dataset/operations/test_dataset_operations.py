@@ -4,7 +4,7 @@ from unittest.mock import patch
 from dotenv import load_dotenv
 from loguru import logger
 from huggingface_hub import DatasetInfo
-from thinking_dataset.data_tonic import DataTonic
+from thinking_dataset.tonics.data_tonic import DataTonic
 
 # Load environment variables from .env file
 load_dotenv()

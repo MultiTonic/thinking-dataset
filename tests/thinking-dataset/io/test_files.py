@@ -10,7 +10,7 @@
 
 import os
 import pytest
-from thinking_dataset.files import Files
+from thinking_dataset.io.files import Files
 
 
 def test_ensure_directories(monkeypatch, tmp_path):

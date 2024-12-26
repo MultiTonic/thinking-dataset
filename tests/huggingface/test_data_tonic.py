@@ -1,10 +1,20 @@
+"""
+@file thinking_dataset/tests/test_data_tonic.py
+@description Tests for the DataTonic class in the Thinking Dataset Project.
+@version 1.0.0
+@license MIT
+@author Kara Rawson
+@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
+"""
+
 import os
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from dotenv import load_dotenv
 from loguru import logger
 from huggingface_hub import DatasetInfo
-from thinking_dataset.data_tonic import DataTonic
+from thinking_dataset.tonics.data_tonic import DataTonic
 
 # Load environment variables from .env file
 load_dotenv()
@@ -15,7 +25,21 @@ HF_ORGANIZATION = "DataTonic"
 HF_DATASET = "cablegate-pdf-dataset"
 
 
-def test_dataset_metadata_attributes():
+def test_list_datatonic_datasets():
+    client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
+                       dataset=HF_DATASET)
+    mock_datasets_id = f"{HF_ORGANIZATION}/{HF_DATASET}"
+    mock_datasets = [{'id': mock_datasets_id}]
+
+    with patch.object(client.operations, 'list_organization_datasets',
+                      return_value=mock_datasets):
+        datasets = client.operations.list_organization_datasets()
+        logger.info(f"Number of DataTonic datasets listed: {len(datasets)}")
+        assert datasets is not None
+        assert len(datasets) > 0
+
+
+def test_get_dataset_metadata():
     client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(
@@ -35,7 +59,7 @@ def test_dataset_metadata_attributes():
         assert hasattr(dataset_info, "tags")
 
 
-def test_dataset_tags():
+def test_get_dataset_tags():
     client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(
@@ -49,7 +73,7 @@ def test_dataset_tags():
         assert "cleaned-text" in tags
 
 
-def test_dataset_card_content():
+def test_get_dataset_card_content():
     client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(
@@ -65,7 +89,51 @@ def test_dataset_card_content():
         assert "language" in card_content
 
 
-def test_dataset_download_size():
+def test_get_dataset_download_urls():
+    client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
+                       dataset=HF_DATASET)
+    mock_dataset_info = DatasetInfo(
+        id=f"{HF_ORGANIZATION}/{HF_DATASET}",
+        siblings=[MagicMock(rfilename='file.parquet')]
+    )
+
+    with patch.object(client.downloads, 'get_dataset_download_urls',
+                      return_value=[file.rfilename for file in
+                                    mock_dataset_info.siblings]):
+        download_urls = client.downloads.get_dataset_download_urls()
+        logger.info(f"Dataset download URLs: {download_urls}")
+        assert len(download_urls) > 0
+
+
+def test_get_dataset_permissions():
+    client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
+                       dataset=HF_DATASET)
+    mock_dataset_info = DatasetInfo(id=f"{HF_ORGANIZATION}/{HF_DATASET}",
+                                    private=False)
+
+    with patch.object(client.downloads, 'get_dataset_permissions',
+                      return_value=mock_dataset_info.private):
+        permissions = client.downloads.get_dataset_permissions()
+        logger.info(f"Dataset permissions: {permissions}")
+        assert permissions is False
+
+
+def test_get_dataset_file_list():
+    client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
+                       dataset=HF_DATASET)
+    mock_dataset_info = DatasetInfo(
+        id=f"{HF_ORGANIZATION}/{HF_DATASET}",
+        siblings=[MagicMock(rfilename='README.md')]
+    )
+
+    with patch.object(client.downloads, 'get_dataset_file_list',
+                      return_value=mock_dataset_info.siblings):
+        file_list = client.downloads.get_dataset_file_list()
+        logger.info(f"Dataset files: {file_list}")
+        assert len(file_list) > 0
+
+
+def test_get_dataset_download_size():
     client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(
@@ -82,7 +150,7 @@ def test_dataset_download_size():
         assert download_size == 229353983
 
 
-def test_dataset_configurations():
+def test_get_dataset_configurations():
     client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(
@@ -100,7 +168,7 @@ def test_dataset_configurations():
         assert configs[0]['config_name'] == 'default'
 
 
-def test_dataset_description():
+def test_get_dataset_description():
     client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(
@@ -117,7 +185,7 @@ def test_dataset_description():
         assert len(description) > 0
 
 
-def test_dataset_license():
+def test_get_dataset_license():
     client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(
@@ -134,7 +202,7 @@ def test_dataset_license():
         assert license_info is not None
 
 
-def test_dataset_split_information():
+def test_get_dataset_split_information():
     client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(

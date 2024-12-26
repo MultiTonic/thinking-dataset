@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for tests\thinking-dataset\test_main_function.py: 96%</title>
+    <title>Coverage for tests\thinking-dataset\test_main_function.py: 81%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_718ce007.css" type="text/css">
     <script src="coverage_html_cb_497bf287.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>tests\thinking-dataset\test_main_function.py</b>:
-            <span class="pc_cov">96%</span>
+            <span class="pc_cov">81%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,17 +55,17 @@
         </aside>
         <h2>
             <span class="text">26 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">25<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">1<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">21<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">5<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
-            <a id="prevFileLink" class="nav" href="z_03eb1a2a02523a12_test_files_py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a id="prevFileLink" class="nav" href="z_d5e4b55e42c04718_test_dataset_operations_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a id="nextFileLink" class="nav" href="z_11e7a375db046e71___init___py.html">&#xbb; next</a>
+            <a id="nextFileLink" class="nav" href="z_c2cb23efe417b02f_test_data_tonics_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.9">coverage.py v7.6.9</a>,
-            created at 2024-12-26 10:11 -0500
+            created at 2024-12-26 11:48 -0500
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -115,10 +115,10 @@
     <p class="run"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t">        <span class="nam">result</span> <span class="op">=</span> <span class="nam">runner</span><span class="op">.</span><span class="nam">invoke</span><span class="op">(</span><span class="nam">cli</span><span class="op">,</span> <span class="op">[</span><span class="str">'download'</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t">        <span class="key">assert</span> <span class="nam">result</span><span class="op">.</span><span class="nam">exit_code</span> <span class="op">==</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t">        <span class="key">assert</span> <span class="str">"Downloading Cablegate dataset..."</span> <span class="key">in</span> <span class="nam">result</span><span class="op">.</span><span class="nam">output</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t">        <span class="key">assert</span> <span class="str">"Downloaded mock_url.parquet to data"</span> <span class="key">in</span> <span class="nam">result</span><span class="op">.</span><span class="nam">output</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">        <span class="key">assert</span> <span class="str">"raw/cablegate\\mock_url.parquet"</span> <span class="key">in</span> <span class="nam">result</span><span class="op">.</span><span class="nam">output</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">        <span class="key">assert</span> <span class="str">"Downloaded 1 files to data\\raw/cablegate"</span> <span class="key">in</span> <span class="nam">result</span><span class="op">.</span><span class="nam">output</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t">        <span class="key">assert</span> <span class="str">"Downloading Cablegate dataset..."</span> <span class="key">in</span> <span class="nam">result</span><span class="op">.</span><span class="nam">output</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t">        <span class="key">assert</span> <span class="str">"Downloaded mock_url.parquet to data"</span> <span class="key">in</span> <span class="nam">result</span><span class="op">.</span><span class="nam">output</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">        <span class="key">assert</span> <span class="str">"raw/cablegate\\mock_url.parquet"</span> <span class="key">in</span> <span class="nam">result</span><span class="op">.</span><span class="nam">output</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">        <span class="key">assert</span> <span class="str">"Downloaded 1 files to data\\raw/cablegate"</span> <span class="key">in</span> <span class="nam">result</span><span class="op">.</span><span class="nam">output</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t40" href="#t40">40</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t41" href="#t41">41</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t42" href="#t42">42</a></span><span class="t"><span class="key">def</span> <span class="nam">test_clean_function</span><span class="op">(</span><span class="nam">monkeypatch</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -137,12 +137,12 @@
 <footer>
     <div class="content">
         <p>
-            <a class="nav" href="z_03eb1a2a02523a12_test_files_py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a class="nav" href="z_d5e4b55e42c04718_test_dataset_operations_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a class="nav" href="z_11e7a375db046e71___init___py.html">&#xbb; next</a>
+            <a class="nav" href="z_c2cb23efe417b02f_test_data_tonics_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.9">coverage.py v7.6.9</a>,
-            created at 2024-12-26 10:11 -0500
+            created at 2024-12-26 11:48 -0500
         </p>
     </div>
 </footer>

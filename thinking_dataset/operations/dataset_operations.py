@@ -8,7 +8,7 @@
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
-from .base_dataset import BaseDataset
+from ..datasets.base_dataset import BaseDataset
 
 
 class DatasetOperations(BaseDataset):

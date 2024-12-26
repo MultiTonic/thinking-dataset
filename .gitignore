@@ -20,7 +20,6 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-downloads/
 eggs/
 .eggs/
 lib/
@@ -170,3 +169,6 @@ cython_debug/
 .vs/slnx.sqlite
 .vs/VSWorkspaceState.json
 .vscode/settings.json
+
+# Dataset Data
+[Dd]ata/*

@@ -1,18 +1,19 @@
 """
-@file thinking_dataset/data_tonic.py
+@file thinking_dataset/tonics/data_tonic.py
 @description DataTonic class for managing dataset operations.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
+author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 import os
-from .connector import Connector
-from .dataset_operations import DatasetOperations
-from .dataset_downloads import DatasetDownloads
-from .dataset_info import DatasetInfo
+from huggingface_hub.utils import RepositoryNotFoundError
+from thinking_dataset.connectors.connector import Connector
+from thinking_dataset.operations.dataset_operations import DatasetOperations
+from thinking_dataset.downloads.dataset_downloads import DatasetDownloads
+from thinking_dataset.datasets.dataset_info import DatasetInfo
 
 HF_ORGANIZATION = os.getenv("HF_ORGANIZATION")
 HF_DATASET = os.getenv("HF_DATASET")
@@ -65,3 +66,10 @@ class DataTonic(Connector):
         self.operations = DatasetOperations(self)
         self.downloads = DatasetDownloads(self)
         self.info = DatasetInfo(self)
+
+    def get_dataset_info(self, dataset_id):
+        try:
+            return self.api.dataset_info(dataset_id)
+        except RepositoryNotFoundError as e:
+            print(f"Error retrieving dataset info for {dataset_id}: {e}")
+            raise

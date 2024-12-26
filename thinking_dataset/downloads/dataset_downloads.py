@@ -1,15 +1,15 @@
 """
-@file thinking_dataset/dataset_downloads.py
+@file thinking_dataset/downloads/dataset_downloads.py
 @description Provides functionalities related to dataset downloads.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
+author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 import os
-from .base_dataset import BaseDataset
+from thinking_dataset.datasets.base_dataset import BaseDataset
 
 # Get the dataset type (e.g., 'parquet') from environment variables
 HF_DATASET_TYPE = os.getenv("HF_DATASET_TYPE", 'parquet')
@@ -22,7 +22,7 @@ class DatasetDownloads(BaseDataset):
 
     Methods
     -------
-    get_dataset_download_urls()
+    get_dataset_download_urls(dataset_id)
         Retrieves the download URLs for the dataset files with a specific type.
     get_dataset_permissions()
         Checks the permissions of the dataset.
@@ -30,16 +30,21 @@ class DatasetDownloads(BaseDataset):
         Retrieves a list of files in the dataset.
     """
 
-    def get_dataset_download_urls(self):
+    def get_dataset_download_urls(self, dataset_id):
         """
         Retrieves the download URLs for the dataset files with a specific type.
+
+        Parameters
+        ----------
+        dataset_id : str
+            The ID of the dataset to retrieve download URLs for.
 
         Returns
         -------
         list
             A list of download URLs for the dataset files.
         """
-        dataset_info = self.get_dataset_info()
+        dataset_info = self.get_dataset_info(dataset_id)
         download_urls = [
             file.rfilename
             for file in dataset_info.siblings
