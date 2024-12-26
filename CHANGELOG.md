@@ -4,21 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-12-24
+## [Unreleased] - 2024-12-26
 
 ### Added
-- Cloned the `thinking-dataset` repository and switched to the `dev-prototyping-alpha` branch.
-- Updated the README to use `venv` instead of `.venv` for virtual environment setup.
-- Installed basic project dependencies: `huggingface_hub[cli]`, `datasets`, `PyPDF2`, `python-dotenv`, `requests`, `rich`, `sqlite-utils`, `pytest`, `loguru`, `pandas`, `numpy`, `scikit-learn`, `sqlalchemy`, `tqdm`.
+- Implemented structured comments and documentation across multiple scripts.
+- Added tests for `activate_venv.py` and `run_tests_and_generate_report.py`.
 - Integrated `rich` for enhanced console output and error handling.
 - Set up SQLite as the central source of truth for data storage.
 
 ### Changed
-- Simplified `setup.py` to include only the necessary dependencies.
-- Enhanced README for better clarity on the setup process.
+- Refactored project structure for better readability and maintenance:
+  - Enhanced error handling, structured logging, and console outputs in `download.py`.
+  - Reorganized directory paths and class functions in `files.py` and `clean.py`.
+  - Added robust directory permission handling in `clean.py`.
+  - Updated environment configuration with `ROOT_DIR` and `DATA_DIR`.
+  - Adjusted line lengths to adhere to PEP8 and flake8 standards.
 
 ### Fixed
-- N/A
+- Corrected import error and updated test paths in `test_files.py` to resolve ImportError issues.
+- Resolved `TypeError` in `get_dataset_download_urls` method by providing required `dataset_id` argument.
 
 ## [1.0.0] - 2024-10-29
 

@@ -12,17 +12,18 @@ The "Dark Thoughts" thinking-dataset project is designed to develop and analyze 
 
 ### 1. Data Ingestion
 
-- **Raw Data Sources**: The project collects data from multiple sources, including historical records, literature, and user-generated content.
+- **Raw Data Sources**: The project collects data from multiple sources, including historical records, literature, user-generated content, and the WikiLeaks Cablegate dataset.
 - **Data Storage**: Raw data is stored in a structured format using SQLite, a lightweight database.
 
 ### 2. Data Preprocessing
 
 - **Data Cleaning**: Methods are implemented to remove duplicates, handle missing values, and normalize data.
 - **Data Transformation**: The raw data is transformed into a standardized format suitable for further processing and analysis.
+- **Data Validation**: Ensuring the integrity and quality of the data before further processing.
 
 ### 3. Data Enrichment and Case Study Creation
 
-- **Seed Generation**: Seed objects are defined and generated using predefined keywords.
+- **Seed Generation**: Seed objects are defined and generated using predefined keywords and cables.
 - **Cable Creation**: Multiple seed objects are combined to generate detailed scenarios called cables.
 - **Case Study Generation**: Cables are used to create detailed case studies with injected data points.
 - **Standard Format Distillation**: Case studies are refined into a consistent format for model training.
@@ -36,7 +37,7 @@ The "Dark Thoughts" thinking-dataset project is designed to develop and analyze 
 ### 5. Inference Endpoint Adapters/Bridges
 
 - **Unified Interface**: A common interface or abstract class is created to ensure consistency across different adapters.
-- **Adapter Implementations**: Concrete implementations are developed for various serverless endpoints such as Ollama, testcontainers, Runpod, and Hugging Face API.
+- **Adapter Implementations**: Concrete implementations are developed for various serverless endpoints such as Hugging Face, Ollama, testcontainers, and Runpod.
 - **Integration**: Adapters are seamlessly integrated into the main application to leverage the best tools for various tasks.
 
 ### 6. Continuous Improvement
@@ -62,34 +63,53 @@ The "Dark Thoughts" thinking-dataset project is designed to develop and analyze 
 Below is a high-level architectural diagram of the "Dark Thoughts" thinking-dataset project:
 
 ```
-+--------------------+            +--------------------+
-|    Data Ingestion  |            |  Data Preprocessing|
-| +----------------+ |            | +----------------+ |
-| | Raw Data       | |            | | Data Cleaning  | |
-| | Sources        | |            | | Data Transformation |
-| +----------------+ |            | +----------------+ |
-+--------|-----------+            +--------|-----------+
-         |                              |
-         v                              v
-+--------------------+            +--------------------+
-| Data Enrichment    |            |  Model Training    |
-| +----------------+ |            | +----------------+ |
-| | Seed Generation| |            | | Dataset        | |
-| | Cable Creation | |            | | Preparation    | |
-| | Case Studies   | |            | | Model Training | |
-| +----------------+ |            | | Evaluation     | |
-+--------|-----------+            +--------------------+
-         |                              |
-         v                              v
-+--------------------+            +--------------------+
-|  Inference Endpoint|            | Continuous         |
-|  Adapters/Bridges  |            | Improvement        |
-| +----------------+ |            | +----------------+ |
-| | Unified Interface|            | | Feedback Loop  | |
-| | Adapter Impl.  | |            | | Documentation  | |
-| +----------------+ |            | | Community      | |
-+--------------------+            | | Engagement     | |
-                                  +--------------------+
++------------------------------+------------------------------+
+|       Data Ingestion         |      Data Preprocessing      |
+| +-------------------------+  | +-------------------------+  |
+| |     Raw Data Sources    |  | |     Data Cleaning       |  |
+| +-------------------------+  | |     Data Transformation |  |
+|                              | |     Data Validation     |  |
++-------------|----------------+ +------------|---------------+
+              |                                   |
+              v                                   v
++------------------------------+ +----------------------------+
+|       Data Enrichment        | |       Model Training       |
+| +----------------------------+ | +------------------------+ |
+| |     Seed Generation        | | |    Dataset Preparation | |
+| |     Cable Creation         | | |    Model Training      | |
+| |     Case Studies           | | |    Evaluation System   | |
+| +----------------------------+ | +------------------------+ |
++-------------|----------------+ +----------------|-----------+
+              |                                   |
+              v                                   v
++------------------------------+ +----------------------------+
+|    Inference Endpoint        | |    Continuous Improvement  |
+|        Adapters and Bridges  | |                            |
+| +--------------------------+ | +--------------------------+ |
+| |    Unified Interface     | | |     Feedback Loop        | |
+| |    Adapter Implementation| | |     Documentation        | |
+| +--------------------------+ | |     Community Engagement | |
++-------------|----------------+ +------------|---------------+
+              |                                   |
+              v                                   v
++-------------------------------------------------------------+
+|                          Foundation                         |
+| +---------------------------------------------------------+ |
+| |               Core Technologies & Infrastructure        | |
+| +---------------------------------------------------------+ |
++-------------|------------------^----------------------------+
+              |                  |                            |
+              +------------------+                            |
+                       Feedback Loop                          |
+                       (Generation to Input)                  |
++-------------------------------------------------------------+
+|     Synthetic SitReps and Case Studies Creation Cycle       |
+| +---------------------------------------------------------+ |
+| |  Synthetic SitReps Creation -> Case Study Generation -> | |
+| |  Feeding Back into Data Ingestion for Continuous Loop   | |
+| +---------------------------------------------------------+ |
++-------------------------------------------------------------+
+
 ```
 
 ## Conclusion

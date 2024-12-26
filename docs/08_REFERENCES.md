@@ -1,6 +1,6 @@
 # References
 
-## References
+## Overview
 
 This document provides a list of key references and resources used in the "Dark Thoughts" thinking-dataset project. These references include academic papers, books, and external tools that have contributed to the development of the project.
 
@@ -70,3 +70,16 @@ This document provides a list of key references and resources used in the "Dark 
 2. **Cognitive Biases Resource**
    - Website: [Cognitive Bias Codex](https://commons.wikimedia.org/wiki/File:Cognitive_bias_codex_en.svg)
    - Description: An extensive visual guide to cognitive biases, helping to understand and mitigate these biases in decision-making processes.
+
+3. **AI and Society Resource Center**
+   - Website: [AI and Society Resource Center](https://aiandsociety.org/resource-center)
+   - Description: A resource center offering articles, research papers, and discussions on the intersection of AI and societal issues.
+
+4. **MIT AI Ethics and Governance Resources**
+   - Website: [MIT AI Ethics](https://ai.mit.edu/ethics)
+   - Description: Resources and guidelines on AI ethics and governance, provided by the Massachusetts Institute of Technology.
+
+5. **IEEE Global Initiative on Ethics of Autonomous and Intelligent Systems**
+   - Website: [IEEE Ethics](https://ethicsinaction.ieee.org/)
+   - Description: A global initiative providing frameworks and guidelines for the ethical design and use of autonomous and intelligent systems.
+

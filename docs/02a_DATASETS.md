@@ -13,6 +13,7 @@ This document provides detailed information on the various datasets utilized in 
 - [UC Irvine ML Repository](#uc-irvine-ml-repository)
 - [GTD](#gtd)
 - [Comparison Table](#comparison-table)
+- [Total Estimated Records](#total-estimated-records)
 
 ## WikiLeaks Cablegate
 
@@ -147,4 +148,9 @@ This document provides detailed information on the various datasets utilized in 
 | **GDELT** | Global Database of Events, Language, and Tone; a comprehensive resource for real-time global events, news coverage, and societal trends. | Real-time global events, news coverage, societal trends | Extensive coverage, real-time updates | 630,131,403 records |
 | **ICB Project** | International Crisis Behavior Project, offering detailed information on international crises and conflicts, including actors involved and crisis outcomes. | Detailed crisis data, actor interactions, crisis outcomes | Studying international relations, conflict resolution | 496 crises, 1,100 crisis actors |
 | **CAMEO** | Conflict and Mediation Event Observations; an event coding framework for analyzing conflicts, negotiations, and international relations. | Structured event data, conflict and mediation focus | Analyzing conflicts and negotiations, event-driven analysis | Not specified |
+| **UC Irvine ML Repository** | A repository of various datasets used for machine learning research, offering diverse data in standardized formats. | Diverse data, standardized formats | Training ML models, academic research | Varies with each dataset |
 | **GTD** | Global Terrorism Database, providing information on terrorist events worldwide, including date, location, perpetrators, and targets. | Date, location, perpetrators, targets | Comprehensive terrorism data | 181,691 entries |
+
+## Total Estimated Records
+
+**Total Estimated Records for Seed Data**: 633,136,552 records

@@ -27,7 +27,7 @@ cd thinking-dataset
 Create a virtual environment to manage the project's dependencies:
 
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
 
 ### 3. Activate the Virtual Environment
@@ -36,12 +36,12 @@ Activate the virtual environment:
 
 - On **Windows**:
   ```bash
-  .\venv\Scripts\activate
+  .\.venv\Scripts\activate
   ```
 
 - On **macOS/Linux**:
   ```bash
-  source venv/bin/activate
+  source .venv/bin/activate
   ```
 
 ### 4. Install Dependencies
@@ -54,13 +54,21 @@ pip install -e .
 
 ### 5. Set Up Environment Variables
 
-Create a `.env` file in the project root directory and add any necessary environment variables. You can copy the provided `.env.example` file and edit it as needed:
+Create a `.env` file in the project root directory and add the necessary environment variables. You can copy the provided `.env.example` file and edit it as needed:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit the `.env` file to include your specific configuration settings.
+Edit the `.env` file to include your specific configuration settings. Here is an example of what you might include:
+
+```plaintext
+HF_TOKEN=your_huggingface_token
+HF_DATASET=your_dataset_name
+HF_ORGANIZATION=your_organization_name
+ROOT_DIR=your_root_directory
+DATA_DIR=your_data_directory
+```
 
 ### 6. Initialize the SQLite Database
 

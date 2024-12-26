@@ -19,7 +19,7 @@ This document outlines the data pipeline for the "Dark Thoughts" project, from d
 
 ### Phase 2: Data Pipeline Development
 1. **Raw Data Ingestion**
-   - Collect initial raw data from various sources (historical records, literature, user-generated content).
+   - Collect initial raw data from various sources (historical records, literature, user-generated content, and the WikiLeaks Cablegate dataset).
    - Store raw data in a structured format using SQLite.
 
 2. **Data Cleaning and Preprocessing**

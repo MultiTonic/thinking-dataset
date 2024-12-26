@@ -7,7 +7,7 @@ This document provides answers to some of the most frequently asked questions ab
 ### General Questions
 
 **Q: What is the "Dark Thoughts" thinking-dataset project?**
-- A: The "Dark Thoughts" thinking-dataset project aims to develop a comprehensive dataset of hypothetical scenarios involving ethical dilemmas and cognitive biases. The goal is to analyze and simulate human cognitive processes and train AI models in reasoning, ethics, and decision-making.
+- A: The "Dark Thoughts" thinking-dataset project aims to develop a comprehensive dataset focused on hypothetical scenarios involving ethical dilemmas, cognitive biases, and complex decision-making processes. The goal is to analyze and simulate human cognitive processes and train AI models in reasoning, ethics, and decision-making.
 
 **Q: Who can contribute to this project?**
 - A: Anyone is welcome to contribute! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for detailed guidelines on how to get involved.
@@ -25,11 +25,11 @@ This document provides answers to some of the most frequently asked questions ab
 
 ### Usage
 
-**Q: How do I run the application?**
-- A: Once the project is set up, you can run the application using the command `thinking-dataset` in your terminal or command prompt.
+**Q: How do I interact with the inference adapters?**
+- A: You can register an adapter to use a specific inference endpoint (e.g., Hugging Face, Ollama) and make predictions using registered adapters. Detailed instructions are provided in the [USAGE.md](USAGE.md) file.
 
-**Q: How do I initialize the SQLite database?**
-- A: Run the script `python scripts/init_db.py` to initialize the SQLite database and create the necessary tables.
+**Q: How do I generate case studies from the data?**
+- A: Follow the steps to generate seeds, create cables, and generate case studies using the provided CLI commands. Detailed instructions are provided in the [USAGE.md](USAGE.md) file.
 
 ### Troubleshooting
 

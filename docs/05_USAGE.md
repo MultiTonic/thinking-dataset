@@ -18,6 +18,7 @@ This document provides detailed usage instructions for the "Dark Thoughts" think
 - [Advanced Usage](#advanced-usage)
   - [Custom Configurations](#custom-configurations)
   - [Logging and Monitoring](#logging-and-monitoring)
+- [Conclusion](#conclusion)
 
 ## Running the Application
 
@@ -43,18 +44,33 @@ The Command Line Interface (CLI) of the "Dark Thoughts" thinking-dataset project
   thinking-dataset
   ```
 
+- **Download Data**: Download raw data from specified sources.
+  ```bash
+  thinking-dataset download --source <source_name>
+  ```
+
+- **Clean Data**: Perform data cleaning and normalization.
+  ```bash
+  thinking-dataset clean --file path/to/datafile.csv
+  ```
+
 ### Example Workflows
 
 #### Example 1: Data Ingestion and Preprocessing
 
-1. **Add Raw Data**: Import raw data from a file.
+1. **Download Raw Data**: Download raw data from a specified source.
+   ```bash
+   thinking-dataset download --source wikileaks
+   ```
+
+2. **Add Raw Data**: Import raw data from a file.
    ```bash
    thinking-dataset add-data --file path/to/datafile.csv
    ```
 
-2. **Clean and Normalize Data**: Perform data cleaning and normalization.
+3. **Clean and Normalize Data**: Perform data cleaning and normalization.
    ```bash
-   thinking-dataset preprocess-data
+   thinking-dataset clean --file path/to/datafile.csv
    ```
 
 #### Example 2: Case Study Generation
@@ -149,3 +165,7 @@ logger.info("Starting the application")
 # Your main application code
 logger.info("Application finished successfully")
 ```
+
+## Conclusion
+
+The "Dark Thoughts" thinking-dataset project provides powerful tools and workflows for generating and analyzing complex hypothetical scenarios. By following the detailed instructions provided in this guide, users can effectively utilize the CLI commands, manage data, interact with inference adapters, and configure advanced settings. This comprehensive approach ensures that the project remains versatile, user-friendly, and capable of supporting diverse research and development objectives in AI and cognitive science.

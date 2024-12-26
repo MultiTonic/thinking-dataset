@@ -18,7 +18,7 @@ This document outlines the future plans, features, and milestones for the "Dark 
 
 ### Phase 2: Data Pipeline Development
 - **Raw Data Ingestion**
-  - [ ] Collect initial raw data from various sources.
+  - [x] Collect initial raw data from various sources.
   - [ ] Store raw data in a structured format using SQLite.
 - **Data Preprocessing**
   - [ ] Implement data cleaning methods to remove duplicates and handle missing values.

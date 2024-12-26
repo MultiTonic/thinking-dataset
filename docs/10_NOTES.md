@@ -1,8 +1,6 @@
-# Notes
+### Development Notes
 
-## Development Notes
-
-### General Overview
+#### General Overview
 - **Project Name**: Dark Thoughts
 - **Purpose**: Develop a comprehensive dataset of hypothetical scenarios involving ethical dilemmas and cognitive biases to train AI models in reasoning, ethics, and decision-making.
 
@@ -33,17 +31,7 @@
 - **Documentation**: Maintained comprehensive documentation of methods, changes, and updates.
 - **Community Engagement**: Engaged with the community for contributions and collaboration, opened issues and pull requests for enhancements.
 
-### Latest Work and Changes
-
-#### 2024-12-24
-- Cloned the `thinking-dataset` repository and switched to the `dev-prototyping-alpha` branch.
-- Updated README to use `venv` instead of `.venv` for virtual environment setup.
-- Removed non-basic requirements from `setup.py` and added necessary packages: `huggingface_hub[cli]`, `datasets`, `PyPDF2`, `python-dotenv`, `requests`, `rich`, `sqlite-utils`, `pytest`, `loguru`, `pandas`, `numpy`, `scikit-learn`, `sqlalchemy`, `tqdm`.
-- Integrated `rich` for enhanced console output and error handling.
-- Set up SQLite as the central source of truth for data storage.
-- Documented latest changes and setup instructions in `CHANGELOG.md`.
-
-### IDEAS and Features
+### Ideas and Features
 - **Scenario Development**: Create hypothetical scenarios presenting ethical dilemmas or cognitive biases.
 - **Persona Creation**: Develop detailed personas with backgrounds, motivations, and psychological profiles.
 - **Data Collection and Annotation**: Collect raw data from various sources, annotate key themes, ethical issues, and decision points.
