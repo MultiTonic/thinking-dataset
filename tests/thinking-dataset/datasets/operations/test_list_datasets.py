@@ -1,5 +1,5 @@
 """
-@file tests/operations/test_list_datasets.py
+@file tests/thinking_dataset/datasets/operations/test_list_datasets.py
 @description Unit tests for listing datasets in the thinking-dataset.
 @version 1.0.0
 @license MIT
@@ -15,7 +15,6 @@ from dotenv import load_dotenv
 from loguru import logger
 from thinking_dataset.tonics.data_tonic import DataTonic
 from thinking_dataset.datasets.operations.list_datasets import ListDatasets
-from thinking_dataset.datasets.dataset_info import DatasetInfo
 
 # Load environment variables from .env file
 load_dotenv()
@@ -26,15 +25,12 @@ HF_ORGANIZATION = "DataTonic"
 HF_DATASET = "cablegate-pdf-dataset"
 
 
-class MockDatasetInfo(DatasetInfo):
+class MockDataset:
     """
-    Mock class for DatasetInfo to be used in tests.
+    Mock class for Dataset to be used in tests.
     """
 
     def __init__(self):
-        # Initialize the base class
-        super().__init__(data_tonic=None)
-        # Set id and other necessary attributes
         self.id = f"{HF_ORGANIZATION}/{HF_DATASET}"
         self.tags = ["cleaned-text"]
 
@@ -43,7 +39,7 @@ def test_list_datasets():
     client = DataTonic(token=HF_TOKEN,
                        organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
-    mock_datasets = [MockDatasetInfo()]
+    mock_datasets = [MockDataset()]
 
     with patch.object(ListDatasets(client),
                       'execute',

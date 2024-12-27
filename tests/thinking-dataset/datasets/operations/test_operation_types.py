@@ -1,5 +1,5 @@
 """
-@file tests/operations/test_operation_types.py
+@file tests/thinking_dataset/datasets/operations/test_operation_types.py
 @description Unit tests for the OperationTypes enum.
 @version 1.0.0
 @license MIT
@@ -21,23 +21,30 @@ class TestOperationTypes(unittest.TestCase):
         """
         Test that all enum members are correctly defined.
         """
-        self.assertEqual(OperationTypes.LIST_ORGANIZATION_DATASETS.value,
-                         "list_organization_datasets")
-        self.assertEqual(OperationTypes.GET_DATASET_METADATA.value,
-                         "get_dataset_metadata")
-        self.assertEqual(OperationTypes.GET_DATASET_TAGS.value,
-                         "get_dataset_tags")
-        self.assertEqual(OperationTypes.GET_DATASET_CARD_CONTENT.value,
-                         "get_dataset_card_content")
+        self.assertEqual(OperationTypes.GET_CONFIGURATION.value,
+                         "get_configuration")
+        self.assertEqual(OperationTypes.GET_DESCRIPTION.value,
+                         "get_description")
+        self.assertEqual(OperationTypes.GET_DOWNLOAD_SIZE.value,
+                         "get_download_size")
+        self.assertEqual(OperationTypes.GET_DOWNLOAD_URLS.value,
+                         "get_download_urls")
+        self.assertEqual(OperationTypes.GET_LICENSE.value, "get_license")
+        self.assertEqual(OperationTypes.GET_SPLIT_INFORMATION.value,
+                         "get_split_information")
+        self.assertEqual(OperationTypes.LIST_DATASETS.value, "list_datasets")
 
     def test_enum_names(self):
         """
         Test that the enum member names are as expected.
         """
-        self.assertTrue(hasattr(OperationTypes, "LIST_ORGANIZATION_DATASETS"))
-        self.assertTrue(hasattr(OperationTypes, "GET_DATASET_METADATA"))
-        self.assertTrue(hasattr(OperationTypes, "GET_DATASET_TAGS"))
-        self.assertTrue(hasattr(OperationTypes, "GET_DATASET_CARD_CONTENT"))
+        self.assertTrue(hasattr(OperationTypes, "GET_CONFIGURATION"))
+        self.assertTrue(hasattr(OperationTypes, "GET_DESCRIPTION"))
+        self.assertTrue(hasattr(OperationTypes, "GET_DOWNLOAD_SIZE"))
+        self.assertTrue(hasattr(OperationTypes, "GET_DOWNLOAD_URLS"))
+        self.assertTrue(hasattr(OperationTypes, "GET_LICENSE"))
+        self.assertTrue(hasattr(OperationTypes, "GET_SPLIT_INFORMATION"))
+        self.assertTrue(hasattr(OperationTypes, "LIST_DATASETS"))
 
 
 if __name__ == "__main__":

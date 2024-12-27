@@ -12,7 +12,10 @@ from enum import Enum
 
 
 class OperationTypes(Enum):
-    LIST_ORGANIZATION_DATASETS = "list_organization_datasets"
-    GET_DATASET_METADATA = "get_dataset_metadata"
-    GET_DATASET_TAGS = "get_dataset_tags"
-    GET_DATASET_CARD_CONTENT = "get_dataset_card_content"
+    GET_CONFIGURATION = "get_configuration"
+    GET_DESCRIPTION = "get_description"
+    GET_DOWNLOAD_SIZE = "get_download_size"
+    GET_DOWNLOAD_URLS = "get_download_urls"
+    GET_LICENSE = "get_license"
+    GET_SPLIT_INFORMATION = "get_split_information"
+    LIST_DATASETS = "list_datasets"
