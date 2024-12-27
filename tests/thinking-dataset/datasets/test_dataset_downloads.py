@@ -1,9 +1,9 @@
 """
-@file thinking_dataset/tests/test_data_tonic.py
-@description Tests for the DataTonic class in the Thinking Dataset Project.
+@file tests/thinking_dataset/datasets/test_dataset_downloads.py
+@description Tests for the DatasetDownloads class in Thinking-Dataset Project.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
+author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -54,21 +54,6 @@ def test_dataset_permissions():
         permissions = client.downloads.get_dataset_permissions()
         logger.info(f"Dataset permissions: {permissions}")
         assert permissions is False
-
-
-def test_dataset_file_list():
-    client = DataTonic(token=HF_TOKEN,
-                       organization=HF_ORGANIZATION,
-                       dataset=HF_DATASET)
-    mock_dataset_info = DatasetInfo(
-        id=f"{HF_ORGANIZATION}/{HF_DATASET}",
-        siblings=[MagicMock(rfilename='README.md')])
-    with patch.object(client.downloads,
-                      'get_dataset_file_list',
-                      return_value=mock_dataset_info.siblings):
-        file_list = client.downloads.get_dataset_file_list()
-        logger.info(f"Dataset files: {file_list}")
-        assert len(file_list) > 0
 
 
 if __name__ == "__main__":

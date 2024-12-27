@@ -3,7 +3,7 @@
 @description Provides functionalities related to dataset downloads.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
+author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -31,8 +31,6 @@ class DatasetDownloads(BaseDataset):
         Downloads the dataset files to the specified directory.
     get_dataset_permissions(dataset_id)
         Checks the permissions of the dataset.
-    get_dataset_file_list(dataset_id)
-        Retrieves a list of files in the dataset.
     """
 
     def __init__(self, connector, token):
@@ -132,22 +130,3 @@ class DatasetDownloads(BaseDataset):
         dataset_info = self.get_dataset_info(dataset_id)
         self.log_info(f"Dataset permissions: {dataset_info.private}")
         return dataset_info.private
-
-    def get_dataset_file_list(self, dataset_id):
-        """
-        Retrieves a list of files in the dataset.
-
-        Parameters
-        ----------
-        dataset_id : str
-            The ID of the dataset to retrieve the file list for.
-
-        Returns
-        -------
-        list
-            A list of files in the dataset.
-        """
-        dataset_info = self.get_dataset_info(dataset_id)
-        file_list = dataset_info.siblings
-        self.log_info(f"Dataset files: {file_list}")
-        return file_list
