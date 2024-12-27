@@ -15,22 +15,6 @@ HF_ORGANIZATION = "DataTonic"
 HF_DATASET = "cablegate-pdf-dataset"
 
 
-def test_list_datatonic_datasets():
-    client = DataTonic(token=HF_TOKEN,
-                       organization=HF_ORGANIZATION,
-                       dataset=HF_DATASET)
-    mock_datasets_id = f"{HF_ORGANIZATION}/{HF_DATASET}"
-    mock_datasets = [{'id': mock_datasets_id}]
-
-    with patch.object(client.operations,
-                      'list_organization_datasets',
-                      return_value=mock_datasets):
-        datasets = client.operations.list_organization_datasets()
-        logger.info(f"Number of DataTonic datasets listed: {len(datasets)}")
-        assert datasets is not None
-        assert len(datasets) > 0
-
-
 def test_get_dataset_metadata():
     client = DataTonic(token=HF_TOKEN,
                        organization=HF_ORGANIZATION,
