@@ -3,7 +3,7 @@
 @description DataTonic class for managing dataset operations.
 @version 1.0.0
 @license MIT
-author Kara Rawson
+@author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -21,8 +21,8 @@ HF_DATASET = os.getenv("HF_DATASET")
 
 class DataTonic(Connector):
     """
-    A class that extends Connector to manage dataset operations for
-    a specified organization and dataset.
+    A class that extends Connector to manage dataset operations for a
+    specified organization and dataset.
 
     Attributes
     ----------
@@ -42,12 +42,10 @@ class DataTonic(Connector):
     N/A
     """
 
-    def __init__(
-        self,
-        token,
-        organization=HF_ORGANIZATION,
-        dataset=HF_DATASET
-    ):
+    def __init__(self,
+                 token,
+                 organization=HF_ORGANIZATION,
+                 dataset=HF_DATASET):
         """
         Constructs all the necessary attributes for the DataTonic object.
 
@@ -64,7 +62,7 @@ class DataTonic(Connector):
         self.organization = organization
         self.dataset = dataset
         self.operations = DatasetOperations(self)
-        self.downloads = DatasetDownloads(self)
+        self.downloads = DatasetDownloads(self, token)
         self.info = DatasetInfo(self)
 
     def get_dataset_info(self, dataset_id):

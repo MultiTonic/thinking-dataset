@@ -1,3 +1,13 @@
+"""
+@file thinking_dataset/tests/test_data_tonic.py
+@description Tests for the DataTonic class in the Thinking Dataset Project.
+@version 1.0.0
+@license MIT
+@author Kara Rawson
+@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
+"""
+
 import os
 import pytest
 from unittest.mock import patch, MagicMock
@@ -16,26 +26,30 @@ HF_DATASET = "cablegate-pdf-dataset"
 
 
 def test_dataset_download_url():
-    client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
+    client = DataTonic(token=HF_TOKEN,
+                       organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(
         id=f"{HF_ORGANIZATION}/{HF_DATASET}",
-        siblings=[MagicMock(rfilename='file.parquet')]
-    )
-    with patch.object(client.downloads, 'get_dataset_download_urls',
-                      return_value=[file.rfilename for file in
-                                    mock_dataset_info.siblings]):
+        siblings=[MagicMock(rfilename='file.parquet')])
+    with patch.object(client.downloads,
+                      'get_dataset_download_urls',
+                      return_value=[
+                          file.rfilename for file in mock_dataset_info.siblings
+                      ]):
         download_urls = client.downloads.get_dataset_download_urls()
         logger.info(f"Dataset download URLs: {download_urls}")
         assert len(download_urls) > 0
 
 
 def test_dataset_permissions():
-    client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
+    client = DataTonic(token=HF_TOKEN,
+                       organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(id=f"{HF_ORGANIZATION}/{HF_DATASET}",
                                     private=False)
-    with patch.object(client.downloads, 'get_dataset_permissions',
+    with patch.object(client.downloads,
+                      'get_dataset_permissions',
                       return_value=mock_dataset_info.private):
         permissions = client.downloads.get_dataset_permissions()
         logger.info(f"Dataset permissions: {permissions}")
@@ -43,13 +57,14 @@ def test_dataset_permissions():
 
 
 def test_dataset_file_list():
-    client = DataTonic(token=HF_TOKEN, organization=HF_ORGANIZATION,
+    client = DataTonic(token=HF_TOKEN,
+                       organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     mock_dataset_info = DatasetInfo(
         id=f"{HF_ORGANIZATION}/{HF_DATASET}",
-        siblings=[MagicMock(rfilename='README.md')]
-    )
-    with patch.object(client.downloads, 'get_dataset_file_list',
+        siblings=[MagicMock(rfilename='README.md')])
+    with patch.object(client.downloads,
+                      'get_dataset_file_list',
                       return_value=mock_dataset_info.siblings):
         file_list = client.downloads.get_dataset_file_list()
         logger.info(f"Dataset files: {file_list}")

@@ -19,15 +19,16 @@ load_dotenv()
 
 
 def test_main_function(monkeypatch):
-    with patch(
-        'thinking_dataset.commands.download.DataTonic',
-        new=MagicMock()
-    ):
+    with patch('thinking_dataset.commands.download.DataTonic',
+               new=MagicMock()):
         runner = CliRunner()
         result = runner.invoke(cli, ['download'])
 
         assert result.exit_code == 0
-        assert "Downloading" in result.output
+        assert "Loaded environment variables" in result.output
+        assert "Set Hugging Face cache directory" in result.output
+        assert "Constructed paths" in result.output
+        assert "Downloaded all dataset files" in result.output
 
 
 def test_clean_function(monkeypatch):
