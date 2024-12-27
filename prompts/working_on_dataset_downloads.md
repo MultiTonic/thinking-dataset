@@ -10,7 +10,7 @@
     @description <Description>
     @version 1.0.0
     @license MIT
-    author Kara Rawson
+    @author Kara Rawson
     @see https://github.com/MultiTonic/thinking-dataset
     @see https://huggingface.co/DataTonic
     ```
@@ -60,5 +60,20 @@
         ├── operations/ # Data operations and transformations
         ├── tonics/ # Utility functions and helpers
     └── setup.py # Project setup
+    ```
+
+6. **Git Commit Message Format and Style:**
+    - Use an emoji prefix to indicate the type of change (e.g., ✨ for features, 🐛 for bug fixes)
+    - Follow with a brief, descriptive title
+    - Include a detailed description of the changes made, organized into bullet points if necessary
+
+    **Example:**
+
+    ```
+    ✨ feat: Add download functionality for Cablegate dataset
+    - Implemented CLI command to download Cablegate dataset parquet files.
+    - Ensured environment variables are loaded correctly.
+    - Stored data in appropriate directories under project_root/data/.
+    - Configured VS Code to use YAPF for formatting Python code.
     ```
 
