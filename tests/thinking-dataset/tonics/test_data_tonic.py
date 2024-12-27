@@ -53,9 +53,9 @@ def test_get_dataset_metadata():
                                     tags=['cleaned-text'])
 
     with patch.object(client.operations,
-                      'get_dataset_metadata',
+                      'get_metadata',
                       return_value=mock_dataset_info):
-        dataset_info = client.operations.get_dataset_metadata()
+        dataset_info = client.operations.get_metadata()
         logger.info(f"Dataset metadata: {dataset_info}")
         assert dataset_info is not None
         assert hasattr(dataset_info, "id")

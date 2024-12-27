@@ -18,7 +18,7 @@ class DatasetOperations(BaseDataset):
 
     Methods
     -------
-    get_dataset_metadata()
+    get_metadata()
         Retrieves metadata about the dataset.
     get_dataset_tags()
         Retrieves tags associated with the dataset.
@@ -26,7 +26,7 @@ class DatasetOperations(BaseDataset):
         Retrieves card content of the dataset.
     """
 
-    def get_dataset_metadata(self):
+    def get_metadata(self):
         """
         Retrieves metadata about the dataset.
 

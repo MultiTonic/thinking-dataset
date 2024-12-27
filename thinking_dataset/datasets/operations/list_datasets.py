@@ -14,6 +14,11 @@ from .base_operation import BaseOperation
 class ListDatasets(BaseOperation):
     """
     A class to list datasets associated with the organization.
+
+    Methods
+    -------
+    execute()
+        Lists datasets associated with the organization.
     """
 
     def execute(self):
@@ -25,8 +30,8 @@ class ListDatasets(BaseOperation):
         list
             A list of datasets associated with the organization.
         """
-        datasets = self.data_tonic.list_datasets(
-            author=self.data_tonic.organization)
+        datasets = list(
+            self.data_tonic.list_datasets(author=self.data_tonic.organization))
         self.log_info(
             f"Number of {self.data_tonic.organization} datasets listed: "
             f"{len(datasets)}")
