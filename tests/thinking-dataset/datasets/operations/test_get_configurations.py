@@ -1,6 +1,6 @@
 """
-@file tests/thinking_dataset/tonics/test_data_tonic.py
-@description Tests for the DataTonic class in the Thinking Dataset Project.
+@file tests/thinking_dataset/datasets/operations/test_get_configuration.py
+@description Tests for GetConfiguration operation.
 @version 1.0.0
 @license MIT
 author Kara Rawson
@@ -13,10 +13,6 @@ from unittest.mock import MagicMock
 from thinking_dataset.datasets.operations.get_configuration \
     import GetConfiguration
 
-HF_TOKEN = "your_hf_token"
-HF_ORGANIZATION = "your_hf_organization"
-HF_DATASET = "your_hf_dataset"
-
 
 class MockDatasetInfo:
     """
@@ -24,14 +20,7 @@ class MockDatasetInfo:
     """
 
     def __init__(self):
-        self.card_data = {
-            "configs": ["config1", "config2"],
-            "description": "This is a test dataset.",
-            "license": "MIT",
-            "dataset_info": {
-                "splits": ["train", "test", "validation"]
-            }
-        }
+        self.card_data = {"configs": ["config1", "config2"]}
 
 
 class MockDataTonic:
@@ -39,14 +28,7 @@ class MockDataTonic:
     Mock class for DataTonic to be used in tests.
     """
 
-    def __init__(self):
-        self.organization = "test_org"
-        self.dataset = "test_dataset"
-
-    def get_dataset_info(self, dataset_id=None):
-        """
-        Mock method to get dataset info.
-        """
+    def get_dataset_info(self):
         return MockDatasetInfo()
 
     def log_info(self, message):
@@ -64,9 +46,9 @@ def mock_data_tonic():
     return MockDataTonic()
 
 
-def test_get_configurations(mock_data_tonic):
+def test_get_configuration(mock_data_tonic):
     """
-    Test the get_configurations method.
+    Test the GetConfiguration operation.
     """
     operation = GetConfiguration(mock_data_tonic)
     configs = operation.execute()

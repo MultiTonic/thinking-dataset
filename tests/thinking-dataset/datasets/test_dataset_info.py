@@ -1,5 +1,5 @@
 """
-@file thinking_dataset/tests/datasets/test_dataset_info.py
+@file tests/thinking_dataset/datasets/operations/test_dataset_info.py
 @description Tests for the DatasetInfo class in the Thinking Dataset Project.
 @version 1.0.0
 @license MIT
@@ -19,7 +19,6 @@ class MockDatasetInfo:
 
     def __init__(self):
         self.card_data = {
-            "configs": ["config1", "config2"],
             "description": "This is a test dataset.",
             "license": "MIT",
             "dataset_info": {
@@ -56,15 +55,6 @@ def mock_data_tonic():
     Fixture to create a mock DataTonic instance.
     """
     return MockDataTonic()
-
-
-def test_get_configurations(mock_data_tonic):
-    """
-    Test the get_configurations method.
-    """
-    dataset_info = DatasetInfo(mock_data_tonic)
-    configs = dataset_info.get_configurations()
-    assert configs == ["config1", "config2"]
 
 
 def test_get_description(mock_data_tonic):
