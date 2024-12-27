@@ -11,7 +11,8 @@
 import os
 from huggingface_hub.utils import RepositoryNotFoundError
 from thinking_dataset.connectors.connector import Connector
-from thinking_dataset.operations.dataset_operations import DatasetOperations
+from thinking_dataset.datasets.operations.dataset_operations \
+    import DatasetOperations
 from thinking_dataset.datasets.dataset_downloads import DatasetDownloads
 from thinking_dataset.datasets.dataset_info import DatasetInfo
 
