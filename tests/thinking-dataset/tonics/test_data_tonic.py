@@ -166,7 +166,7 @@ def test_get_configurations():
         assert configs[0]['config_name'] == 'default'
 
 
-def test_get_dataset_description():
+def test_get_description():
     client = DataTonic(token=HF_TOKEN,
                        organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
@@ -175,9 +175,9 @@ def test_get_dataset_description():
         card_data={'description': 'Sample description'})
 
     with patch.object(client.info,
-                      'get_dataset_description',
+                      'get_description',
                       return_value=mock_dataset_info.card_data['description']):
-        description = client.info.get_dataset_description()
+        description = client.info.get_description()
         logger.info(f"Dataset description: {description}")
         assert len(description) > 0
 

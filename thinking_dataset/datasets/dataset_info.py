@@ -20,7 +20,7 @@ class DatasetInfo(BaseDataset):
     -------
     get_configurations()
         Retrieves the configurations of the dataset.
-    get_dataset_description()
+    get_description()
         Retrieves the description of the dataset.
     get_dataset_license()
         Retrieves the license information of the dataset.
@@ -42,7 +42,7 @@ class DatasetInfo(BaseDataset):
         self.log_info(f"Dataset configurations: {configs}")
         return configs
 
-    def get_dataset_description(self):
+    def get_description(self):
         """
         Retrieves the description of the dataset.
 
