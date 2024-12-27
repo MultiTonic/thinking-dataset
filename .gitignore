@@ -169,6 +169,7 @@ cython_debug/
 .vs/slnx.sqlite
 .vs/VSWorkspaceState.json
 .vscode/settings.json
+.vscode
 
 # Dataset Data
 [Dd]ata/*
