@@ -182,7 +182,7 @@ def test_get_description():
         assert len(description) > 0
 
 
-def test_get_dataset_license():
+def test_get_license():
     client = DataTonic(token=HF_TOKEN,
                        organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
@@ -190,9 +190,9 @@ def test_get_dataset_license():
                                     card_data={'license': 'MIT'})
 
     with patch.object(client.info,
-                      'get_dataset_license',
+                      'get_license',
                       return_value=mock_dataset_info.card_data['license']):
-        license_info = client.info.get_dataset_license()
+        license_info = client.info.get_license()
         logger.info(f"Dataset license: {license_info}")
         assert license_info is not None
 

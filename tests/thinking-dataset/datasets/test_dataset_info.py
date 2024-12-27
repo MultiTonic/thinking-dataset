@@ -76,12 +76,12 @@ def test_get_description(mock_data_tonic):
     assert description == "This is a test dataset."
 
 
-def test_get_dataset_license(mock_data_tonic):
+def test_get_license(mock_data_tonic):
     """
-    Test the get_dataset_license method.
+    Test the get_license method.
     """
     dataset_info = DatasetInfo(mock_data_tonic)
-    license_info = dataset_info.get_dataset_license()
+    license_info = dataset_info.get_license()
     assert license_info == "MIT"
 
 
