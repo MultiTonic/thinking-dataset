@@ -58,12 +58,12 @@ def mock_data_tonic():
     return MockDataTonic()
 
 
-def test_get_dataset_configurations(mock_data_tonic):
+def test_get_configurations(mock_data_tonic):
     """
-    Test the get_dataset_configurations method.
+    Test the get_configurations method.
     """
     dataset_info = DatasetInfo(mock_data_tonic)
-    configs = dataset_info.get_dataset_configurations()
+    configs = dataset_info.get_configurations()
     assert configs == ["config1", "config2"]
 
 

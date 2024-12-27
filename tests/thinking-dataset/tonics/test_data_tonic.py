@@ -147,7 +147,7 @@ def test_get_dataset_file_list():
         assert len(file_list) > 0
 
 
-def test_get_dataset_configurations():
+def test_get_configurations():
     client = DataTonic(token=HF_TOKEN,
                        organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
@@ -158,9 +158,9 @@ def test_get_dataset_configurations():
         }]})
 
     with patch.object(client.info,
-                      'get_dataset_configurations',
+                      'get_configurations',
                       return_value=mock_dataset_info.card_data['configs']):
-        configs = client.info.get_dataset_configurations()
+        configs = client.info.get_configurations()
         logger.info(f"Dataset configurations: {configs}")
         assert len(configs) > 0
         assert configs[0]['config_name'] == 'default'

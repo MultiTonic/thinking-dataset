@@ -18,7 +18,7 @@ class DatasetInfo(BaseDataset):
 
     Methods
     -------
-    get_dataset_configurations()
+    get_configurations()
         Retrieves the configurations of the dataset.
     get_dataset_description()
         Retrieves the description of the dataset.
@@ -28,7 +28,7 @@ class DatasetInfo(BaseDataset):
         Retrieves the split information of the dataset.
     """
 
-    def get_dataset_configurations(self):
+    def get_configurations(self):
         """
         Retrieves the configurations of the dataset.
 
