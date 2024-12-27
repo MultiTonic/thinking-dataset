@@ -11,9 +11,9 @@ author Kara Rawson
 import pytest
 from rich.console import Console
 from dotenv import load_dotenv
-from thinking_dataset.commands.download import (
-    load_env_variables, construct_paths, validate_env_variables
-)
+from thinking_dataset.commands.download import (load_env_variables,
+                                                construct_paths,
+                                                validate_env_variables)
 import os
 
 # Load environment variables from .env file
@@ -38,11 +38,16 @@ def test_load_env_variables(monkeypatch):
     # Load the environment variables
     env_vars = load_env_variables()
 
+    # Normalize paths to handle drive letters on Windows
+    root_dir = os.path.splitdrive(env_vars["ROOT_DIR"])[1].replace(
+        "\\", "/").lower()
+    expected_root_dir = "/test/root/dir".replace("\\", "/").lower()
+
     # Assert the values to ensure correctness
     assert env_vars["HF_TOKEN"] == "test_token"
     assert env_vars["HF_DATASET"] == "test_dataset"
     assert env_vars["HF_ORGANIZATION"] == "test_organization"
-    assert env_vars["ROOT_DIR"] == "/test/root/dir"
+    assert root_dir == expected_root_dir
     assert env_vars["DATA_DIR"] == "test_data"
 
 
@@ -55,10 +60,16 @@ def test_construct_paths():
 
     # Construct paths for raw and processed data
     raw_dir, processed_dir = construct_paths(root_dir, data_dir)
-    expected_raw_dir = os.path.join(root_dir, data_dir, "raw", "cablegate")
-    expected_processed_dir = os.path.join(
-        root_dir, data_dir, "processed", "cablegate"
-    )
+    expected_raw_dir = os.path.join(root_dir, data_dir,
+                                    "raw").replace("\\", "/").lower()
+    expected_processed_dir = os.path.join(root_dir, data_dir,
+                                          "processed").replace("\\",
+                                                               "/").lower()
+
+    # Normalize paths to handle drive letters on Windows
+    raw_dir = os.path.splitdrive(raw_dir)[1].replace("\\", "/").lower()
+    processed_dir = os.path.splitdrive(processed_dir)[1].replace("\\",
+                                                                 "/").lower()
 
     # Assert the constructed paths to ensure correctness
     assert raw_dir == expected_raw_dir
