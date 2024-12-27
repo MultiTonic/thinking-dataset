@@ -15,8 +15,8 @@ from dotenv import load_dotenv
 from loguru import logger
 from huggingface_hub import DatasetInfo
 from thinking_dataset.tonics.data_tonic import DataTonic
-from thinking_dataset.datasets.operations.list_datasets_operation \
-    import ListDatasetsOperation
+from thinking_dataset.datasets.operations.list_datasets \
+    import ListDatasets
 
 # Load environment variables from .env file
 load_dotenv()
@@ -34,10 +34,8 @@ def test_list_datatonic_datasets():
     mock_datasets_id = f"{HF_ORGANIZATION}/{HF_DATASET}"
     mock_datasets = [{'id': mock_datasets_id}]
 
-    with patch.object(ListDatasetsOperation,
-                      'execute',
-                      return_value=mock_datasets):
-        operation = ListDatasetsOperation(client)
+    with patch.object(ListDatasets, 'execute', return_value=mock_datasets):
+        operation = ListDatasets(client)
         datasets = operation.execute()
         logger.info(f"Number of DataTonic datasets listed: {len(datasets)}")
         assert datasets is not None

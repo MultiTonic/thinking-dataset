@@ -11,7 +11,7 @@
 from .base_operation import BaseOperation
 
 
-class ListDatasetsOperation(BaseOperation):
+class ListDatasets(BaseOperation):
     """
     A class to list datasets associated with the organization.
     """
