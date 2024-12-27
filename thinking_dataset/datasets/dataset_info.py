@@ -24,7 +24,7 @@ class DatasetInfo(BaseDataset):
         Retrieves the description of the dataset.
     get_license()
         Retrieves the license information of the dataset.
-    get_dataset_split_information()
+    get_split_information()
         Retrieves the split information of the dataset.
     """
 
@@ -70,7 +70,7 @@ class DatasetInfo(BaseDataset):
         self.log_info(f"Dataset license: {license_info}")
         return license_info
 
-    def get_dataset_split_information(self):
+    def get_split_information(self):
         """
         Retrieves the split information of the dataset.
 

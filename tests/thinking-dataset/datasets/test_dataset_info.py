@@ -85,12 +85,12 @@ def test_get_license(mock_data_tonic):
     assert license_info == "MIT"
 
 
-def test_get_dataset_split_information(mock_data_tonic):
+def test_get_split_information(mock_data_tonic):
     """
-    Test the get_dataset_split_information method.
+    Test the get_split_information method.
     """
     dataset_info = DatasetInfo(mock_data_tonic)
-    splits = dataset_info.get_dataset_split_information()
+    splits = dataset_info.get_split_information()
     assert splits == ["train", "test", "validation"]
 
 

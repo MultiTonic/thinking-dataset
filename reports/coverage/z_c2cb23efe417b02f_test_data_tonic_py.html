@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_11e7a375db046e71___init___py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.9">coverage.py v7.6.9</a>,
-            created at 2024-12-27 15:58 -0500
+            created at 2024-12-27 15:59 -0500
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -279,7 +279,7 @@
     <p class="run"><span class="n"><a id="t197" href="#t197">197</a></span><span class="t">        <span class="key">assert</span> <span class="nam">license_info</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t198" href="#t198">198</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t199" href="#t199">199</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t200" href="#t200">200</a></span><span class="t"><span class="key">def</span> <span class="nam">test_get_dataset_split_information</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t200" href="#t200">200</a></span><span class="t"><span class="key">def</span> <span class="nam">test_get_split_information</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t201" href="#t201">201</a></span><span class="t">    <span class="nam">client</span> <span class="op">=</span> <span class="nam">DataTonic</span><span class="op">(</span><span class="nam">token</span><span class="op">=</span><span class="nam">HF_TOKEN</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t202" href="#t202">202</a></span><span class="t">                       <span class="nam">organization</span><span class="op">=</span><span class="nam">HF_ORGANIZATION</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t203" href="#t203">203</a></span><span class="t">                       <span class="nam">dataset</span><span class="op">=</span><span class="nam">HF_DATASET</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -292,10 +292,10 @@
     <p class="pln"><span class="n"><a id="t210" href="#t210">210</a></span><span class="t">        <span class="op">}</span><span class="op">}</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t211" href="#t211">211</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t212" href="#t212">212</a></span><span class="t">    <span class="key">with</span> <span class="nam">patch</span><span class="op">.</span><span class="nam">object</span><span class="op">(</span><span class="nam">client</span><span class="op">.</span><span class="nam">info</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t">                      <span class="str">'get_dataset_split_information'</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t">                      <span class="str">'get_split_information'</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t214" href="#t214">214</a></span><span class="t">                      <span class="nam">return_value</span><span class="op">=</span><span class="nam">mock_dataset_info</span><span class="op">.</span><span class="nam">card_data</span><span class="op">[</span><span class="str">'dataset_info'</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t215" href="#t215">215</a></span><span class="t">                      <span class="op">[</span><span class="str">'splits'</span><span class="op">]</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t216" href="#t216">216</a></span><span class="t">        <span class="nam">splits</span> <span class="op">=</span> <span class="nam">client</span><span class="op">.</span><span class="nam">info</span><span class="op">.</span><span class="nam">get_dataset_split_information</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t216" href="#t216">216</a></span><span class="t">        <span class="nam">splits</span> <span class="op">=</span> <span class="nam">client</span><span class="op">.</span><span class="nam">info</span><span class="op">.</span><span class="nam">get_split_information</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t217" href="#t217">217</a></span><span class="t">        <span class="nam">logger</span><span class="op">.</span><span class="nam">info</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Dataset splits: </span><span class="op">{</span><span class="nam">splits</span><span class="op">}</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t218" href="#t218">218</a></span><span class="t">        <span class="key">assert</span> <span class="nam">len</span><span class="op">(</span><span class="nam">splits</span><span class="op">)</span> <span class="op">></span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t219" href="#t219">219</a></span><span class="t">        <span class="key">assert</span> <span class="nam">splits</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="op">[</span><span class="str">'name'</span><span class="op">]</span> <span class="op">==</span> <span class="str">'train'</span>&nbsp;</span><span class="r"></span></p>
@@ -312,7 +312,7 @@
             <a class="nav" href="z_11e7a375db046e71___init___py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.9">coverage.py v7.6.9</a>,
-            created at 2024-12-27 15:58 -0500
+            created at 2024-12-27 15:59 -0500
         </p>
     </div>
 </footer>

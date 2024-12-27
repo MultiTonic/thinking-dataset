@@ -197,7 +197,7 @@ def test_get_license():
         assert license_info is not None
 
 
-def test_get_dataset_split_information():
+def test_get_split_information():
     client = DataTonic(token=HF_TOKEN,
                        organization=HF_ORGANIZATION,
                        dataset=HF_DATASET)
@@ -210,10 +210,10 @@ def test_get_dataset_split_information():
         }})
 
     with patch.object(client.info,
-                      'get_dataset_split_information',
+                      'get_split_information',
                       return_value=mock_dataset_info.card_data['dataset_info']
                       ['splits']):
-        splits = client.info.get_dataset_split_information()
+        splits = client.info.get_split_information()
         logger.info(f"Dataset splits: {splits}")
         assert len(splits) > 0
         assert splits[0]['name'] == 'train'
