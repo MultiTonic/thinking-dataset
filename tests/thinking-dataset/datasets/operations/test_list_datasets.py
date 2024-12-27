@@ -1,6 +1,6 @@
 """
 @file tests/operations/test_list_datasets.py
-@description Unit tests for dataset operations in thinking-dataset.
+@description Unit tests for listing datasets in the thinking-dataset.
 @version 1.0.0
 @license MIT
 @author Kara Rawson
