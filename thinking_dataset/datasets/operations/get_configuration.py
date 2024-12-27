@@ -3,8 +3,9 @@
 @description Operation to retrieve dataset configurations.
 @version 1.0.0
 @license MIT
-@see https://github.com/MultiTonic/thinking-dataset
-@see https://huggingface.co/DataTonic
+@author Kara Rawson
+@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 from .base_operation import BaseOperation

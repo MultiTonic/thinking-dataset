@@ -3,7 +3,7 @@
 @description Provides common functionalities for dataset operations.
 @version 1.0.0
 @license MIT
-author Kara Rawson
+@author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -60,8 +60,7 @@ class BaseDataset:
         if dataset_id:
             return self.data_tonic.get_dataset_info(dataset_id)
         return self.data_tonic.get_dataset_info(
-            f"{self.data_tonic.organization}/{self.data_tonic.dataset}"
-        )
+            f"{self.data_tonic.organization}/{self.data_tonic.dataset}")
 
     def log_info(self, message):
         """

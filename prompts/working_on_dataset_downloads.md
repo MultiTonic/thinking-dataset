@@ -10,8 +10,8 @@
 @description <Description>
 @version 1.0.0
 @license MIT
-@see https://github.com/MultiTonic/thinking-dataset
-@see https://huggingface.co/DataTonic
+@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 ```
 
 ### 2. Project Context
