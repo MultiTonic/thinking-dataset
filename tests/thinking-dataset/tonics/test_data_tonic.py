@@ -15,8 +15,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from huggingface_hub import DatasetInfo
 from thinking_dataset.tonics.data_tonic import DataTonic
-from thinking_dataset.datasets.operations.list_datasets \
-    import ListDatasets
+from thinking_dataset.datasets.operations.list_datasets import ListDatasets
 
 # Load environment variables from .env file
 load_dotenv()
@@ -146,22 +145,6 @@ def test_get_dataset_file_list():
         file_list = client.downloads.get_dataset_file_list()
         logger.info(f"Dataset files: {file_list}")
         assert len(file_list) > 0
-
-
-def test_get_dataset_download_size():
-    client = DataTonic(token=HF_TOKEN,
-                       organization=HF_ORGANIZATION,
-                       dataset=HF_DATASET)
-    mock_dataset_info = DatasetInfo(id=f"{HF_ORGANIZATION}/{HF_DATASET}",
-                                    card_data={'download_size': 229353983})
-
-    with patch.object(
-            client.info,
-            'get_dataset_download_size',
-            return_value=mock_dataset_info.card_data['download_size']):
-        download_size = client.info.get_dataset_download_size()
-        logger.info(f"Dataset download size: {download_size}")
-        assert download_size == 229353983
 
 
 def test_get_dataset_configurations():

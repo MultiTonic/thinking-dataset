@@ -19,7 +19,6 @@ class MockDatasetInfo:
 
     def __init__(self):
         self.card_data = {
-            "download_size": 1024,
             "configs": ["config1", "config2"],
             "description": "This is a test dataset.",
             "license": "MIT",
@@ -57,15 +56,6 @@ def mock_data_tonic():
     Fixture to create a mock DataTonic instance.
     """
     return MockDataTonic()
-
-
-def test_get_dataset_download_size(mock_data_tonic):
-    """
-    Test the get_dataset_download_size method.
-    """
-    dataset_info = DatasetInfo(mock_data_tonic)
-    download_size = dataset_info.get_dataset_download_size()
-    assert download_size == 1024
 
 
 def test_get_dataset_configurations(mock_data_tonic):

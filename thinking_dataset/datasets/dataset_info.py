@@ -18,8 +18,6 @@ class DatasetInfo(BaseDataset):
 
     Methods
     -------
-    get_dataset_download_size()
-        Retrieves the download size of the dataset.
     get_dataset_configurations()
         Retrieves the configurations of the dataset.
     get_dataset_description()
@@ -29,20 +27,6 @@ class DatasetInfo(BaseDataset):
     get_dataset_split_information()
         Retrieves the split information of the dataset.
     """
-
-    def get_dataset_download_size(self):
-        """
-        Retrieves the download size of the dataset.
-
-        Returns
-        -------
-        int
-            The download size of the dataset.
-        """
-        dataset_info = self.get_dataset_info()
-        download_size = dataset_info.card_data.get('download_size', 0)
-        self.log_info(f"Dataset download size: {download_size}")
-        return download_size
 
     def get_dataset_configurations(self):
         """
