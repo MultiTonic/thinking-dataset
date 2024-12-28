@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2024-12-28
+
+### Added
+- Created `GetPermissions` operation class.
+- Created tests for `GetPermissions` operation.
+
 ## [Unreleased] - 2024-12-27
 
 ### Added
@@ -41,7 +47,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Corrected import error and updated test paths in `test_files.py` to resolve ImportError issues.
 - Resolved `TypeError` in `get_dataset_download_urls` method by providing required `dataset_id` argument.
 
-## [1.0.0] - 2024-10-29
+## [Unreleased] - 2024-10-29
 
 ### Added
 - Discussed and planned the setup for cross-platform builds for Windows and Linux.
@@ -59,7 +65,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - N/A
 
-## [0.0.1] - 2024-10-28
+## [Unreleased] - 2024-10-28
 
 ### Added
 - Created `ThinkingDatasetProject` directory.

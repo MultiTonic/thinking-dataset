@@ -51,19 +51,5 @@ def test_dataset_download_url():
         assert len(download_urls) > 0
 
 
-def test_dataset_permissions():
-    client = DataTonic(token=HF_TOKEN,
-                       organization=HF_ORGANIZATION,
-                       dataset=HF_DATASET)
-    mock_dataset_info = DatasetInfo(id=f"{HF_ORGANIZATION}/{HF_DATASET}",
-                                    private=False)
-    with patch.object(client.downloads,
-                      'get_dataset_permissions',
-                      return_value=mock_dataset_info.private):
-        permissions = client.downloads.get_dataset_permissions()
-        logger.info(f"Dataset permissions: {permissions}")
-        assert permissions is False
-
-
 if __name__ == "__main__":
     pytest.main()

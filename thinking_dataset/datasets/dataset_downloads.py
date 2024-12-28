@@ -3,7 +3,7 @@
 @description Provides functionalities related to dataset downloads.
 @version 1.0.0
 @license MIT
-author Kara Rawson
+@author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -29,8 +29,6 @@ class DatasetDownloads(BaseDataset):
         specific type.
     download_dataset(dataset_id, download_dir, console)
         Downloads the dataset files to the specified directory.
-    get_dataset_permissions(dataset_id)
-        Checks the permissions of the dataset.
     """
 
     def __init__(self, connector, token):
@@ -112,21 +110,3 @@ class DatasetDownloads(BaseDataset):
         console.print(f"[green]Downloaded {len(urls)} parquet files to "
                       f"{os.path.normpath(download_dir)}[/green]\n")
         return True
-
-    def get_dataset_permissions(self, dataset_id):
-        """
-        Checks the permissions of the dataset.
-
-        Parameters
-        ----------
-        dataset_id : str
-            The ID of the dataset to check permissions for.
-
-        Returns
-        -------
-        bool
-            True if the dataset is private, False otherwise.
-        """
-        dataset_info = self.get_dataset_info(dataset_id)
-        self.log_info(f"Dataset permissions: {dataset_info.private}")
-        return dataset_info.private
