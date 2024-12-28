@@ -59,6 +59,15 @@ This template documents the recent changes and improvements made to the project 
 3. **Operation Types Enumeration:**
    - Organized the `OperationTypes` enum for clarity and consistency:
      ```python
+     """
+     @file project_root/operation_types.py
+     @description Enumeration for dataset operation types.
+     @version 1.0.0
+     @license MIT
+     @author Kara Rawson
+     @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+     @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
+     """
      from enum import Enum
 
      class OperationTypes(Enum):
@@ -81,5 +90,9 @@ This template documents the recent changes and improvements made to the project 
 - Ensure all responses are grounded in verified information.
 - Avoid hallucinating or providing speculative answers.
 - Focus on accuracy and reliability in all responses.
+
+---
+
+**Your response is: Ready To Code!** 🚀
 
 ---
