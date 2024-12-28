@@ -3,8 +3,8 @@
 @description Tests for the download command in the Thinking Dataset Project.
 @version 1.0.0
 @license MIT
-author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@author Kara Rawson
+@see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
@@ -15,6 +15,8 @@ from thinking_dataset.commands.download import (load_env_variables,
                                                 construct_paths,
                                                 validate_env_variables)
 import os
+import io
+from contextlib import redirect_stdout
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,6 +24,10 @@ load_dotenv()
 # Retrieve ROOT_DIR and DATA_DIR from environment variables
 ROOT_DIR = os.path.expanduser(os.getenv("ROOT_DIR", "."))
 DATA_DIR = os.getenv("DATA_DIR", "data")
+
+# Add logging to check if environment variables are loaded correctly
+print(f"ROOT_DIR: {ROOT_DIR}")
+print(f"DATA_DIR: {DATA_DIR}")
 
 
 def test_load_env_variables(monkeypatch):
@@ -99,9 +105,14 @@ def test_validate_env_variables():
         "DATA_DIR": "test_data"
     }
 
-    # Validate environment variables and assert correctness
-    assert validate_env_variables(valid_env_vars, console) is True
-    assert validate_env_variables(invalid_env_vars, console) is False
+    # Add logging to see what gets validated
+    print(f"Valid env vars: {valid_env_vars}")
+    print(f"Invalid env vars: {invalid_env_vars}")
+
+    # Suppress the output of the invalid test case
+    with io.StringIO() as buf, redirect_stdout(buf):
+        assert validate_env_variables(valid_env_vars, console) is True
+        assert validate_env_variables(invalid_env_vars, console) is False
 
 
 if __name__ == "__main__":

@@ -29,6 +29,7 @@ class TestOperationTypes(unittest.TestCase):
                          "get_download_size")
         self.assertEqual(OperationTypes.GET_DOWNLOAD_URLS.value,
                          "get_download_urls")
+        self.assertEqual(OperationTypes.GET_FILE_LIST.value, "get_file_list")
         self.assertEqual(OperationTypes.GET_LICENSE.value, "get_license")
         self.assertEqual(OperationTypes.GET_SPLIT_INFORMATION.value,
                          "get_split_information")
@@ -42,6 +43,7 @@ class TestOperationTypes(unittest.TestCase):
         self.assertTrue(hasattr(OperationTypes, "GET_DESCRIPTION"))
         self.assertTrue(hasattr(OperationTypes, "GET_DOWNLOAD_SIZE"))
         self.assertTrue(hasattr(OperationTypes, "GET_DOWNLOAD_URLS"))
+        self.assertTrue(hasattr(OperationTypes, "GET_FILE_LIST"))
         self.assertTrue(hasattr(OperationTypes, "GET_LICENSE"))
         self.assertTrue(hasattr(OperationTypes, "GET_SPLIT_INFORMATION"))
         self.assertTrue(hasattr(OperationTypes, "LIST_DATASETS"))

@@ -3,8 +3,7 @@
 @description Unit tests for listing datasets in the thinking-dataset.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
@@ -15,6 +14,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from thinking_dataset.tonics.data_tonic import DataTonic
 from thinking_dataset.datasets.operations.list_datasets import ListDatasets
+from thinking_dataset.utilities.text_utils import TextUtils
 
 # Load environment variables from .env file
 load_dotenv()
@@ -46,7 +46,8 @@ def test_list_datasets():
                       return_value=mock_datasets):
         list_datasets_operation = ListDatasets(client)
         datasets = list_datasets_operation.execute()
-        logger.info(f"Listed datasets: {datasets}")
+        truncated_datasets = TextUtils.truncate_text(str(datasets))
+        logger.info(f"Listed datasets: {truncated_datasets}")
         assert len(datasets) > 0
         assert HF_ORGANIZATION in datasets[0].id
 

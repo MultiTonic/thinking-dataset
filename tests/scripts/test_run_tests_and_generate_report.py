@@ -1,10 +1,10 @@
 """
 @file tests/scripts/test_run_tests_and_generate_report.py
-@description Tests for test and generate report script
+@description Unit test for the run_tests_and_generate_report script.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+author Kara Rawson
+@see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
@@ -15,12 +15,12 @@ from unittest import mock
 from scripts.run_tests_and_generate_report import main
 
 
-def test_main(monkeypatch, tmp_path):
+def test_run_tests_and_generate_report(monkeypatch, tmp_path):
     """
     Tests the main function in the run_tests_and_generate_report script.
     """
 
-    # Mock the environment variables and os.makedirs
+    # Mock environment variables and os.makedirs
     monkeypatch.setenv("PATH", "")
     original_sys_path = sys.path.copy()
     original_venv = os.getenv("VIRTUAL_ENV")
@@ -31,23 +31,24 @@ def test_main(monkeypatch, tmp_path):
     with open(activate_venv_path, "w") as f:
         f.write("")
 
-    # Mock the subprocess.run function
+    # Mock subprocess.run
     with mock.patch("subprocess.run") as mock_run:
         mock_run.return_value = mock.Mock(returncode=0)
 
         main()
 
-        # Check that subprocess.run was called with the correct arguments
-        mock_run.assert_called_with(
-            [
-                "pytest",
-                "--cov=.",
-                "--cov-report=html:reports/coverage",
-                "--html=reports/report.html",
-                "--self-contained-html",
-            ],
-            check=True,
-        )
+        # Check subprocess.run was called with the correct arguments
+        expected_calls = [
+            mock.call(
+                [
+                    "pytest",
+                    "--html=./reports/report.html",
+                    "--self-contained-html",
+                ],
+                check=True,
+            )
+        ]
+        mock_run.assert_has_calls(expected_calls, any_order=True)
 
     # Restore the original environment variables and sys.path
     if original_venv:

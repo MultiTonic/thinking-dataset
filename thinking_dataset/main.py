@@ -21,6 +21,5 @@ def cli():
 cli.add_command(download)
 cli.add_command(clean)
 
-
 if __name__ == "__main__":
     cli()

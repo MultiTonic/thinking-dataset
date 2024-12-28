@@ -19,9 +19,8 @@ def main():
     Main function to run tests, generate report, and measure test
     coverage.
     """
-    activate_venv_script = os.path.join(
-        os.path.dirname(__file__), "activate_venv.py"
-    )
+    activate_venv_script = os.path.join(os.path.dirname(__file__),
+                                        "activate_venv.py")
 
     with open(activate_venv_script) as f:
         exec(f.read(), dict(__file__=activate_venv_script))
@@ -31,9 +30,7 @@ def main():
     subprocess.run(
         [
             "pytest",
-            "--cov=.",
-            "--cov-report=html:reports/coverage",
-            "--html=reports/report.html",
+            "--html=./reports/report.html",
             "--self-contained-html",
         ],
         check=True,

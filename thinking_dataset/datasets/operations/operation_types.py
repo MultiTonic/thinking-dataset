@@ -16,6 +16,7 @@ class OperationTypes(Enum):
     GET_DESCRIPTION = "get_description"
     GET_DOWNLOAD_SIZE = "get_download_size"
     GET_DOWNLOAD_URLS = "get_download_urls"
+    GET_FILE_LIST = "get_file_list"
     GET_LICENSE = "get_license"
     GET_SPLIT_INFORMATION = "get_split_information"
     LIST_DATASETS = "list_datasets"

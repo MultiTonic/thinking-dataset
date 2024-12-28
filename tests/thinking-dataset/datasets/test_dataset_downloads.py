@@ -3,8 +3,8 @@
 @description Tests for the DatasetDownloads class in Thinking-Dataset Project.
 @version 1.0.0
 @license MIT
-author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@author Kara Rawson
+@see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
@@ -23,6 +23,15 @@ load_dotenv()
 HF_TOKEN = os.getenv("HF_TOKEN")
 HF_ORGANIZATION = "DataTonic"
 HF_DATASET = "cablegate-pdf-dataset"
+
+# Add logging to check if environment variables are loaded correctly
+logger.info(f"HF_TOKEN: {HF_TOKEN}")
+logger.info(f"HF_ORGANIZATION: {HF_ORGANIZATION}")
+logger.info(f"HF_DATASET: {HF_DATASET}")
+
+if not HF_TOKEN or not HF_DATASET or not HF_ORGANIZATION:
+    print("HF_TOKEN, HF_DATASET, or HF_ORGANIZATION is not set. Please "
+          "check your .env file.")
 
 
 def test_dataset_download_url():
