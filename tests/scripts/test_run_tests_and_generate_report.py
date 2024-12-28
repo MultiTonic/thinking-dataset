@@ -3,7 +3,7 @@
 @description Unit test for the run_tests_and_generate_report script.
 @version 1.0.0
 @license MIT
-author Kara Rawson
+@author Kara Rawson
 @see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -25,6 +25,7 @@ def test_run_tests_and_generate_report(monkeypatch, tmp_path):
     original_sys_path = sys.path.copy()
     original_venv = os.getenv("VIRTUAL_ENV")
     os.makedirs("reports", exist_ok=True)
+    os.makedirs("reports/coverage", exist_ok=True)
 
     # Mock the path to the activate_venv.py script
     activate_venv_path = tmp_path / "activate_venv.py"
@@ -44,6 +45,8 @@ def test_run_tests_and_generate_report(monkeypatch, tmp_path):
                     "pytest",
                     "--html=./reports/report.html",
                     "--self-contained-html",
+                    "--cov=thinking_dataset",
+                    "--cov-report=html:./reports/coverage",
                 ],
                 check=True,
             )
