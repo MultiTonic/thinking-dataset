@@ -21,6 +21,10 @@ This template documents the recent changes and improvements made to the project 
    - Removed `get_dataset_file_list` method.
    - Updated method dependencies to use the new operation classes.
 
+4. **Refactored Download Logic:**
+   - Moved dataset download logic from `DatasetDownloads` to `commands/download.py` for better modularity and clarity.
+   - Updated `commands/download.py` to handle the download process using the `download_dataset` function.
+
 ### Documentation Updates
 1. **Changelog:**
    - Updated the changelog to include recent changes and refactor details:
@@ -37,6 +41,7 @@ This template documents the recent changes and improvements made to the project 
      - Refactored `DatasetDownloads` class to remove deprecated methods.
      - Updated `OperationTypes` enum to include new operations.
      - Updated unit tests for `OperationTypes`.
+     - Moved dataset download logic to `commands/download.py`.
      
      ### Fixed
      - Updated test for `GetFileList` to reflect actual module names in log messages.
@@ -54,6 +59,16 @@ This template documents the recent changes and improvements made to the project 
      - Updated the changelog with the recent changes.
      - Removed the outdated `test_dataset_file_list` from the `test_dataset_downloads.py` file.
      - Updated remaining tests to ensure they do not rely on deprecated methods.
+     
+     ✨ feat: Refactor and enhance dataset download functionality and CLI commands
+     - Moved dataset download logic from `DatasetDownloads` to `commands/download.py` for better modularity and clarity.
+     - Added comprehensive tests for the `download` command to ensure robust and reliable functionality.
+     - Mocked environment variables, download URLs, and file creation to simulate the download process.
+     - Verified output messages and download success using `pytest`.
+     - Improved handling and validation of environment variables for download and clean functions.
+     - Enhanced logging and progress tracking in the download process.
+     - Addressed and fixed Flake8 warnings for improved code quality.
+     - Verified and ensured tests pass, providing thorough coverage for the download and clean commands.
      ```
 
 3. **Operation Types Enumeration:**
@@ -64,7 +79,6 @@ This template documents the recent changes and improvements made to the project 
      @description Enumeration for dataset operation types.
      @version 1.0.0
      @license MIT
-     @author Kara Rawson
      @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
      @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
      """
@@ -85,7 +99,6 @@ This template documents the recent changes and improvements made to the project 
 2. Write corresponding tests for each new operation class.
 3. Update any dependent modules to use the new operation classes.
 4. Ensure all changes are documented in the changelog and commit messages are clear and descriptive.
-
 
 ## Conclusion
 
