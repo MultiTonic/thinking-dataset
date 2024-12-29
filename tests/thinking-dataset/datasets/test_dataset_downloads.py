@@ -3,6 +3,7 @@
 @description Tests for the DatasetDownloads class in Thinking-Dataset Project.
 @version 1.0.0
 @license MIT
+@author Kara Rawson
 @see {@link https://github.com/MultiTonic|thinking-dataset}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -15,7 +16,8 @@ from rich.console import Console
 from thinking_dataset.datasets.dataset_downloads import DatasetDownloads
 from thinking_dataset.datasets.operations.get_download_urls \
     import GetDownloadUrls
-from thinking_dataset.datasets.operations.download_file import DownloadFile
+from thinking_dataset.datasets.operations.get_download_file \
+    import GetDownloadFile
 from thinking_dataset.tonics.data_tonic import DataTonic
 
 # Load environment variables from .env file
@@ -55,7 +57,7 @@ def test_download_dataset(dataset_downloads):
     mock_urls = ["file1.parquet", "file2.parquet"]
 
     with patch.object(GetDownloadUrls, 'execute', return_value=mock_urls):
-        with patch.object(DownloadFile, 'execute', return_value=True):
+        with patch.object(GetDownloadFile, 'execute', return_value=True):
             # Mock the creation of files to simulate a successful download
             for file in mock_urls:
                 open(os.path.join(download_dir, file), 'a').close()

@@ -23,8 +23,8 @@ from thinking_dataset.commands.download \
             download_dataset)
 from thinking_dataset.datasets.operations.get_download_urls \
     import GetDownloadUrls
-from thinking_dataset.datasets.operations.download_file \
-    import DownloadFile
+from thinking_dataset.datasets.operations.get_download_file \
+    import GetDownloadFile
 
 # Load environment variables from .env file
 load_dotenv()
@@ -144,7 +144,7 @@ def test_download_dataset(monkeypatch):
     datatonic = DataTonic(token=env_vars['HF_TOKEN'])
 
     with patch.object(GetDownloadUrls, 'execute', return_value=mock_urls):
-        with patch.object(DownloadFile, 'execute', return_value=True):
+        with patch.object(GetDownloadFile, 'execute', return_value=True):
             # Mock the creation of files to simulate a successful download
             for file in mock_urls:
                 open(os.path.join(download_dir, file), 'a').close()

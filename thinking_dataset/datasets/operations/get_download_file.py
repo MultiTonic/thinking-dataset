@@ -13,7 +13,7 @@ from .base_operation import BaseOperation
 from huggingface_hub import hf_hub_download
 
 
-class DownloadFile(BaseOperation):
+class GetDownloadFile(BaseOperation):
     """
     A class to download a specific file from the dataset.
     """

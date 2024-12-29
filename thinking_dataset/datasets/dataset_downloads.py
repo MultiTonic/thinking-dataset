@@ -11,7 +11,8 @@ import os
 from thinking_dataset.datasets.base_dataset import BaseDataset
 from thinking_dataset.datasets.operations.get_download_urls \
     import GetDownloadUrls
-from thinking_dataset.datasets.operations.download_file import DownloadFile
+from thinking_dataset.datasets.operations.get_download_file \
+    import GetDownloadFile
 
 # Get the dataset type (e.g., 'parquet') from environment variables
 HF_DATASET_TYPE = os.getenv("HF_DATASET_TYPE", 'parquet')
@@ -30,7 +31,7 @@ class DatasetDownloads(BaseDataset):
 
     def __init__(self, connector, token):
         super().__init__(connector)
-        self.connector = connector  # Ensure connector is initialized
+        self.connector = connector
         self.token = token
 
     def download_dataset(self, dataset_id, download_dir, console):
@@ -64,7 +65,7 @@ class DatasetDownloads(BaseDataset):
         all_successful = True
 
         for file in urls:
-            download_file = DownloadFile(self.connector)
+            download_file = GetDownloadFile(self.connector)
             if not download_file.execute(repo_id=dataset_id,
                                          filename=file,
                                          local_dir=download_dir,

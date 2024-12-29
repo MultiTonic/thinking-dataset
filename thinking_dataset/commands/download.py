@@ -16,7 +16,8 @@ import click
 from thinking_dataset.tonics.data_tonic import DataTonic
 from thinking_dataset.datasets.operations.get_download_urls \
     import GetDownloadUrls
-from thinking_dataset.datasets.operations.download_file import DownloadFile
+from thinking_dataset.datasets.operations.get_download_file \
+    import GetDownloadFile
 
 
 def load_env_variables():
@@ -96,12 +97,13 @@ def download_dataset(connector, token, dataset_id, download_dir,
     all_successful = True
 
     for file in urls:
-        download_file = DownloadFile(connector)
-        if not download_file.execute(repo_id=dataset_id,
-                                     filename=file,
-                                     local_dir=download_dir,
-                                     token=token,
-                                     console=console):
+        download_file = GetDownloadFile(connector)
+        if not download_file. \
+            execute(repo_id=dataset_id,
+                    filename=file,
+                    local_dir=download_dir,
+                    token=token,
+                    console=console):
             all_successful = False
 
     if all_successful:
