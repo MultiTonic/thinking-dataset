@@ -1,0 +1,33 @@
+"""
+@file config/database_config.yaml
+@description Configuration settings for the database.
+@version 1.0.0
+@license MIT
+@author Kara Rawson
+@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
+"""
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# This configuration file provides all the necessary settings for your database.
+#
+# It includes the following settings:
+# - url: The database connection URL.
+# - type: The type of the database (e.g., SQLite).
+# - pool_size: The number of connections to keep open in the connection pool.
+# - max_overflow: The maximum number of connections to allow in overflow.
+# - connect_timeout: The timeout in seconds for connecting to the database.
+# - read_timeout: The timeout in seconds for reading from the database.
+# - log_queries: Whether to log SQL queries for debugging purposes.
+# - environment: The environment in which the database is being used (e.g., development).
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+database:
+  url: "sqlite:///thinking-dataset.db"
+  type: "sqlite"
+  pool_size: 5
+  max_overflow: 10
+  connect_timeout: 30
+  read_timeout: 30
+  log_queries: True
+  environment: "development"

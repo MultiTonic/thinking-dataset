@@ -33,7 +33,7 @@ class Session:
         if not Session._Session:
             Session._Session = sessionmaker(bind=engine)
         self.state_machine = SessionStateMachine()
-        self.logger = Log.setup_logger(__name__)
+        self.logger = Log.setup(__name__)
 
     def commit(self):
         if Session._session:

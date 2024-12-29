@@ -7,7 +7,8 @@
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
-import sqlite3
+
+from sqlalchemy import text
 from .database_operation import DatabaseOperation
 from ...utilities.log import Log
 
@@ -30,17 +31,16 @@ class Query(DatabaseOperation):
         """
         super().__init__(database)
         self.query = query
-        self.logger = Log.setup_logger(__name__)
+        self.logger = Log.setup(__name__)
 
     def execute(self):
         """
         Executes the SQL query on the database.
         """
-        with sqlite3.connect(self.database.url) as conn:
-            cursor = conn.cursor()
-            try:
-                cursor.execute(self.query)
-                conn.commit()
+        try:
+            with self.database.engine.connect() as connection:
+                connection.execute(text(self.query))
+                connection.commit()
                 Log.info(self.logger, "Query executed successfully")
-            except sqlite3.Error as e:
-                Log.error(self.logger, f"SQLite error: {e}")
+        except Exception as e:
+            Log.error(self.logger, f"Error executing query: {e}")

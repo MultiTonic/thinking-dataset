@@ -17,7 +17,7 @@ class Log:
     """
 
     @staticmethod
-    def setup_logger(name):
+    def setup(name):
         """
         Sets up a logger with the specified name.
 

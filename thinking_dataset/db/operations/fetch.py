@@ -7,19 +7,20 @@
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
-import sqlite3
+
+from sqlalchemy import text
 from .database_operation import DatabaseOperation
 from ...utilities.log import Log
 
 
-class FetchData(DatabaseOperation):
+class Fetch(DatabaseOperation):
     """
     A class to handle fetching data from the database.
     """
 
     def __init__(self, database, query: str):
         """
-        Constructs all the necessary attributes for the FetchData operation.
+        Constructs all the necessary attributes for the Fetch operation.
 
         Parameters
         ----------
@@ -30,19 +31,17 @@ class FetchData(DatabaseOperation):
         """
         super().__init__(database)
         self.query = query
-        self.logger = Log.setup_logger(__name__)
+        self.logger = Log.setup(__name__)
 
     def execute(self):
         """
         Executes the SQL query to fetch data from the database.
         """
-        with sqlite3.connect(self.database.url) as conn:
-            cursor = conn.cursor()
-            try:
-                cursor.execute(self.query)
-                result = cursor.fetchall()
+        try:
+            with self.database.engine.connect() as connection:
+                result = connection.execute(text(self.query)).fetchall()
                 Log.info(self.logger, "Query executed successfully")
                 return result
-            except sqlite3.Error as e:
-                Log.error(self.logger, f"SQLite error: {e}")
-                return []
+        except Exception as e:
+            Log.error(self.logger, f"Error fetching data: {e}")
+            return []
