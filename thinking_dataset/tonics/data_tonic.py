@@ -14,8 +14,6 @@ from thinking_dataset.datasets.operations.get_download_urls import (
     GetDownloadUrls, )
 from thinking_dataset.datasets.operations.get_download_file \
     import GetDownloadFile
-from thinking_dataset.datasets.operations.dataset_operations import (
-    DatasetOperations, )
 
 HF_ORGANIZATION = os.getenv("HF_ORGANIZATION")
 HF_DATASET = os.getenv("HF_DATASET")
@@ -67,7 +65,6 @@ class DataTonic(Connector):
         self.organization = organization
         self.dataset = dataset
         self.HF_DATASET_TYPE = os.getenv("HF_DATASET_TYPE", "parquet")
-        self.operations = DatasetOperations(self)
         self.get_download_urls = GetDownloadUrls(self)
         self.get_download_file = GetDownloadFile(self)
 
