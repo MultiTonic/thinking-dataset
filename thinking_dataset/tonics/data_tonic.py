@@ -3,7 +3,7 @@
 @description DataTonic class for managing dataset operations.
 @version 1.0.0
 @license MIT
-author Kara Rawson
+@author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -30,6 +30,8 @@ class DataTonic(Connector):
         The organization to which the datasets belong.
     dataset : str
         The specific dataset to manage.
+    HF_DATASET_TYPE : str
+        The dataset type (e.g., 'parquet') for file extensions.
     operations : DatasetOperations
         An instance of the DatasetOperations class for dataset operations.
     downloads : DatasetDownloads
@@ -37,7 +39,8 @@ class DataTonic(Connector):
 
     Methods
     -------
-    N/A
+    get_dataset_info(dataset_id)
+        Retrieves dataset information for the given dataset ID.
     """
 
     def __init__(self,
@@ -52,13 +55,14 @@ class DataTonic(Connector):
         token : str
             The API token for authentication.
         organization : str, optional
-            The org of datasets belong (default is HF_ORGANIZATION).
+            The organization of datasets belong to (default is HF_ORGANIZATION)
         dataset : str, optional
             The specific dataset to manage (default is HF_DATASET).
         """
         super().__init__(token)
         self.organization = organization
         self.dataset = dataset
+        self.HF_DATASET_TYPE = os.getenv("HF_DATASET_TYPE", 'parquet')
         self.operations = DatasetOperations(self)
         self.downloads = DatasetDownloads(self, token)
 

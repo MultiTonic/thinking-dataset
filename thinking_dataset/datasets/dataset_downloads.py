@@ -4,15 +4,14 @@
 @version 1.0.0
 @license MIT
 @author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
+@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 import os
-import stat
 from thinking_dataset.datasets.base_dataset import BaseDataset
-from huggingface_hub import hf_hub_download
 from thinking_dataset.datasets.operations.get_download_urls \
     import GetDownloadUrls
+from thinking_dataset.datasets.operations.download_file import DownloadFile
 
 # Get the dataset type (e.g., 'parquet') from environment variables
 HF_DATASET_TYPE = os.getenv("HF_DATASET_TYPE", 'parquet')
@@ -60,30 +59,25 @@ class DatasetDownloads(BaseDataset):
                           "the dataset.[/bold red]\n")
             return False
 
-        for file in urls:
-            dest = os.path.join(download_dir, file)
-            console.print(f"[green]Downloading {file} to {dest}...[/green]")
-            if os.path.exists(dest):
-                try:
-                    os.chmod(dest, stat.S_IWRITE)
-                    os.remove(dest)
-                except PermissionError as e:
-                    console.print(
-                        f"\n[bold red]PermissionError: {e}[/bold red]\n")
-                    return False
-            try:
-                hf_hub_download(repo_id=dataset_id,
-                                filename=file,
-                                local_dir=download_dir,
-                                token=self.token,
-                                repo_type="dataset")
-                console.print(f"[green]Downloaded {file} "
-                              f"to {os.path.normpath(dest)}[/green]\n")
-            except Exception as e:
-                console.print(
-                    f"\n[bold red]Failed to download {file}: {e}[/bold red]\n")
-                return False
+        console.print(f"[blue]Files to download: {', '.join(urls)}[/blue]\n")
 
-        console.print(f"[green]Downloaded {len(urls)} parquet files "
-                      f"to {os.path.normpath(download_dir)}[/green]\n")
-        return True
+        all_successful = True
+
+        for file in urls:
+            download_file = DownloadFile(self.connector)
+            if not download_file.execute(repo_id=dataset_id,
+                                         filename=file,
+                                         local_dir=download_dir,
+                                         token=self.token,
+                                         console=console):
+                all_successful = False
+
+        if all_successful:
+            console.print(
+                f"[green]Successfully downloaded all {len(urls)} files "
+                f"to {os.path.normpath(download_dir)}[/green]\n")
+        else:
+            console.print("[red]Failed to download some files. Please check "
+                          "the logs for more details.[/red]\n")
+
+        return all_successful

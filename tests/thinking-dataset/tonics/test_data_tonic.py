@@ -42,6 +42,7 @@ class MockDataTonic:
     def __init__(self):
         self.organization = "test_org"
         self.dataset = "test_dataset"
+        self.HF_DATASET_TYPE = "parquet"
 
     def get_dataset_info(self, dataset_id=None):
         """

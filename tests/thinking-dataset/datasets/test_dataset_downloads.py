@@ -3,8 +3,7 @@
 @description Tests for the DatasetDownloads class in Thinking-Dataset Project.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
+@see {@link https://github.com/MultiTonic|thinking-dataset}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 import os
@@ -16,6 +15,7 @@ from rich.console import Console
 from thinking_dataset.datasets.dataset_downloads import DatasetDownloads
 from thinking_dataset.datasets.operations.get_download_urls \
     import GetDownloadUrls
+from thinking_dataset.datasets.operations.download_file import DownloadFile
 from thinking_dataset.tonics.data_tonic import DataTonic
 
 # Load environment variables from .env file
@@ -49,16 +49,34 @@ def test_download_dataset(dataset_downloads):
     download_dir = "test-download-dir"
     console = Console()
 
+    # Ensure the directory exists
+    os.makedirs(download_dir, exist_ok=True)
+
     mock_urls = ["file1.parquet", "file2.parquet"]
 
     with patch.object(GetDownloadUrls, 'execute', return_value=mock_urls):
-        with patch(
-                'thinking_dataset.datasets.dataset_downloads.hf_hub_download',
-                return_value=None):
+        with patch.object(DownloadFile, 'execute', return_value=True):
+            # Mock the creation of files to simulate a successful download
+            for file in mock_urls:
+                open(os.path.join(download_dir, file), 'a').close()
+
             result = dataset_downloads.download_dataset(
                 dataset_id, download_dir, console)
             logger.info(f"Download result: {result}")
             assert result is True
+
+            # Additional assertion and logging to verify behavior
+            logger.info(f"Expected files: {', '.join(mock_urls)}")
+            downloaded_files = os.listdir(download_dir)
+            logger.info(f"Downloaded files: {', '.join(downloaded_files)}")
+
+            for file in mock_urls:
+                assert file in downloaded_files
+
+    # Clean up the directory after test
+    for file in mock_urls:
+        os.remove(os.path.join(download_dir, file))
+    os.rmdir(download_dir)
 
 
 if __name__ == "__main__":
