@@ -31,7 +31,8 @@ class ListDatasets(BaseOperation):
             A list of datasets associated with the organization.
         """
         datasets = list(
-            self.data_tonic.list_datasets(author=self.data_tonic.organization))
+            self.data_tonic.api.list_datasets(
+                author=self.data_tonic.organization))
         self.log_info(
             f"Number of {self.data_tonic.organization} datasets listed: "
             f"{len(datasets)}")

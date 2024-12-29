@@ -3,7 +3,7 @@
 @description Unit tests for listing datasets in the thinking-dataset.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
+@param Kara Rawson
 @see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -42,9 +42,7 @@ def test_list_datasets():
                        dataset=HF_DATASET)
     mock_datasets = [MockDataset()]
 
-    with patch.object(ListDatasets(client),
-                      'execute',
-                      return_value=mock_datasets):
+    with patch.object(client.api, 'list_datasets', return_value=mock_datasets):
         list_datasets_operation = ListDatasets(client)
         datasets = list_datasets_operation.execute()
         truncated_datasets = TextUtils.truncate_text(str(datasets))

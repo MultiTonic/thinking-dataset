@@ -3,16 +3,17 @@
 @description Tests for the DataTonic class in the Thinking Dataset Project.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
+@param Kara Rawson
 @see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from thinking_dataset.datasets.operations.get_configuration \
     import GetConfiguration
 from thinking_dataset.datasets.operations.get_download_urls \
     import GetDownloadUrls
+from thinking_dataset.datasets.operations.get_info import GetInfo
 
 HF_TOKEN = "your_hf_token"
 HF_ORGANIZATION = "your_hf_organization"
@@ -48,6 +49,7 @@ class MockDataTonic:
         self.organization = "test_org"
         self.dataset = "test_dataset"
         self.HF_DATASET_TYPE = "parquet"
+        self.api = MagicMock()  # Adding a mock api attribute
 
     def get_dataset_info(self, dataset_id=None):
         """
@@ -98,6 +100,24 @@ def test_get_download_urls(mock_data_tonic):
     operation.execute("test_dataset")
     operation.log_info.assert_called_with(
         "Dataset download URLs: ['file1.parquet', 'file2.parquet']")
+
+
+def test_get_info(mock_data_tonic):
+    """
+    Test the GetInfo operation.
+    """
+    mock_data_tonic.api.dataset_info = MagicMock(
+        return_value=MockDatasetInfo())
+    operation = GetInfo(mock_data_tonic)
+
+    with patch.object(operation, 'log_info') as mock_log_info:
+        dataset_info = operation.execute("test_dataset")
+        assert dataset_info.card_data[
+            "description"] == "This is a test dataset."
+
+        # Checking if log_info was called
+        mock_log_info.assert_called_with(
+            "Retrieved dataset info: This is a test dataset.")
 
 
 if __name__ == "__main__":
