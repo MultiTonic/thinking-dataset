@@ -48,20 +48,5 @@ def test_get_metadata():
         assert hasattr(dataset_info, "tags")
 
 
-def test_get_dataset_tags():
-    client = DataTonic(token=HF_TOKEN,
-                       organization=HF_ORGANIZATION,
-                       dataset=HF_DATASET)
-    mock_dataset_info = DatasetInfo(id=f"{HF_ORGANIZATION}/{HF_DATASET}",
-                                    tags=['cleaned-text'])
-
-    with patch.object(client.operations,
-                      'get_dataset_tags',
-                      return_value=mock_dataset_info.tags):
-        tags = client.operations.get_dataset_tags()
-        logger.info(f"Dataset tags: {tags}")
-        assert "cleaned-text" in tags
-
-
 if __name__ == "__main__":
     pytest.main()

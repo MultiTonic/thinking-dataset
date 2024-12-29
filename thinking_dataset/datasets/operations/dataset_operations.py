@@ -38,16 +38,3 @@ class DatasetOperations(BaseDataset):
         dataset_info = self.get_dataset_info()
         self.log_info(f"Dataset metadata: {dataset_info}")
         return dataset_info
-
-    def get_dataset_tags(self):
-        """
-        Retrieves tags associated with the dataset.
-
-        Returns
-        -------
-        list
-            A list of tags associated with the dataset.
-        """
-        dataset_info = self.get_dataset_info()
-        self.log_info(f"Dataset tags: {dataset_info.tags}")
-        return dataset_info.tags
