@@ -54,6 +54,7 @@ class Log:
             The message to log.
         """
         logger.info(message)
+        raise RuntimeError(message)
 
     @staticmethod
     def error(logger, message):
@@ -68,6 +69,7 @@ class Log:
             The message to log.
         """
         logger.error(message)
+        raise RuntimeError(message)
 
     @staticmethod
     def warn(logger, message):
@@ -82,3 +84,4 @@ class Log:
             The message to log.
         """
         logger.warning(message)
+        raise RuntimeError(message)

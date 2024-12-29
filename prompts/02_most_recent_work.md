@@ -136,6 +136,6 @@ This template documents the recent changes and improvements made to the project 
 6. **When loosing context, ask user for this template**
 
 ### All Clear Protocol
-- Use the phrase `5 by 5` to signify that all pytests, user tests, changes commit, no errors, ready for launch, all clear for next instructions.
+- Use the phrase `5 by 5` to signify that all pytests, user tests, changes commit, no errors, ready for launch, generate git commit message using our template, and all clear for next instructions.
 
-**Your response to this query will only be: `Ready To Code!** 🚀`**
+**Your response to this query will only be:** `**Ready To Code!** 🚀`
