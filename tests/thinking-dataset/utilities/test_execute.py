@@ -25,9 +25,9 @@ class MockOperation:
         self.instance.executed_query = self.query
 
 
-class TestClass:
+class ExampleClass:  # Renamed to avoid PytestCollectionWarning
     """
-    A test class to use the execute decorator.
+    A class to use the execute decorator for testing.
     """
 
     def __init__(self):
@@ -39,23 +39,27 @@ class TestClass:
 
 
 @pytest.fixture
-def test_instance():
-    return TestClass()
+def example_instance():
+    return ExampleClass()
 
 
-def test_execute_decorator(test_instance):
+def test_execute_decorator(example_instance):
     """
     Test if the execute decorator correctly executes the operation.
     """
-    test_instance.sample_method("SELECT * FROM test_table")
-    assert test_instance.executed_query == "SELECT * FROM test_table"
+    example_instance.sample_method("SELECT * FROM test_table")
+    assert example_instance.executed_query == "SELECT * FROM test_table"
 
 
-def test_execute_decorator_multiple_calls(test_instance):
+def test_execute_decorator_multiple_calls(example_instance):
     """
     Test if the execute decorator correctly handles multiple calls.
     """
     queries = ["SELECT * FROM test_table1", "SELECT * FROM test_table2"]
     for query in queries:
-        test_instance.sample_method(query)
-        assert test_instance.executed_query == query
+        example_instance.sample_method(query)
+        assert example_instance.executed_query == query
+
+
+if __name__ == "__main__":
+    pytest.main()
