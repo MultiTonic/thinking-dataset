@@ -7,16 +7,24 @@
 @see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
-
-import pytest
-from rich.console import Console
-from dotenv import load_dotenv
-from thinking_dataset.commands.download import (load_env_variables,
-                                                construct_paths,
-                                                validate_env_variables)
 import os
 import io
+import pytest
+from dotenv import load_dotenv
+from unittest.mock import patch
+from rich.console import Console
 from contextlib import redirect_stdout
+from thinking_dataset.tonics.data_tonic \
+    import DataTonic
+from thinking_dataset.commands.download \
+    import (load_env_variables,
+            construct_paths,
+            validate_env_variables,
+            download_dataset)
+from thinking_dataset.datasets.operations.get_download_urls \
+    import GetDownloadUrls
+from thinking_dataset.datasets.operations.download_file \
+    import DownloadFile
 
 # Load environment variables from .env file
 load_dotenv()
@@ -113,6 +121,47 @@ def test_validate_env_variables():
     with io.StringIO() as buf, redirect_stdout(buf):
         assert validate_env_variables(valid_env_vars, console) is True
         assert validate_env_variables(invalid_env_vars, console) is False
+
+
+def test_download_dataset(monkeypatch):
+    """
+    Test the download_dataset function.
+    """
+    console = Console()
+
+    # Set environment variables for testing
+    monkeypatch.setenv("HF_TOKEN", "test_token")
+    monkeypatch.setenv("HF_DATASET", "test_dataset")
+    monkeypatch.setenv("HF_ORGANIZATION", "test_organization")
+    env_vars = load_env_variables()
+
+    dataset_id = f"{env_vars['HF_ORGANIZATION']}/{env_vars['HF_DATASET']}"
+    download_dir = "test-download-dir"
+    os.makedirs(download_dir, exist_ok=True)
+
+    mock_urls = ["file1.parquet", "file2.parquet"]
+
+    datatonic = DataTonic(token=env_vars['HF_TOKEN'])
+
+    with patch.object(GetDownloadUrls, 'execute', return_value=mock_urls):
+        with patch.object(DownloadFile, 'execute', return_value=True):
+            # Mock the creation of files to simulate a successful download
+            for file in mock_urls:
+                open(os.path.join(download_dir, file), 'a').close()
+
+            result = download_dataset(datatonic, env_vars['HF_TOKEN'],
+                                      dataset_id, download_dir, console)
+            assert result is True
+
+            # Additional assertion and logging to verify behavior
+            downloaded_files = os.listdir(download_dir)
+            for file in mock_urls:
+                assert file in downloaded_files
+
+    # Clean up the directory after test
+    for file in mock_urls:
+        os.remove(os.path.join(download_dir, file))
+    os.rmdir(download_dir)
 
 
 if __name__ == "__main__":

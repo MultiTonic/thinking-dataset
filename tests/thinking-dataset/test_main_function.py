@@ -3,8 +3,7 @@
 @description High-level tests for the main function in the Thinking Dataset.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
@@ -18,9 +17,22 @@ from thinking_dataset.main import cli
 load_dotenv()
 
 
-def test_main_function(monkeypatch):
+@pytest.fixture
+def runner():
+    return CliRunner()
+
+
+@pytest.fixture
+def mock_datonics():
     with patch('thinking_dataset.commands.download.DataTonic',
                new=MagicMock()):
+        yield
+
+
+def test_main_function(monkeypatch, runner, mock_datonics):
+    # Mock download_dataset to simulate successful download
+    with patch('thinking_dataset.commands.download.download_dataset',
+               return_value=True):
         runner = CliRunner()
         result = runner.invoke(cli, ['download'])
 
@@ -28,11 +40,10 @@ def test_main_function(monkeypatch):
         assert "Loaded environment variables" in result.output
         assert "Set Hugging Face cache directory" in result.output
         assert "Constructed paths" in result.output
-        assert "Downloaded all dataset files" in result.output
+        assert "Downloaded all datasetfiles to" in result.output
 
 
-def test_clean_function(monkeypatch):
-    runner = CliRunner()
+def test_clean_function(monkeypatch, runner):
     result = runner.invoke(cli, ['clean'])
 
     assert result.exit_code == 0
