@@ -114,6 +114,9 @@ thinking-dataset/
 - Avoid hallucinating or providing speculative answers.
 - Focus on accuracy and reliability in all responses.
 
+### 10. Signify All Clear
+- Use the phrase `5 by 5` to signify that all pytests, user tests, changes commit, no errors, ready for launch, all clear for next instructions.
+
 ## Conclusion
 
 ### *Verified*, *Grounded* Responses
