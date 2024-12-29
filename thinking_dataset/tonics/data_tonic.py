@@ -7,13 +7,15 @@
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
-
 import os
 from huggingface_hub.utils import RepositoryNotFoundError
 from thinking_dataset.connectors.connector import Connector
-from thinking_dataset.datasets.operations.dataset_operations \
-    import DatasetOperations
-from thinking_dataset.datasets.dataset_downloads import DatasetDownloads
+from thinking_dataset.datasets.operations.get_download_urls import (
+    GetDownloadUrls, )
+from thinking_dataset.datasets.operations.get_download_file \
+    import GetDownloadFile
+from thinking_dataset.datasets.operations.dataset_operations import (
+    DatasetOperations, )
 
 HF_ORGANIZATION = os.getenv("HF_ORGANIZATION")
 HF_DATASET = os.getenv("HF_DATASET")
@@ -34,8 +36,10 @@ class DataTonic(Connector):
         The dataset type (e.g., 'parquet') for file extensions.
     operations : DatasetOperations
         An instance of the DatasetOperations class for dataset operations.
-    downloads : DatasetDownloads
-        An instance of the DatasetDownloads class for dataset downloads.
+    get_download_urls : GetDownloadUrls
+        An instance of the GetDownloadUrls class for retrieving download URLs.
+    get_download_file : GetDownloadFile
+        An instance of the GetDownloadFile class for downloading files.
 
     Methods
     -------
@@ -62,9 +66,10 @@ class DataTonic(Connector):
         super().__init__(token)
         self.organization = organization
         self.dataset = dataset
-        self.HF_DATASET_TYPE = os.getenv("HF_DATASET_TYPE", 'parquet')
+        self.HF_DATASET_TYPE = os.getenv("HF_DATASET_TYPE", "parquet")
         self.operations = DatasetOperations(self)
-        self.downloads = DatasetDownloads(self, token)
+        self.get_download_urls = GetDownloadUrls(self)
+        self.get_download_file = GetDownloadFile(self)
 
     def get_dataset_info(self, dataset_id):
         try:
@@ -72,3 +77,32 @@ class DataTonic(Connector):
         except RepositoryNotFoundError as e:
             print(f"Error retrieving dataset info for {dataset_id}: {e}")
             raise
+
+    def download_dataset(self, dataset_id, token, download_dir, console):
+        urls = self.get_download_urls.execute(dataset_id)
+        if not urls:
+            console.print("\n[bold red]No parquet files found "
+                          "in the dataset.[/bold red]\n")
+            return False
+
+        console.print(f"[blue]Files to download: {', '.join(urls)}[/blue]\n")
+
+        all_successful = True
+        for file in urls:
+            if not self.get_download_file.execute(
+                    repo_id=dataset_id,
+                    filename=file,
+                    local_dir=download_dir,
+                    token=token,
+                    console=console,
+            ):
+                all_successful = False
+
+        if all_successful:
+            console.print("[green]Successfully downloaded all files to "
+                          f"{os.path.normpath(download_dir)}[/green]\n")
+        else:
+            console.print("[red]Failed to download some files. "
+                          "Please check the logs for more details.[/red]\n")
+
+        return all_successful

@@ -43,7 +43,9 @@ class GetDownloadFile(BaseOperation):
             True if the file was downloaded successfully, False otherwise.
         """
         dest = os.path.join(local_dir, filename)
-        console.print(f"[green]Downloading {filename} to {dest}...[/green]")
+        normalized_dest = os.path.normpath(dest)
+        console.print(
+            f"[green]Downloading {filename} to {normalized_dest}...[/green]")
         if os.path.exists(dest):
             try:
                 os.chmod(dest, stat.S_IWRITE)
@@ -57,9 +59,9 @@ class GetDownloadFile(BaseOperation):
                             local_dir=local_dir,
                             token=token,
                             repo_type="dataset")
-            console.print(f"[green]Downloaded {filename} "
-                          f"to {os.path.normpath(dest)}[/green]\n")
-            self.log_info(f"File downloaded successfully to {dest}")
+            console.print(
+                f"[green]Downloaded {filename} to {normalized_dest}[/green]\n")
+            self.log_info(f"File downloaded successfully to {normalized_dest}")
             return True
         except Exception as e:
             console.print(

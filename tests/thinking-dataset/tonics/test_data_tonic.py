@@ -4,14 +4,15 @@
 @version 1.0.0
 @license MIT
 @author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
-
 import pytest
 from unittest.mock import MagicMock
 from thinking_dataset.datasets.operations.get_configuration \
     import GetConfiguration
+from thinking_dataset.datasets.operations.get_download_urls \
+    import GetDownloadUrls
 
 HF_TOKEN = "your_hf_token"
 HF_ORGANIZATION = "your_hf_organization"
@@ -32,6 +33,10 @@ class MockDatasetInfo:
                 "splits": ["train", "test", "validation"]
             }
         }
+        self.siblings = [
+            MagicMock(rfilename="file1.parquet"),
+            MagicMock(rfilename="file2.parquet"),
+        ]
 
 
 class MockDataTonic:
@@ -78,6 +83,21 @@ def test_get_configurations(mock_data_tonic):
     operation.execute()
     operation.log_info.assert_called_with(
         "Dataset configurations: ['config1', 'config2']")
+
+
+def test_get_download_urls(mock_data_tonic):
+    """
+    Test the GetDownloadUrls operation.
+    """
+    operation = GetDownloadUrls(mock_data_tonic)
+    urls = operation.execute("test_dataset")
+    assert urls == ["file1.parquet", "file2.parquet"]
+
+    # Checking if log_info was called
+    operation.log_info = MagicMock()
+    operation.execute("test_dataset")
+    operation.log_info.assert_called_with(
+        "Dataset download URLs: ['file1.parquet', 'file2.parquet']")
 
 
 if __name__ == "__main__":
