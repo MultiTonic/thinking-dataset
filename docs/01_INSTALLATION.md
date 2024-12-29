@@ -1,6 +1,6 @@
 # Installation
 
-## Installation Guide
+## Overview
 
 This document provides step-by-step instructions for setting up the development environment for the "Dark Thoughts" thinking-dataset project. Follow these steps to get the project up and running on your local machine.
 
@@ -8,8 +8,8 @@ This document provides step-by-step instructions for setting up the development 
 
 Before you begin, ensure you have the following installed on your system:
 
-- **Python 3.7 or higher**: You can download it from the [official Python website](https://www.python.org/downloads/).
-- **Git**: You can download it from the [official Git website](https://git-scm.com/downloads).
+- **Python 3.7 or higher**: Download it from the [official Python website](https://www.python.org/downloads/).
+- **Git**: Download it from the [official Git website](https://git-scm.com/downloads).
 
 ## Setup Steps
 

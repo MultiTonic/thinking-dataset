@@ -9,6 +9,8 @@ This template documents the recent changes and improvements made to the project 
 1. **Created New Operation Classes:**
    - `GetDownloadUrls`: Handles retrieving the download URLs for dataset files.
    - `GetFileList`: Retrieves the list of files in the dataset.
+   - `Query`: Handles executing a query on the database.
+   - `FetchData`: Handles fetching data from the database.
 
 2. **Updated Tests:**
    - Created test files for `GetDownloadUrls` and `GetFileList` operations:
@@ -25,6 +27,15 @@ This template documents the recent changes and improvements made to the project 
    - Moved dataset download logic from `DatasetDownloads` to `commands/download.py` for better modularity and clarity.
    - Updated `commands/download.py` to handle the download process using the `download_dataset` function.
 
+### Refactoring Database Handling
+1. **Refactored `Database` Class:**
+   - Centralized database management with unified logging and session handling.
+   - Implemented session management using FSM (`SessionStateMachine`).
+   - Modularized various database operations (`Query` and `FetchData`) with the `@execute` decorator for clean and concise usage.
+
+2. **Session Management:**
+   - Implemented with a finite state machine, ensuring robust session lifecycle control (`Session` class).
+
 ### Documentation Updates
 1. **Changelog:**
    - Updated the changelog to include recent changes and refactor details:
@@ -36,12 +47,15 @@ This template documents the recent changes and improvements made to the project 
      - Created tests for `GetDownloadUrls` operation.
      - Added `GetFileList` operation class.
      - Created tests for `GetFileList` operation.
+     - Created `Query` operation class.
+     - Created `FetchData` operation class.
      
      ### Changed
      - Refactored `DatasetDownloads` class to remove deprecated methods.
      - Updated `OperationTypes` enum to include new operations.
      - Updated unit tests for `OperationTypes`.
      - Moved dataset download logic to `commands/download.py`.
+     - Refactored `Database` class to centralize database management and session handling.
      
      ### Fixed
      - Updated test for `GetFileList` to reflect actual module names in log messages.
@@ -69,6 +83,12 @@ This template documents the recent changes and improvements made to the project 
      - Enhanced logging and progress tracking in the download process.
      - Addressed and fixed Flake8 warnings for improved code quality.
      - Verified and ensured tests pass, providing thorough coverage for the download and clean commands.
+     
+     ✨ refactor: Centralize database management and session handling with FSM
+     - Refactored `Database` class to centralize database management with unified logging and session handling.
+     - Implemented session management using FSM (`SessionStateMachine`).
+     - Created `Session` class for robust session lifecycle control.
+     - Modularized database operations (`Query` and `FetchData`) with the `@execute` decorator for clean and concise usage.
      ```
 
 3. **Operation Types Enumeration:**

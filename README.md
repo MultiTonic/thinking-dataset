@@ -23,6 +23,8 @@ The Thinking Dataset Project is designed to build a comprehensive dataset focuse
 - **Automated Downloads**: Fetch and download datasets using Hugging Face CLI.
 - **Modular Codebase**: Organized scripts and modules for better readability and maintenance.
 - **Environment Configuration**: Flexible management of directories and environment variables.
+- **Database Operations**: Modularized database operations with finite state machine for session management.
+- **Parquet File Processing**: Tooling for working with parquet files and ingesting them into database tables.
 
 ## Installation
 
@@ -94,6 +96,22 @@ To run all tests and generate a coverage report:
 python scripts/run_tests_and_generate_report.py
 ```
 
+## Database Operations
+
+### Executing Queries
+
+To execute a query on the database:
+```python
+database.query("YOUR_SQL_QUERY")
+```
+
+### Fetching Data
+
+To fetch data from the database:
+```python
+result = database.fetch_data("YOUR_SQL_QUERY")
+```
+
 ## Contributing
 
 Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure your code adheres to the project's coding standards and includes appropriate tests.
@@ -108,3 +126,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - **Joseph Pollack** - Creator
 - **MultiTonic Team** - Support and Collaboration
 - **Hugging Face** - Providing robust tools and infrastructure for dataset management
+```

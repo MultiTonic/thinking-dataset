@@ -1,4 +1,4 @@
-## Dark Thoughts Thinking Dataset
+# Dark Thoughts Thinking Dataset
 
 ### Abstract
 
@@ -15,13 +15,9 @@ The "Dark Thoughts" thinking-dataset project aims to develop a comprehensive dat
 - [Getting Started](#getting-started)
 - [Conclusion](#conclusion)
 
-### Directive
-
-The primary goal of the "Dark Thoughts" thinking-dataset project is to generate accurate and complex chains of thought reasoning for real-world Situational Reports (SitReps) and create useful and meaningful case study reports based on a set of socio-economic conditions and stakeholders. By achieving this, the project seeks to provide valuable insights into decision-making processes and enhance the capabilities of AI models in handling complicated scenarios.
-
 ### Objectives
 
-The key objectives of the "Dark Thoughts" thinking-dataset project are to:
+The primary goal of the "Dark Thoughts" thinking-dataset project is to generate accurate and complex chains of thought reasoning for real-world Situational Reports (SitReps) and create useful and meaningful case study reports based on a set of socio-economic conditions and stakeholders. By achieving this, the project seeks to provide valuable insights into decision-making processes and enhance the capabilities of AI models in handling complicated scenarios. The key objectives of the "Dark Thoughts" thinking-dataset project are to:
 
 - **Create Diverse Scenarios**: Develop a wide range of hypothetical scenarios that encompass various ethical dilemmas and cognitive biases.
 - **Analyze Human Cognition**: Use the dataset to analyze and simulate human cognitive processes, improving our understanding of decision-making and ethics.
@@ -66,17 +62,22 @@ The project is organized into several key components, each responsible for a spe
 
 To get started with the project, refer to the following documentation:
 
-- **[Installation Guide](01_INSTALLATION.md)**: Step-by-step instructions for setting up the development environment.
-- **[Architecture](02_ARCHITECTURE.md)**: Detailed overview of the project's architecture.
-- **[Pipeline](03_PIPELINE.md)**: Description of the data pipeline phases.
-- **[Deployment](04_DEPLOYMENT.md)**: Instructions for deploying the project.
-- **[Usage](05_USAGE.md)**: Detailed usage instructions and examples.
-- **[Troubleshooting](06_TROUBLESHOOTING.md)**: Solutions to common issues.
-- **[FAQ](07_FAQ.md)**: Frequently asked questions.
-- **[References](08_REFERENCES.md)**: List of key references and resources.
-- **[Ideas](09_IDEAS.md)**: Collection of project ideas and enhancements.
-- **[Notes](10_NOTES.md)**: Additional notes and information.
-- **[Roadmap](11_ROADMAP.md)**: Project roadmap and future plans.
+| **Document**                  | **Description**                                                                                   |
+|-------------------------------|---------------------------------------------------------------------------------------------------|
+| [Installation Guide](01_INSTALLATION.md) | Step-by-step instructions for setting up the development environment.                     |
+| [Architecture](02_ARCHITECTURE.md)       | Detailed overview of the project's architecture.                                           |
+| [Datasets](02a_DATASETS.md)             | Information on the datasets used, including sources and structure.                        |
+| [Database](02b_DATABASE.md)             | Explanation of the database design, its uses, and the benefits of using a database.       |
+| [Testing](02c_TESTING.md)               | Guidelines and procedures for testing the project components.                             |
+| [Pipeline](03_PIPELINE.md)              | Description of the data pipeline phases and processes.                                     |
+| [Deployment](04_DEPLOYMENT.md)          | Instructions for deploying the project.                                                   |
+| [Usage](05_USAGE.md)                    | Detailed usage instructions and examples.                                                 |
+| [Troubleshooting](06_TROUBLESHOOTING.md) | Solutions to common issues encountered during development and deployment.                 |
+| [FAQ](07_FAQ.md)                        | Frequently asked questions about the project.                                             |
+| [References](08_REFERENCES.md)          | List of key references and resources.                                                     |
+| [Ideas](09_IDEAS.md)                    | Collection of project ideas and enhancements for future development.                      |
+| [Notes](10_NOTES.md)                    | Additional notes and information relevant to the project.                                 |
+| [Roadmap](11_ROADMAP.md)                | Project roadmap outlining future plans and milestones.                                    |
 
 ### Conclusion
 

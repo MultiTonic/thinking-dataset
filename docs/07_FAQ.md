@@ -1,6 +1,6 @@
-# FAQ
+# Frequently Asked Questions (FAQ)
 
-## Frequently Asked Questions (FAQ)
+## Overview
 
 This document provides answers to some of the most frequently asked questions about the "Dark Thoughts" thinking-dataset project. If you have any questions that are not covered here, feel free to reach out to the project maintainers or open an issue on GitHub.
 
@@ -26,7 +26,7 @@ This document provides answers to some of the most frequently asked questions ab
 ### Usage
 
 **Q: How do I interact with the inference adapters?**
-- A: You can register an adapter to use a specific inference endpoint (e.g., Hugging Face, Ollama) and make predictions using registered adapters. Detailed instructions are provided in the [USAGE.md](USAGE.md) file.
+- A: You can register an adapter to use a specific inference endpoint (e.g., LLama.cpp, Ollama) and make predictions using registered adapters. Detailed instructions are provided in the [USAGE.md](USAGE.md) file.
 
 **Q: How do I generate case studies from the data?**
 - A: Follow the steps to generate seeds, create cables, and generate case studies using the provided CLI commands. Detailed instructions are provided in the [USAGE.md](USAGE.md) file.

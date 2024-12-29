@@ -135,7 +135,3 @@ If you continue to experience issues, consider the following steps:
 - Check the project's GitHub issues page for similar issues or post a new issue.
 - Reach out to the project maintainers for assistance.
 - Consult online resources and communities for additional support and troubleshooting tips.
-
----
-
-This improved troubleshooting guide includes additional sections on performance issues and provides detailed solutions to common problems you might encounter. If there are any further adjustments or additional details needed, feel free to let me know! 😊

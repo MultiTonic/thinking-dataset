@@ -1,6 +1,6 @@
 # Usage
 
-## Usage Guide
+## Overview
 
 This document provides detailed usage instructions for the "Dark Thoughts" thinking-dataset project, including how to interact with the application, examples of typical workflows, and common commands.
 
@@ -96,24 +96,20 @@ The project supports various inference adapters to interface with different serv
 
 ### Registering Adapters
 
-Register an adapter to use a specific inference endpoint (e.g., Hugging Face, Ollama).
+Register an adapter to use a specific inference endpoint (e.g., LLama.cpp, Ollama).
 
-```python
-from thinking_dataset.adapters import HuggingFaceAdapter, InferenceManager
-
-manager = InferenceManager()
-manager.register_adapter(HuggingFaceAdapter())
-```
+**Algorithm**:
+- Initialize the `InferenceManager`.
+- Register the desired adapter (e.g., `LLamaCppAdapter`) with the `InferenceManager`.
 
 ### Making Predictions
 
 Use registered adapters to make predictions based on input data.
 
-```python
-input_data = "Once upon a time..."
-results = manager.predict_all(input_data)
-print(results)
-```
+**Algorithm**:
+- Provide input data.
+- Use the `InferenceManager` to predict results from all registered adapters.
+- Display the results.
 
 ## Data Management
 
@@ -154,17 +150,9 @@ Custom configurations can be set using environment variables in the `.env` file.
 
 Enhanced logging can be implemented using `loguru` for better monitoring and debugging.
 
-Example usage:
-
-```python
-from loguru import logger
-
-logger.add("file.log", format="{time} {level} {message}", level="INFO")
-
-logger.info("Starting the application")
-# Your main application code
-logger.info("Application finished successfully")
-```
+**Algorithm**:
+- Add logging configuration with desired format and level.
+- Log important events during the application's execution for better traceability.
 
 ## Conclusion
 

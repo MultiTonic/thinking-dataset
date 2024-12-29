@@ -2,7 +2,7 @@
 
 ## Overview
 
-The primary objective of this test plan is to ensure that the processes for downloading, processing, and ingesting the Hugging Face dataset into SQLite3 are robust, reliable, and meet the specified requirements. By implementing Test-Driven Development (TDD), we aim to create a comprehensive suite of granular tests that cover all critical functionalities of the data pipeline. The tests will be organized into three levels of directories to enhance structure and maintainability.
+The primary objective of this test plan is to ensure that the processes for downloading, processing, and ingesting the Hugging Face dataset into SQLite3 are robust, reliable, and meet the specified requirements. By implementing Test-Driven Development (TDD), we aim to create a comprehensive suite of granular tests that cover all critical functionalities of the data pipeline. The tests will be organized into structured directories to enhance maintainability.
 
 ## Objectives
 
@@ -22,13 +22,23 @@ The tests are organized into the following directory structure:
 ```
 tests/
 ├── dataset/              # Tests related to dataset operations
-│   ├── test_download/    # Tests focused on downloading the dataset
-│   ├── test_process/     # Tests focused on processing the dataset
-│   └── test_ingest/      # Tests focused on ingesting the dataset
+│   ├── test_download.py  # Tests focused on downloading the dataset
+│   ├── test_extract.py   # Tests focused on extracting text from PDFs
+│   ├── test_process.py   # Tests focused on processing the dataset
+│   └── test_ingest.py    # Tests focused on ingesting the dataset into SQLite3
 ├── clean/                # Tests related to data cleaning
+│   ├── test_remove_duplicates.py  # Tests focused on removing duplicates
+│   ├── test_handle_missing.py     # Tests focused on handling missing values
 ├── transform/            # Tests related to data transformation
+│   ├── test_merge_datasets.py  # Tests focused on merging datasets
+│   ├── test_enrich_data.py     # Tests focused on enriching data
+│   ├── test_derive_features.py # Tests focused on deriving new features
 ├── validate/             # Tests related to data validation
+│   ├── test_schema_validation.py  # Tests focused on schema validation
+│   ├── test_data_integrity.py     # Tests focused on data integrity
 └── qa/                   # Quality assurance tests
+    ├── test_quality_standards.py   # Tests focused on meeting quality standards
+    ├── test_performance_metrics.py # Tests focused on performance metrics
 ```
 
 ## Test Cases

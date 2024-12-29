@@ -13,14 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - Refactored `VolumeManager` class to ensure proper initialization and volume switching logic.
-
-## [Unreleased] - 2024-12-28
+- Refactored `Database` class to centralize database management and session handling.
+- Created `Query` operation class to handle executing queries on the database.
+- Created `FetchData` operation class to handle fetching data from the database.
 
 ### Added
 - Created `GetPermissions` operation class.
 - Created tests for `GetPermissions` operation.
-
-## [Unreleased] - 2024-12-27
 
 ### Added
 - Created `GetDownloadUrls` operation class.
@@ -32,9 +31,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Refactored `DatasetDownloads` class to remove deprecated methods.
 - Updated `OperationTypes` enum to include new operations.
 - Updated unit tests for `OperationTypes`.
+- Moved dataset download logic to `commands/download.py`.
 
 ### Fixed
 - Updated test for `GetFileList` to reflect actual module names in log messages.
+- Corrected import paths and usage in test files to avoid real API calls.
+- Updated test for `FetchData` to ensure accurate data retrieval.
 - Corrected import paths and usage in test files to avoid real API calls.
 
 ## [Unreleased] - 2024-12-26

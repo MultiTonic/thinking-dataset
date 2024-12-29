@@ -1,6 +1,6 @@
 # Deployment
 
-## Deployment Guide
+## Overview
 
 This document provides step-by-step instructions for deploying the "Dark Thoughts" thinking-dataset project. Follow these steps to ensure a smooth deployment process.
 

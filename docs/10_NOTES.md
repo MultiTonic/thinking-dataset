@@ -8,7 +8,7 @@
 
 #### Phase 1: Setup and Configuration
 - **Project Initialization**: Created and configured the `ThinkingDatasetProject` directory.
-- **Dependencies Installed**: Installed Semantic Kernel and Ollama connector, various Python packages for development and data handling.
+- **Dependencies Installed**: Installed Semantic Kernel and various Python packages for development and data handling.
 - **README**: Created and finalized the README.md to outline project goals, objectives, and setup instructions.
 
 #### Phase 2: Data Pipeline Development
@@ -43,7 +43,7 @@
 ### Inference Endpoint Adapters/Bridges
 #### Description
 - Develop adapters or bridges to integrate various serverless endpoints into the main application.
-- Support endpoints like Ollama, testcontainers, Runpod, and Hugging Face API for serverless operations.
+- Support endpoints like LLama.cpp, testcontainers, Runpod, and Hugging Face API for serverless operations.
 
 #### Design Considerations
 - **Unified Interface**: Create a common interface or abstract class for consistency.
@@ -53,82 +53,14 @@
 - **Performance Optimization**: Evaluate latency and throughput of each endpoint.
 - **Security**: Implement strong security measures for data protection.
 
-#### Example Implementation
-- Define an abstract class for adapters:
-  ```python
-  from abc import ABC, abstractmethod
-
-  class InferenceEndpointAdapter(ABC):
-      @abstractmethod
-      def initialize(self):
-          pass
-
-      @abstractmethod
-      def predict(self, input_data):
-          pass
-
-      @abstractmethod
-      def cleanup(self):
-          pass
-  ```
-
-- Implement a concrete adapter for Hugging Face API:
-  ```python
-  from transformers import pipeline
-  from dotenv import load_dotenv
-  import os
-
-  class HuggingFaceAdapter(InferenceEndpointAdapter):
-      def __init__(self):
-          load_dotenv()
-          self.model = None
-
-      def initialize(self):
-          self.model = pipeline("text-generation", model=os.getenv("HUGGINGFACE_MODEL"))
-
-      def predict(self, input_data):
-          return self.model(input_data)[0]["generated_text"]
-
-      def cleanup(self):
-          pass  # Any cleanup tasks if necessary
-  ```
-
-- Integrate adapters into the main application:
-  ```python
-  class InferenceManager:
-      def __init__(self):
-          self.adapters = []
-
-      def register_adapter(self, adapter):
-          self.adapters.append(adapter)
-          adapter.initialize()
-
-      def predict_all(self, input_data):
-          results = {}
-          for adapter in self.adapters:
-              results[adapter.__class__.__name__] = adapter.predict(input_data)
-          return results
-
-      def cleanup(self):
-          for adapter in self.adapters:
-              adapter.cleanup()
-
-  # Example usage
-  manager = InferenceManager()
-  manager.register_adapter(HuggingFaceAdapter())
-  # Add other adapters as needed
-
-  input_data = "Once upon a time..."
-  results = manager.predict_all(input_data)
-  print(results)
-  manager.cleanup()
-  ```
-
 ### Next Steps
-- Develop unit tests to prototype basic Ollama functionality.
-- Verify chat completion and text generation using Ollama.
+- Develop unit tests to prototype basic LLama.cpp functionality.
+- Verify chat completion and text generation using LLama.cpp.
 - Configure Serilog for colorful logging output.
 - Set up configuration management using `Microsoft.Extensions.Configuration`.
 - Integrate MediatR for a robust event system.
 - Document and refine the case study generation pipeline.
 - Implement and test various inference endpoint adapters/bridges.
+- Explore additional features like ethical decision-making simulations, advanced model evaluation, and scenario customization to enhance user engagement and model performance.
+- Collaborate with educational institutions and research organizations to enrich the dataset and develop new use cases.
+- Continue gathering feedback from users and the community to iteratively improve the project.

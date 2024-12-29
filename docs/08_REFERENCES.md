@@ -49,15 +49,23 @@ This document provides a list of key references and resources used in the "Dark 
    - Website: [Pandas](https://pandas.pydata.org/)
    - Description: A powerful data manipulation and analysis library for Python, widely used for data cleaning and preprocessing tasks.
 
-4. **Scikit-learn**
+4. **SQLAlchemy**
+   - Website: [SQLAlchemy](https://www.sqlalchemy.org/)
+   - Description: A SQL toolkit and Object-Relational Mapping (ORM) library for Python, providing efficient and high-performing database access.
+
+5. **python-statemachine**
+   - Website: [python-statemachine](https://github.com/fgmacedo/python-statemachine)
+   - Description: A library for creating and managing state machines in Python, used for managing complex workflows and state transitions.
+
+6. **Scikit-learn**
    - Website: [Scikit-learn](https://scikit-learn.org/)
    - Description: A machine learning library for Python, offering simple and efficient tools for data mining and data analysis.
 
-5. **Rich**
+7. **Rich**
    - Website: [Rich](https://rich.readthedocs.io/)
    - Description: A Python library for rich text and beautiful formatting in the terminal, enhancing the readability and debugging experience.
 
-6. **Testcontainers**
+8. **Testcontainers**
    - Website: [Testcontainers](https://www.testcontainers.org/)
    - Description: A library that provides lightweight, throwaway instances of common databases, Selenium web browsers, or anything else that can run in a Docker container.
 
@@ -82,4 +90,3 @@ This document provides a list of key references and resources used in the "Dark 
 5. **IEEE Global Initiative on Ethics of Autonomous and Intelligent Systems**
    - Website: [IEEE Ethics](https://ethicsinaction.ieee.org/)
    - Description: A global initiative providing frameworks and guidelines for the ethical design and use of autonomous and intelligent systems.
-

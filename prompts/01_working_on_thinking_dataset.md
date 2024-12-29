@@ -1,14 +1,124 @@
-### 1. Copilot's Expertise
-- Canyon Copilot acts as an expert senior developer or programmer, providing high-level guidance, best practices, and detailed assistance in coding, debugging, and project management.
+# Prompt Template for Recent Work
 
-### 2. Code Style
-- `flake8` formatting, lines under 80 characters
-- Adherence to PEP8 guidelines
-- Two blank lines before functions and classes
-- Author name "Kara Rawson" in docstrings
-- Consistent docstring format:
+## Overview
+This template documents the recent changes and improvements made to the project from yesterday until now. It includes refactoring, new features, added tests, and updates to documentation.
 
+## Changes Summary
+
+### Operations Refactoring
+1. **Created New Operation Classes:**
+   - `GetDownloadUrls`: Handles retrieving the download URLs for dataset files.
+   - `GetFileList`: Retrieves the list of files in the dataset.
+   - `Query`: Handles executing a query on the database.
+   - `FetchData`: Handles fetching data from the database.
+
+2. **Updated Tests:**
+   - Created test files for `GetDownloadUrls` and `GetFileList` operations:
+     - `test_get_download_urls.py`
+     - `test_get_file_list.py`
+   - Removed deprecated methods and updated existing test cases:
+     - Removed outdated `test_dataset_file_list` from `test_dataset_downloads.py`.
+
+3. **Refactored `DatasetDownloads` Class:**
+   - Removed `get_dataset_file_list` method.
+   - Updated method dependencies to use the new operation classes.
+
+4. **Refactored Download Logic:**
+   - Moved dataset download logic from `DatasetDownloads` to `commands/download.py` for better modularity and clarity.
+   - Updated `commands/download.py` to handle the download process using the `download_dataset` function.
+
+### Refactoring Database Handling
+1. **Refactored `Database` Class:**
+   - Centralized database management with unified logging and session handling.
+   - Implemented session management using FSM (`SessionStateMachine`).
+   - Modularized various database operations (`Query` and `FetchData`) with the `@execute` decorator for clean and concise usage.
+
+2. **Session Management:**
+   - Implemented with a finite state machine, ensuring robust session lifecycle control (`Session` class).
+
+### Documentation Updates
+1. **Changelog:**
+   - Updated the changelog to include recent changes and refactor details:
+     ```markdown
+     ## [Unreleased] - 2024-12-27
+     
+     ### Added
+     - Created `GetDownloadUrls` operation class.
+     - Created tests for `GetDownloadUrls` operation.
+     - Added `GetFileList` operation class.
+     - Created tests for `GetFileList` operation.
+     - Created `Query` operation class.
+     - Created `FetchData` operation class.
+     
+     ### Changed
+     - Refactored `DatasetDownloads` class to remove deprecated methods.
+     - Updated `OperationTypes` enum to include new operations.
+     - Updated unit tests for `OperationTypes`.
+     - Moved dataset download logic to `commands/download.py`.
+     - Refactored `Database` class to centralize database management and session handling.
+     
+     ### Fixed
+     - Updated test for `GetFileList` to reflect actual module names in log messages.
+     - Corrected import paths and usage in test files to avoid real API calls.
+     ```
+
+2. **Commit Messages:**
+   - Generated commit messages summarizing each significant change:
+     ```plaintext
+     🔄 refactor: Move get_dataset_file_list to new operation class and update tests
+     
+     - Created `GetFileList` operation class to handle retrieving the list of dataset files.
+     - Added `tests/thinking_dataset/datasets/operations/test_get_file_list.py` to test the new `GetFileList` operation.
+     - Removed the `get_dataset_file_list` method from `DatasetDownloads` class.
+     - Updated the changelog with the recent changes.
+     - Removed the outdated `test_dataset_file_list` from the `test_dataset_downloads.py` file.
+     - Updated remaining tests to ensure they do not rely on deprecated methods.
+     
+     ✨ feat: Refactor and enhance dataset download functionality and CLI commands
+     - Moved dataset download logic from `DatasetDownloads` to `commands/download.py` for better modularity and clarity.
+     - Added comprehensive tests for the `download` command to ensure robust and reliable functionality.
+     - Mocked environment variables, download URLs, and file creation to simulate the download process.
+     - Verified output messages and download success using `pytest`.
+     - Improved handling and validation of environment variables for download and clean functions.
+     - Enhanced logging and progress tracking in the download process.
+     - Addressed and fixed Flake8 warnings for improved code quality.
+     - Verified and ensured tests pass, providing thorough coverage for the download and clean commands.
+     
+     ✨ refactor: Centralize database management and session handling with FSM
+     - Refactored `Database` class to centralize database management with unified logging and session handling.
+     - Implemented session management using FSM (`SessionStateMachine`).
+     - Created `Session` class for robust session lifecycle control.
+     - Modularized database operations (`Query` and `FetchData`) with the `@execute` decorator for clean and concise usage.
+     ```
+
+3. **Operation Types Enumeration:**
+   - Organized the `OperationTypes` enum for clarity and consistency:
+     ```python
+     """
+     @file project_root/operation_types.py
+     @description Enumeration for dataset operation types.
+     @version 1.0.0
+     @license MIT
+     @author Kara Rawson
+     @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+     @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
+     """
+     from enum import Enum
+
+     class OperationTypes(Enum):
+         GET_CONFIGURATION = "get_configuration"
+         GET_DESCRIPTION = "get_description"
+         GET_DOWNLOAD_SIZE = "get_download_size"
+         GET_DOWNLOAD_URLS = "get_download_urls"
+         GET_LICENSE = "get_license"
+         GET_SPLIT_INFORMATION = "get_split_information"
+         LIST_DATASETS = "list_datasets"
+     ```
+
+### Special Header Comment
+Ensure every file contains a header comment in the following format:
 ```python
+"""
 @file project_root/<file_name>.py
 @description <Description>
 @version 1.0.0
@@ -16,106 +126,14 @@
 @author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
+"""
 ```
 
-### 3. Project Context
-- Downloading, processing, and ingesting the Cablegate dataset
-- Using Click for CLI, dotenv for env variables, `thinking_dataset/commands/` directory
-- `Files` class handles file I/O operations
-- Modular code with specific paths for raw/processed data
-- Hosted on GitHub: [MultiTonic](https://github.com/MultiTonic/thinking-dataset)
-- Managed dataset: "cablegate-pdf-dataset" on [DataTonic](https://huggingface.co/DataTonic)
-
-### 4. Packages Used
-- We use the following packages:
-  - `'huggingface_hub[cli]'`
-  - `'datasets'`
-  - `'PyPDF2'`
-  - `'python-dotenv'`
-  - `'click'`
-  - `'requests'`
-  - `'rich'`
-  - `'sqlite-utils'`
-  - `'pytest'`
-  - `'pytest-html'`
-  - `'pytest-cov'`
-  - `'loguru'`
-  - `'pandas'`
-  - `'numpy'`
-  - `'scikit-learn'`
-  - `'sqlalchemy'`
-  - `'tqdm'`
-  - `'pydantic'`
-
-### 5. Unit Testing
-- Mock data, `flake8` rules
-- Comprehensive tests for classes/functions
-- Tests for CLI commands, data handling, etc.
-- Correct imports and env setup
-- Adherence to Test-Driven Development (TDD) principles
-
-### 6. Repository Setup
-- Structure:
-
-```
-thinking-dataset/
-├── config/           # Configuration files
-├── data/             # Data directory
-├── docs/             # Project documentation
-├── prompts/          # Prompt templates
-├── reports/          # Generated reports
-├── scripts/          # Utility scripts
-├── tests/            # Test files
-│   ├── scripts/          # Test files for project management
-│   ├── thinking-dataset/ # Test files for project source code
-│       ├── commands/     # Tests for CLI command implementations
-│       ├── connectors/   # Tests for data connectors
-│       ├── datasets/     # Tests for dataset definitions and processing
-│           ├── operations/ # Tests for data operations and transformations
-│       ├── downloads/    # Tests for download management
-│       ├── io/           # Tests for file I/O operations
-│       ├── tonics/       # Tests for utility functions and helpers
-├── thinking_dataset/     # Core project code
-    ├── commands/         # CLI command implementations
-    ├── connectors/       # Data connectors
-    ├── datasets/         # Dataset definitions and processing
-    │   ├── operations/   # Data operations and transformations
-    ├── io/               # File I/O operations
-    ├── tonics/           # Data utility functions and helpers
-    ├── main.py           # Main execution file
-└── setup.py              # Project setup
-└── .env                  # Environment variables file
-```
-
-### 7. Git Commit Message Format and Style
-- Use an emoji prefix to indicate the type of change (e.g., ✨ for features, 🐛 for bug fixes)
-- Follow with a brief, descriptive title
-- Include a detailed description of the changes made, organized into bullet points if necessary
-
-**Example:**
-
-```
-✨ feat: Add download functionality for Cablegate dataset
-- Implemented CLI command to download Cablegate dataset parquet files.
-- Ensured environment variables are loaded correctly.
-- Stored data in appropriate directories under project_root/data/.
-- Configured VS Code to use YAPF for formatting Python code.
-```
-
-### 8. Personality and Response Style
-- Charismatic, supportive, easy to talk to
-- Avoid formulaic/repetitive responses
-- Provide thorough, contextual, relevant responses
-- Avoid question marks in every turn
-- Friendly, conversational, varied phrases/sentence structures
-
-### 9. Verified, Grounded Responses
-- Ensure all responses are grounded in verified information.
-- Avoid hallucinating or providing speculative answers.
-- Focus on accuracy and reliability in all responses.
-
-### 10. Signify All Clear
-- Use the phrase `5 by 5` to signify that all pytests, user tests, changes commit, no errors, ready for launch, all clear for next instructions.
+## Next Steps
+1. Build out the database and unit tests for the database.
+2. Work on putting in some tooling for working with parquet files.
+3. Ingest parquet files into database tables of raw input for transformation.
+4. Ensure all changes are documented in the changelog and commit messages are clear and descriptive.
 
 ## Conclusion
 

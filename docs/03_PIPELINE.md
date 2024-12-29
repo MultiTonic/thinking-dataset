@@ -1,7 +1,8 @@
 # Pipeline
 
 ## Overview
-This document outlines the data pipeline for the "Dark Thoughts" project, from data ingestion to model training and evaluation. The pipeline is designed to handle ethical dilemmas, cognitive biases, and decision-making processes, leveraging various inference endpoints.
+
+This document outlines the data pipeline for the "Dark Thoughts" project, from data ingestion to model training and evaluation. The pipeline is designed to handle ethical dilemmas, cognitive biases, and decision-making processes, leveraging various serverless inference endpoints.
 
 ## Pipeline Phases
 
@@ -68,77 +69,24 @@ This document outlines the data pipeline for the "Dark Thoughts" project, from d
    - Create a common interface or abstract class for consistency across adapters.
 
 2. **Adapter Implementations**
-   - Develop concrete implementations for various endpoints (Ollama, testcontainers, Runpod, Hugging Face API).
-   
-   Example:
-   ```python
-   from abc import ABC, abstractmethod
+   - Develop concrete implementations for various endpoints (LLama.cpp, Ollama, testcontainers, Runpod).
 
-   class InferenceEndpointAdapter(ABC):
-       @abstractmethod
-       def initialize(self):
-           pass
-
-       @abstractmethod
-       def predict(self, input_data):
-           pass
-
-       @abstractmethod
-       def cleanup(self):
-           pass
-
-   from transformers import pipeline
-   from dotenv import load_dotenv
-   import os
-
-   class HuggingFaceAdapter(InferenceEndpointAdapter):
-       def __init__(self):
-           load_dotenv()
-           self.model = None
-
-       def initialize(self):
-           self.model = pipeline("text-generation", model=os.getenv("HUGGINGFACE_MODEL"))
-
-       def predict(self, input_data):
-           return self.model(input_data)[0]["generated_text"]
-
-       def cleanup(self):
-           pass  # Any cleanup tasks if necessary
-   ```
+   Example Algorithm:
+   - Define an abstract class `InferenceEndpointAdapter` with methods `initialize`, `predict`, and `cleanup`.
+   - Implement the `LLamaCppAdapter` class:
+     - Load environment variables.
+     - Initialize the model using `LLama` with the provided model path.
+     - Implement the `predict` method to generate predictions.
+     - Implement the `cleanup` method to handle any cleanup tasks if necessary.
 
 3. **Integration with Main Application**
    - Ensure seamless interaction between adapters and the main application.
-   
-   Example:
-   ```python
-   class InferenceManager:
-       def __init__(self):
-           self.adapters = []
 
-       def register_adapter(self, adapter):
-           self.adapters.append(adapter)
-           adapter.initialize()
-
-       def predict_all(self, input_data):
-           results = {}
-           for adapter in self.adapters:
-               results[adapter.__class__.__name__] = adapter.predict(input_data)
-           return results
-
-       def cleanup(self):
-           for adapter in self.adapters:
-               adapter.cleanup()
-
-   # Example usage
-   manager = InferenceManager()
-   manager.register_adapter(HuggingFaceAdapter())
-   # Add other adapters as needed
-
-   input_data = "Once upon a time..."
-   results = manager.predict_all(input_data)
-   print(results)
-   manager.cleanup()
-   ```
+   Example Algorithm:
+   - Create an `InferenceManager` class to manage adapters.
+     - Register adapters and initialize them.
+     - Use a method to predict results from all registered adapters.
+     - Implement a cleanup method to clean up all adapters.
 
 ## Tools and Technologies
 - **Python**: Core programming language for the project.
@@ -147,14 +95,14 @@ This document outlines the data pipeline for the "Dark Thoughts" project, from d
 - **scikit-learn**: Machine learning library for model training and evaluation.
 - **rich**: Enhanced console output and error handling.
 - **python-dotenv**: Manage configuration and environment variables.
-- **Hugging Face API**: For text-generation and NLP tasks.
+- **LLama.cpp**: For text-generation and NLP tasks.
 - **testcontainers**: For integration testing with containers.
 - **Runpod**: Serverless computing platform.
 
 ## Next Steps
 - Implement and test various inference endpoint adapters/bridges.
-- Develop unit tests to prototype basic Ollama functionality.
-- Verify chat completion and text generation using Ollama.
+- Develop unit tests to prototype basic LLama.cpp functionality.
+- Verify chat completion and text generation using LLama.cpp.
 - Configure Serilog for colorful logging output.
 - Set up configuration management using `Microsoft.Extensions.Configuration`.
 - Integrate MediatR for a robust event system.
