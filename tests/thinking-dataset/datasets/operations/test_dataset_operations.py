@@ -63,24 +63,5 @@ def test_get_dataset_tags():
         assert "cleaned-text" in tags
 
 
-def test_get_dataset_card_content():
-    client = DataTonic(token=HF_TOKEN,
-                       organization=HF_ORGANIZATION,
-                       dataset=HF_DATASET)
-    mock_dataset_info = DatasetInfo(id=f"{HF_ORGANIZATION}/{HF_DATASET}",
-                                    card_data={
-                                        'pretty_name': 'Cable Gate (Cleaned)',
-                                        'language': ['en']
-                                    })
-
-    with patch.object(client.operations,
-                      'get_dataset_card_content',
-                      return_value=mock_dataset_info.card_data):
-        card_content = client.operations.get_dataset_card_content()
-        logger.info(f"Dataset card data: {card_content}")
-        assert "pretty_name" in card_content
-        assert "language" in card_content
-
-
 if __name__ == "__main__":
     pytest.main()

@@ -51,16 +51,3 @@ class DatasetOperations(BaseDataset):
         dataset_info = self.get_dataset_info()
         self.log_info(f"Dataset tags: {dataset_info.tags}")
         return dataset_info.tags
-
-    def get_dataset_card_content(self):
-        """
-        Retrieves card content of the dataset.
-
-        Returns
-        -------
-        dict
-            The card content of the dataset.
-        """
-        dataset_info = self.get_dataset_info()
-        self.log_info(f"Dataset card data: {dataset_info.card_data}")
-        return dataset_info.card_data
