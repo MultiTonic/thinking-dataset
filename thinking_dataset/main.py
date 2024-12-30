@@ -11,6 +11,7 @@
 import click
 from thinking_dataset.commands.download import download
 from thinking_dataset.commands.clean import clean
+from thinking_dataset.commands.load import load
 
 
 @click.group()
@@ -20,6 +21,7 @@ def cli():
 
 cli.add_command(download)
 cli.add_command(clean)
+cli.add_command(load)
 
 if __name__ == "__main__":
     cli()

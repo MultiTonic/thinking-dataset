@@ -24,7 +24,26 @@ class Files:
         for directory in directories:
             os.makedirs(directory, exist_ok=True)
 
-    def list_files(self, dir_path):
+    def list_files(self, dir_path, file_extension=None):
+        """
+        List files in a directory with an optional file extension filter.
+
+        Parameters
+        ----------
+        dir_path : str
+            Path to the directory to list files from.
+        file_extension : str, optional
+            File extension to filter files by (e.g., '.parquet').
+
+        Returns
+        -------
+        list
+            List of file names in the directory with the specified extension.
+        """
+        if file_extension:
+            return [
+                f for f in os.listdir(dir_path) if f.endswith(file_extension)
+            ]
         return os.listdir(dir_path)
 
     def get_file_path(self, directory, filename):
