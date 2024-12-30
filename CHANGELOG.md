@@ -4,6 +4,81 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2024-12-30
+
+### Added
+- Implemented the `load` command to load downloaded dataset files into SQLite database.
+- Updated `Files` class to include file extension filtering using `HF_DATASET_TYPE` from .env.
+- Enhanced the `load` command to queue parquet files and process each one.
+- Created unit tests for the `Files` class, including extension filtering.
+- Added high-level tests for the `load` command in `test_main_function.py`.
+- Created `test_load.py` to test the `load` command, ensuring proper functionality.
+- Updated coverage reports to reflect new tests and enhancements.
+- Implemented the `DatabaseConfig` class for storing database configuration.
+- Added a validate method to ensure all configuration settings are valid.
+- Created unit tests for instantiation, validation, default values, invalid data types, and edge cases.
+  - Test initialization of `DatabaseConfig` with valid and invalid configurations.
+  - Verified default values are set correctly when config options are omitted.
+  - Ensured invalid data types for configuration settings raise appropriate errors.
+  - Tested edge cases for numerical values such as 0 for pool_size, max_overflow, connect_timeout, and read_timeout.
+- Updated test fixtures and mocks for `ConfigLoader` to simulate different configuration scenarios.
+- Improved test coverage for the `DatabaseConfig` class to ensure robustness and reliability.
+
+### Fixed
+- Renamed test class in `tests/thinking_dataset/utilities/test_execute.py` to `ExampleClass` to avoid `PytestCollectionWarning`.
+- Verified that all tests pass successfully without warnings.
+- Generated and updated HTML report and coverage report.
+- Ensured comprehensive test coverage for new and existing functionality.
+- Updated scripts to consistently run tests, generate reports, and measure coverage.
+- Confirmed all tests adhere to `flake8` formatting and PEP8 guidelines.
+
+### Added
+- Implemented `Log` class in `thinking_dataset/utilities/log.py` for unified logging.
+- Created `ConfigLoader` class in `thinking_dataset/utilities/config_loader.py` for loading configuration from YAML files.
+- Added `execute` decorator in `thinking_dataset/utilities/execute.py` for executing database operations.
+- Developed comprehensive unit tests for the `Log` class:
+  - `tests/thinking_dataset/utilities/test_log.py`
+  - Tested `info`, `error`, and `warn` logging methods.
+  - Ensured exceptions are raised and log messages are captured.
+- Created unit tests for the `execute` decorator:
+  - `tests/thinking_dataset/utilities/test_execute.py`
+  - Verified correct execution of mock operations and multiple calls.
+- Added unit tests for the `ConfigLoader` class:
+  - `tests/thinking_dataset/utilities/test_config_loader.py`
+  - Tested loading valid configuration, file not found errors, YAML parsing errors, and retrieving non-existent sections.
+- Ensured all tests pass successfully, adhering to `flake8` formatting and PEP8 guidelines.
+
+### Added
+- Initial project setup and database implementation.
+- Added `DatabaseConfig` class for configuration management.
+- Implemented `Database` class for database operations using SQLAlchemy.
+- Created `Query` and `Fetch` classes for executing and fetching data.
+- Added `GetSession` class for handling database sessions.
+- Updated `ConfigLoader` class for loading YAML configuration.
+- Added comprehensive YAML configuration file for the database.
+- Improved and updated various documentation files:
+  - `README.md`
+  - `ARCHITECTURE.md`
+  - `INSTALLATION.md`
+  - `USAGE.md`
+  - `TROUBLESHOOTING.md`
+  - `FAQ.md`
+  - `REFERENCES.md`
+  - `IDEAS.md`
+  - `DEVELOPMENT_NOTES.md`
+
+- Added new sections and refined content in the documentation to enhance clarity and comprehensiveness.
+- Added more detailed examples, new ideas, and expanded sections in `IDEAS.md` to cover a wider range of project enhancements.
+- Updated `PROMPT_TEMPLATE.md` to reflect the latest changes and improvements in prompt templates for better AI model interactions.
+- Revised the format, structure, and content of the documentation to ensure consistency and usability.
+- Incorporated feedback and suggestions to refine the overall documentation quality and completeness.
+- Refactored database handling and operations with FSM and decorators.
+- Centralized database management in `Database` class with unified logging.
+- Implemented session management using FSM (`SessionStateMachine`).
+- Modularized database operations: `Query` and `Fetch`.
+- Simplified operation execution with the `@execute` decorator.
+- Ensured clean and concise code structure and maintainability.
+
 ## [Unreleased] - 2024-12-29
 
 ### Added
