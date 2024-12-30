@@ -4,11 +4,16 @@
 @version 1.0.0
 @license MIT
 @author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 import logging
+from rich.logging import RichHandler
+from rich.traceback import install
+
+# Install rich traceback handler for pretty errors
+install(show_locals=True)
 
 
 class Log:
@@ -19,25 +24,14 @@ class Log:
     @staticmethod
     def setup(name):
         """
-        Sets up a logger with the specified name.
-
-        Parameters
-        ----------
-        name : str
-            The name of the logger.
-
-        Returns
-        -------
-        logger : Logger
-            A configured logger.
+        Sets up a logger with the specified name using RichHandler.
         """
         logger = logging.getLogger(name)
         if not logger.hasHandlers():
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
+            rich_handler = RichHandler(show_path=True,
+                                       tracebacks_show_locals=True,
+                                       tracebacks_word_wrap=False)
+            logger.addHandler(rich_handler)
             logger.setLevel(logging.INFO)
         return logger
 
@@ -45,43 +39,19 @@ class Log:
     def info(logger, message):
         """
         Logs an informational message.
-
-        Parameters
-        ----------
-        logger : Logger
-            The logger instance to use for logging.
-        message : str
-            The message to log.
         """
-        logger.info(message)
-        raise RuntimeError(message)
+        logger.info(message, stacklevel=2)
 
     @staticmethod
-    def error(logger, message):
+    def error(logger, message, exc_info=None):
         """
-        Logs an error message.
-
-        Parameters
-        ----------
-        logger : Logger
-            The logger instance to use for logging.
-        message : str
-            The message to log.
+        Logs an error message with an optional exception.
         """
-        logger.error(message)
-        raise RuntimeError(message)
+        logger.error(message, exc_info=exc_info, stacklevel=2)
 
     @staticmethod
     def warn(logger, message):
         """
         Logs a warning message.
-
-        Parameters
-        ----------
-        logger : Logger
-            The logger instance to use for logging.
-        message : str
-            The message to log.
         """
-        logger.warning(message)
-        raise RuntimeError(message)
+        logger.warning(message, stacklevel=2)

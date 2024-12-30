@@ -3,13 +3,14 @@
 @description Connector class for interacting with Hugging Face API.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
+author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 from huggingface_hub import HfApi
-from loguru import logger
+from ..utilities.log import Log
+from huggingface_hub.utils import RepositoryNotFoundError
 
 
 class Connector:
@@ -46,9 +47,9 @@ class Connector:
         """
         self.api = HfApi(token=token)
         self.token = token
+        self.log = Log.setup(__name__)
 
-    @staticmethod
-    def log_info(message):
+    def log_info(self, message):
         """
         Logs an info message using the logger.
 
@@ -57,7 +58,7 @@ class Connector:
         message : str
             The message to log.
         """
-        logger.info(message)
+        self.log.info(message)
 
     def get_whoami(self):
         """
@@ -68,7 +69,13 @@ class Connector:
         dict
             Information about the authenticated user.
         """
-        return self.api.whoami()
+        try:
+            user_info = self.api.whoami()
+            self.log_info(f"Retrieved user info: {user_info}")
+            return user_info
+        except Exception as e:
+            self.log.error(f"Error retrieving user info: {e}")
+            return None
 
     def list_datasets(self, author=None, search=None):
         """
@@ -86,7 +93,13 @@ class Connector:
         list
             A list of datasets matching the criteria.
         """
-        return self.api.list_datasets(author=author, search=search)
+        try:
+            datasets = self.api.list_datasets(author=author, search=search)
+            self.log_info(f"Listed datasets: {datasets}")
+            return datasets
+        except Exception as e:
+            self.log.error(f"Error listing datasets: {e}")
+            return []
 
     def get_dataset_info(self, dataset_id):
         """
@@ -102,4 +115,13 @@ class Connector:
         DatasetInfo
             Metadata about the specified dataset.
         """
-        return self.api.dataset_info(dataset_id)
+        try:
+            dataset_info = self.api.dataset_info(dataset_id)
+            self.log_info(f"Retrieved dataset info: {dataset_info}")
+            return dataset_info
+        except RepositoryNotFoundError:
+            self.log.error(f"Dataset {dataset_id} not found.")
+            return None
+        except Exception as e:
+            self.log.error(f"Error retrieving dataset info: {e}")
+            return None

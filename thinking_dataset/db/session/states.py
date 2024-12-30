@@ -10,7 +10,7 @@
 from enum import Enum
 
 
-class SessionStates(Enum):
+class States(Enum):
     IDLE = "Idle"
     ACTIVE = "Active"
     COMMIT = "Commit"

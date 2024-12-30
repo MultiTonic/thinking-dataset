@@ -26,14 +26,22 @@ class MockDataTonic:
         Mock method to get dataset info.
         """
         return {
-            "id": dataset_id,
+            "id":
+            dataset_id,
             "siblings": [
-                {"rfilename": "file1.parquet"},
-                {"rfilename": "file2.parquet"},
+                {
+                    "rfilename": "file1.parquet"
+                },
+                {
+                    "rfilename": "file2.parquet"
+                },
             ],
-            "private": False,
+            "private":
+            False,
             "tags": ["tag1", "tag2"],
-            "card_data": {"key": "value"},
+            "card_data": {
+                "key": "value"
+            },
         }
 
     def log_info(self, message):
@@ -56,7 +64,7 @@ def test_get_dataset_info(mock_data_tonic):
     Test the get_dataset_info method.
     """
     base_dataset = BaseDataset(mock_data_tonic)
-    dataset_info = base_dataset.get_dataset_info("test_id")
+    dataset_info = base_dataset.get_path("test_id")
     assert dataset_info["id"] == "test_id"
     assert len(dataset_info["siblings"]) == 2
     assert dataset_info["siblings"][0]["rfilename"] == "file1.parquet"

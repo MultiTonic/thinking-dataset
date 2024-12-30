@@ -7,6 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased] - 2024-12-30
 
 ### Added
+- Implemented a new `Log` class for unified logging across the project.
+- Configured `RichHandler` for rich logging and pretty errors.
+- Ensured consistent formatting in log messages with customizable time format including milliseconds.
+- Improved error handling in `DataTonic` and `Dataset` classes.
+  - Added detailed exception logging with rich traceback.
+  - Ensured the logger is initialized before any operation in the `Dataset` class.
+  - Handled missing configuration errors gracefully with clear error messages and immediate exits.
+- Fixed issues with repetitive log entries and improved log output clarity.
+- Customized log messages to display the file name and line number on the right side.
+- Enhanced the `download.py` script to exit on critical errors and validate environment variables efficiently.
+- Improved the readability of log outputs by including only relevant information and removing redundancy.
+- Added stack traces to error logs without disrupting existing formatting and style.
+- Ensured all modifications maintain the project’s coding standards and style guidelines.
+- Added `db_dir` to our `env.sample` for database directory configuration.
+- Refactored database and session handling for better performance and readability.
+- Created `dataset.py` class to encapsulate dataset operations.
+- Updated connector logic and created YAML configurations for dataset and database configurations.
+- Updated `load` and `download` commands to reflect the new logic and configurations (WIP).
+
+### Added
 - Implemented the `load` command to load downloaded dataset files into SQLite database.
 - Updated `Files` class to include file extension filtering using `HF_DATASET_TYPE` from .env.
 - Enhanced the `load` command to queue parquet files and process each one.

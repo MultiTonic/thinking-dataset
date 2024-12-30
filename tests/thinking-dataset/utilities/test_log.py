@@ -23,22 +23,25 @@ def test_setup_logger(test_logger):
     assert test_logger.name == "test_logger"
 
 
-def test_info_logging(test_logger):
-    with pytest.raises(RuntimeError) as log:
-        Log.info(test_logger, "Info message")
-    assert str(log.value) == "Info message"
+def test_info_logging(test_logger, caplog):
+    log_message = "Info message"
+    with caplog.at_level(logging.INFO):
+        Log.info(test_logger, log_message)
+    assert log_message in caplog.text
 
 
-def test_error_logging(test_logger):
-    with pytest.raises(RuntimeError) as log:
-        Log.error(test_logger, "Error message")
-    assert str(log.value) == "Error message"
+def test_error_logging(test_logger, caplog):
+    log_message = "Error message"
+    with caplog.at_level(logging.ERROR):
+        Log.error(test_logger, log_message)
+    assert log_message in caplog.text
 
 
-def test_warn_logging(test_logger):
-    with pytest.raises(RuntimeError) as log:
-        Log.warn(test_logger, "Warning message")
-    assert str(log.value) == "Warning message"
+def test_warn_logging(test_logger, caplog):
+    log_message = "Warning message"
+    with caplog.at_level(logging.WARNING):
+        Log.warn(test_logger, log_message)
+    assert log_message in caplog.text
 
 
 if __name__ == "__main__":
