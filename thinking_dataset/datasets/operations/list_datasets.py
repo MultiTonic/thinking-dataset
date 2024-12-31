@@ -15,21 +15,11 @@ from ...utilities.log import Log
 class ListDatasets(BaseOperation):
     """
     A class to list datasets associated with the organization.
-
-    Methods
-    -------
-    execute()
-        Lists datasets associated with the organization.
     """
 
     def execute(self):
         """
         Lists datasets associated with the organization.
-
-        Returns
-        -------
-        list
-            A list of datasets associated with the organization.
         """
         datasets = list(
             self.data_tonic.api.list_datasets(

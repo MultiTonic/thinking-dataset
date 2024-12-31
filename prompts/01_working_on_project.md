@@ -12,8 +12,19 @@
   - Include two blank lines before defining functions and classes.
 
 - **Documentation**: Use clear and consistent docstrings.
-  - Always include the author name "Kara Rawson" in the docstrings.
+  - Always include the @author name as "Kara Rawson" in the docstrings.
   - Follow a consistent docstring format.
+
+- **SOLID Principals**: All code must adhere strictly to S.O.L.I.I.D. standards:
+  - **Single Responsibility Principle (SRP)**
+  - **Open/Closed Principle**
+  - **Liskov’s Substitution Principle (LSP)**
+  - **Interface Segregation Principle (ISP)**
+  - **Dependency Inversion Principle (DIP)**
+
+- **Context Dependency Injection**: All code must use context dependency injection.
+
+- **Inversion of Control**: All code must use inversion of control design patterns.
 
 - **Standard Header**: Each file should begin with the following standard header:
 
@@ -22,7 +33,7 @@
 @description <Description>
 @version 1.0.0
 @license MIT
-author Kara Rawson
+@author Kara Rawson
 @see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 ```
@@ -165,6 +176,8 @@ thinking-dataset/
 - Ensure all responses are grounded in verified and credible information.
 - Avoid providing speculative or unverified answers.
 - Focus on delivering accurate and reliable information in all responses.
+- Do *not* hallucinate **code snippets** or **files**, always ask for source content.
+- Do *not* repeat yourself, DRY.
 
 ### Important Guidelines
 1. **Do not mimic or echo what you read**: Ensure responses are original and thoughtful.

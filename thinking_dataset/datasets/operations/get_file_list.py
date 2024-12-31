@@ -4,11 +4,14 @@
 @version 1.0.0
 @license MIT
 @author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
+@see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
+import sys
 from .base_operation import BaseOperation
+from ...config.dataset_config import DatasetConfig
+from ...utilities.log import Log
 
 
 class GetFileList(BaseOperation):
@@ -16,21 +19,39 @@ class GetFileList(BaseOperation):
     A class to retrieve the list of files in the dataset.
     """
 
-    def execute(self, dataset_id):
+    def execute(self, data_dir: str):
         """
         Retrieves the list of files in the dataset.
 
         Parameters
         ----------
-        dataset_id : str
-            The ID of the dataset to retrieve the file list for.
+        data_dir : str
+            The directory containing the dataset files.
 
         Returns
         -------
         list
             A list of files in the dataset.
         """
-        dataset_info = self.data_tonic.get_dataset_info(dataset_id)
-        file_list = dataset_info.siblings
-        self.log_info(f"Dataset files: {file_list}")
-        return file_list
+        try:
+            # Get dataset information
+            dataset_info = self.data_tonic.get_info.execute(
+                f"{self.data_tonic.organization}/{self.data_tonic.dataset}")
+
+            # Check if config is properly set
+            if isinstance(self.config, str):
+                self.config = DatasetConfig(self.config)
+
+            # Retrieve file list
+            file_list = [
+                file.rfilename for file in dataset_info.siblings
+                if file.rfilename.endswith(f'.{self.config.DATASET_TYPE}')
+            ]
+            Log.info(self.log, f"Dataset files: {file_list}")
+            return file_list
+        except Exception as e:
+            Log.error(self.log,
+                      f"Error retrieving file list: {e}",
+                      exc_info=True)
+            sys.exit(1)
+            return []

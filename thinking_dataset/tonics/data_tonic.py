@@ -7,7 +7,7 @@
 @see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
-import os
+
 from thinking_dataset.utilities.log import Log
 from thinking_dataset.connectors.connector import Connector
 from thinking_dataset.datasets.operations.get_download_urls \
@@ -48,7 +48,6 @@ class DataTonic(Connector):
             self.organization = organization
             self.dataset = dataset
             self.config = config
-            self.HF_DATASET_TYPE = os.getenv("HF_DATASET_TYPE", "parquet")
             self._initialize_operations()
             Log.info(self.log, "DataTonic initialized successfully.")
         except Exception as e:

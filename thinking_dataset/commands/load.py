@@ -3,7 +3,7 @@
 @description CLI command to load downloaded dataset files into SQLite database.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
+author Kara Rawson
 @see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -29,7 +29,11 @@ def load_env_variables(log):
             "DATASET_CONFIG_PATH":
             os.getenv("DATASET_CONFIG_PATH", "config/dataset_config.yaml"),
             "HF_TOKEN":
-            os.getenv("HF_TOKEN")
+            os.getenv("HF_TOKEN"),
+            "HF_ORGANIZATION":
+            os.getenv("HF_ORGANIZATION"),
+            "HF_DATASET":
+            os.getenv("HF_DATASET")
         }
         Log.info(log, "Environment variables loaded successfully.")
         return env_vars
@@ -43,7 +47,7 @@ def print_env_config(env_vars, log):
         Log.info(log, "Environment Configuration:")
         for key, value in env_vars.items():
             Log.info(log, f"{key}: {value}")
-        Log.info("Environment configuration printed successfully.")
+        Log.info(log, "Environment configuration printed successfully.")
     except Exception as e:
         Log.error(log, f"Error printing environment configuration: {e}")
 
@@ -99,22 +103,27 @@ def load(data_dir):
         return
 
     try:
-        data_tonic = DataTonic(token=env_vars['HF_TOKEN'])
+        data_tonic = DataTonic(token=env_vars['HF_TOKEN'],
+                               organization=env_vars['HF_ORGANIZATION'],
+                               dataset=env_vars['HF_DATASET'],
+                               config=env_vars['DATASET_CONFIG_PATH'])
         Log.info(log, "Initialized DataTonic instance.")
     except Exception as e:
         Log.error(log, f"Error initializing DataTonic instance: {e}")
         return
 
     try:
-        dataset = Dataset(config_path=env_vars['DATASET_CONFIG_PATH'],
-                          db_config=env_vars['DATABASE_CONFIG_PATH'],
-                          data_tonic=data_tonic)
+        dataset = Dataset(data_tonic=data_tonic)
         Log.info(log, "Initialized Dataset instance.")
     except Exception as e:
         Log.error(log, f"Error initializing Dataset instance: {e}")
         return
 
-    if not dataset.load(data_dir, Log):
+    database_url = dataset.config['DATABASE_URL']  # Extract the actual URL
+    database = dataset.create(db_url=database_url,
+                              db_config=env_vars['DATABASE_CONFIG_PATH'])
+
+    if not dataset.load(database=database, data_dir=data_dir):
         Log.error(log, "Failed to load dataset files.")
     else:
         Log.info(
