@@ -21,17 +21,10 @@ class Fetch(DatabaseOperation):
     def __init__(self, database, query: str):
         """
         Constructs all the necessary attributes for the Fetch operation.
-
-        Parameters
-        ----------
-        database : Database
-            An instance of the Database class to perform operations on.
-        query : str
-            The SQL query to fetch data.
         """
         super().__init__(database)
         self.query = query
-        self.logger = Log.setup(__name__)
+        self.log = Log.setup(self.__class__.__name__)
 
     def execute(self):
         """
@@ -40,8 +33,8 @@ class Fetch(DatabaseOperation):
         try:
             with self.database.engine.connect() as connection:
                 result = connection.execute(text(self.query)).fetchall()
-                Log.info(self.logger, "Query executed successfully")
+                Log.info(self.log, "Query executed successfully")
                 return result
         except Exception as e:
-            Log.error(self.logger, f"Error fetching data: {e}")
+            Log.error(self.log, f"Error fetching data: {e}")
             return []

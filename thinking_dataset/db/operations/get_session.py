@@ -9,7 +9,7 @@
 """
 
 from .database_operation import DatabaseOperation
-from ..session.session import Session
+from ..database_session import DatabaseSession
 from ...utilities.log import Log
 
 
@@ -28,8 +28,8 @@ class GetSession(DatabaseOperation):
             An instance of the Database class to perform operations on.
         """
         super().__init__(database)
-        self.session_store = Session(database.engine)
-        self.logger = Log.setup(__name__)
+        self.log = Log.setup(self.__class__.__name__)
+        self.session_store = DatabaseSession(database.engine)
 
     def __enter__(self):
         """
@@ -43,7 +43,7 @@ class GetSession(DatabaseOperation):
         """
         if exc_type:
             self.session_store.rollback()
-            Log.error(self.logger, f"Session error: {exc_val}")
+            Log.error(self.log, f"Session error: {exc_val}")
         else:
             self.session_store.commit()
 
@@ -55,4 +55,4 @@ class GetSession(DatabaseOperation):
             with self:
                 pass
         except Exception as e:
-            Log.error(self.logger, f"Failed to get session: {e}")
+            Log.error(self.log, f"Failed to get session: {e}")

@@ -3,7 +3,7 @@
 @description DataTonic class for managing dataset operations.
 @version 1.0.0
 @license MIT
-author Kara Rawson
+@author Kara Rawson
 @see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
@@ -38,37 +38,37 @@ class DataTonic(Connector):
     specified organization and dataset.
     """
 
-    def __init__(self, token, organization, dataset, config=None):
+    def __init__(self, token, organization, dataset, config):
         """
         Constructs all the necessary attributes for the DataTonic object.
         """
         try:
             super().__init__(token)
-            self.logger = Log.setup(__name__)
+            self.log = Log.setup(self.__class__.__name__)
             self.organization = organization
             self.dataset = dataset
+            self.config = config
             self.HF_DATASET_TYPE = os.getenv("HF_DATASET_TYPE", "parquet")
-            self.config = config if config else {}
             self._initialize_operations()
-            Log.info(self.logger, "DataTonic initialized successfully.")
+            Log.info(self.log, "DataTonic initialized successfully.")
         except Exception as e:
-            Log.error(self.logger,
+            Log.error(self.log,
                       f"Error initializing DataTonic: {e}",
                       exc_info=True)
 
     def _initialize_operations(self):
-        self.get_download_urls = GetDownloadUrls(self)
-        self.get_download_file = GetDownloadFile(self)
-        self.get_metadata = GetMetadata(self)
-        self.get_info = GetInfo(self)
-        self.get_card_content = GetCardContent(self)
-        self.get_configuration = GetConfiguration(self)
-        self.get_description = GetDescription(self)
-        self.get_download_size = GetDownloadSize(self)
-        self.get_file_list = GetFileList(self)
-        self.get_license = GetLicense(self)
-        self.get_permissions = GetPermissions(self)
-        self.get_split_information = GetSplitInformation(self)
-        self.get_tags = GetTags(self)
-        self.list_datasets = ListDatasets(self)
-        Log.info(self.logger, "Operations initialized successfully.")
+        self.get_download_urls = GetDownloadUrls(self, self.config)
+        self.get_download_file = GetDownloadFile(self, self.config)
+        self.get_metadata = GetMetadata(self, self.config)
+        self.get_info = GetInfo(self, self.config)
+        self.get_card_content = GetCardContent(self, self.config)
+        self.get_configuration = GetConfiguration(self, self.config)
+        self.get_description = GetDescription(self, self.config)
+        self.get_download_size = GetDownloadSize(self, self.config)
+        self.get_file_list = GetFileList(self, self.config)
+        self.get_license = GetLicense(self, self.config)
+        self.get_permissions = GetPermissions(self, self.config)
+        self.get_split_information = GetSplitInformation(self, self.config)
+        self.get_tags = GetTags(self, self.config)
+        self.list_datasets = ListDatasets(self, self.config)
+        Log.info(self.log, "Operations initialized successfully.")

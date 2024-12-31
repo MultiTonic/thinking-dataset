@@ -14,16 +14,6 @@ from functools import wraps
 def execute(operation_class):
     """
     A decorator to execute a database operation.
-
-    Parameters
-    ----------
-    operation_class : class
-        The database operation class to execute.
-
-    Returns
-    -------
-    function
-        The wrapped function.
     """
 
     def decorator(func):

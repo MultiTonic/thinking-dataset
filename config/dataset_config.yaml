@@ -15,4 +15,5 @@
 
 dataset:
   HF_DATASET: "cablegate-pdf-dataset"
+  DATASET_TYPE: "parquet"
   DATABASE_URL: "sqlite:///data/db/{name}.db"

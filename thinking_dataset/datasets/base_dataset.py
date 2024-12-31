@@ -5,14 +5,13 @@
 @license MIT
 @author Kara Rawson
 @see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
+@see {@link https://huggingface.co/DataTonic|GitHub Organization}
 """
 
 import os
+import sys
 import pandas as pd
 from thinking_dataset.db.database import Database
-from thinking_dataset.io.files import Files
-from thinking_dataset.tonics.data_tonic import DataTonic
 from ..utilities.log import Log
 
 
@@ -26,9 +25,9 @@ class BaseDataset:
         """
         Constructs all the necessary attributes for the BaseDataset object.
         """
+        self.log = Log.setup(self.__class__.__name__)
         self.data_tonic = data_tonic
         self.config = config
-        self.logger = Log.setup(__name__)
 
     def get_path(self, dataset_id=None):
         """
@@ -36,16 +35,16 @@ class BaseDataset:
         """
         try:
             if dataset_id:
-                dataset_info = self.data_tonic.get_dataset_info(dataset_id)
-                self.logger.info(
-                    f"Retrieved path for dataset {dataset_id}: {dataset_info}")
+                dataset_info = self.data_tonic.get_info.execute(dataset_id)
+                Log.info(self.log, f"Retrieved dataset info: {dataset_info}")
                 return dataset_info
             path = f"{self.data_tonic.organization}/{self.data_tonic.dataset}"
-            self.logger.info(f"Constructed dataset path: {path}")
+            Log.info(self.log, f"Constructed dataset path: {path}")
             return path
         except Exception as e:
-            self.logger.error(f"Error constructing dataset path: {e}",
-                              exc_info=True)
+            Log.error(self.log,
+                      f"Error constructing dataset path: {e}",
+                      exc_info=True)
             return None
 
     def list_files(self, data_dir):
@@ -53,17 +52,15 @@ class BaseDataset:
         List dataset files in the specified directory.
         """
         try:
-            files = Files(data_dir)
-            extension = self.config.get('DATASET_TYPE', 'parquet')
-            dataset_files = files.list_files(data_dir,
-                                             file_extension=f".{extension}")
-            self.logger.info(
-                f"Listed files in directory {data_dir}: {dataset_files}")
+            dataset_files = self.data_tonic.get_file_list.execute(
+                data_dir)  # Use get_file_list operation
+            Log.info(self.log,
+                     f"Listed files in directory {data_dir}: {dataset_files}")
             return dataset_files
         except Exception as e:
-            self.logger.error(
-                f"Error listing files in directory {data_dir}: {e}",
-                exc_info=True)
+            Log.error(self.log,
+                      f"Error listing files in directory {data_dir}: {e}",
+                      exc_info=True)
             return []
 
     def create(self, db_url, db_config):
@@ -72,12 +69,13 @@ class BaseDataset:
         """
         try:
             database = Database(url=db_url, config_path=db_config)
-            self.logger.info(f"Created database instance with URL: {db_url}")
+            Log.info(self.log, f"Created database instance with URL: {db_url}")
             return database
         except Exception as e:
-            self.logger.error(f"Error creating database instance: {e}",
-                              exc_info=True)
-            return None
+            Log.error(self.log,
+                      f"Error creating database instance: {e}",
+                      exc_info=True)
+            sys.exit(1)
 
     def load(self, database, data_dir):
         """
@@ -97,13 +95,14 @@ class BaseDataset:
                               if_exists='append',
                               index=False)
                 session.commit()
-                self.logger.info(
+                self.log.info(
                     "Successfully loaded dataset files into the database.")
                 return True
             except Exception as e:
                 session.rollback()
-                self.logger.error(f"Error loading dataset files: {e}",
-                                  exc_info=True)
+                Log.error(self.log,
+                          f"Error loading dataset files: {e}",
+                          exc_info=True)
                 return False
 
     def download(self, token, dataset_id):
@@ -111,29 +110,26 @@ class BaseDataset:
         Downloads the dataset from Hugging Face.
         """
         try:
-            self.data_tonic = DataTonic(
-                token=token,
-                organization=self.data_tonic.organization,
-                dataset=self.data_tonic.dataset)
-            dataset_info = self.data_tonic.get_dataset_info(dataset_id)
+            dataset_info = self.data_tonic.get_info.execute(dataset_id)
             if dataset_info:
-                self.logger.info(f"Downloading dataset {dataset_id}...")
+                Log.info(self.log, f"Downloading dataset {dataset_id}...")
 
                 download_urls = self.data_tonic.get_download_urls.execute(
                     dataset_id)
                 for url in download_urls:
                     self.data_tonic.get_download_file.execute(
-                        dataset_id, url, self.config['DATA_DIR'], token,
-                        self.logger)
+                        dataset_id, url, self.config['DATA_DIR'], token)
 
-                self.logger.info(
-                    f"Dataset {dataset_id} downloaded successfully.")
+                Log.info(self.log,
+                         f"Dataset {dataset_id} downloaded successfully.")
                 return True
             else:
-                self.logger.error(f"Dataset {dataset_id} not found.",
-                                  exc_info=True)
+                Log.error(self.log,
+                          f"Dataset {dataset_id} not found.",
+                          exc_info=True)
                 return False
         except Exception as e:
-            self.logger.error(f"Error downloading dataset {dataset_id}: {e}",
-                              exc_info=True)
+            Log.error(self.log,
+                      f"Error downloading dataset {dataset_id}: {e}",
+                      exc_info=True)
             return False

@@ -10,7 +10,7 @@
 from enum import Enum
 
 
-class States(Enum):
+class DatabaseStates(Enum):
     IDLE = "Idle"
     ACTIVE = "Active"
     COMMIT = "Commit"

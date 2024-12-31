@@ -26,32 +26,32 @@ class Log:
         """
         Sets up a logger with the specified name using RichHandler.
         """
-        logger = logging.getLogger(name)
-        if not logger.hasHandlers():
+        log = logging.getLogger(name)
+        if not log.hasHandlers():
             rich_handler = RichHandler(show_path=True,
                                        tracebacks_show_locals=True,
                                        tracebacks_word_wrap=False)
-            logger.addHandler(rich_handler)
-            logger.setLevel(logging.INFO)
-        return logger
+            log.addHandler(rich_handler)
+            log.setLevel(logging.INFO)
+        return log
 
     @staticmethod
-    def info(logger, message):
+    def info(log, message):
         """
         Logs an informational message.
         """
-        logger.info(message, stacklevel=2)
+        log.info(message, stacklevel=2)
 
     @staticmethod
-    def error(logger, message, exc_info=None):
+    def error(log, message, exc_info=None):
         """
         Logs an error message with an optional exception.
         """
-        logger.error(message, exc_info=exc_info, stacklevel=2)
+        log.error(message, exc_info=exc_info, stacklevel=2)
 
     @staticmethod
-    def warn(logger, message):
+    def warn(log, message):
         """
         Logs a warning message.
         """
-        logger.warning(message, stacklevel=2)
+        log.warning(message, stacklevel=2)

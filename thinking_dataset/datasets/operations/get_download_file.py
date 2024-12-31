@@ -1,16 +1,17 @@
 """
-@file thinking_dataset/datasets/operations/download_file.py
+@file thinking_dataset/datasets/operations/get_download_file.py
 @description Operation to download a specific file from the dataset.
 @version 1.0.0
 @license MIT
 @author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
+@see {@link https://github.com/MultiTonic|GitHub Repository}
+@see {@link https://huggingface.co/DataTonic|GitHub Organization}
 """
 import os
 import stat
 from .base_operation import BaseOperation
 from huggingface_hub import hf_hub_download
+from ...utilities.log import Log
 
 
 class GetDownloadFile(BaseOperation):
@@ -18,52 +19,32 @@ class GetDownloadFile(BaseOperation):
     A class to download a specific file from the dataset.
     """
 
-    def execute(self, repo_id: str, filename: str, local_dir: str, token: str,
-                console):
+    def execute(self, repo_id: str, filename: str, local_dir: str, token: str):
         """
         Downloads a file from the specified dataset repository and saves it
         to the given path.
-
-        Parameters
-        ----------
-        repo_id : str
-            The ID of the dataset repository.
-        filename : str
-            The name of the file to download.
-        local_dir : str
-            The local directory to save the downloaded file.
-        token : str
-            The token for authentication.
-        console : rich.console.Console
-            The console for printing progress.
-
-        Returns
-        -------
-        bool
-            True if the file was downloaded successfully, False otherwise.
         """
         dest = os.path.join(local_dir, filename)
         normalized_dest = os.path.normpath(dest)
-        console.print(
-            f"[green]Downloading {filename} to {normalized_dest}...[/green]")
+
+        Log.info(self.log, f"Downloading {filename} to {normalized_dest}...")
+
         if os.path.exists(dest):
             try:
                 os.chmod(dest, stat.S_IWRITE)
                 os.remove(dest)
             except PermissionError as e:
-                console.print(f"\n[bold red]PermissionError: {e}[/bold red]\n")
+                self.log.error(f"PermissionError: {e}")
                 return False
+
         try:
             hf_hub_download(repo_id=repo_id,
                             filename=filename,
                             local_dir=local_dir,
                             token=token,
                             repo_type="dataset")
-            console.print(
-                f"[green]Downloaded {filename} to {normalized_dest}[/green]\n")
-            self.log_info(f"File downloaded successfully to {normalized_dest}")
             return True
         except Exception as e:
-            console.print(
-                f"\n[bold red]Failed to download {filename}: {e}[/bold red]\n")
+            self.log.error(f"Failed to download {filename}: {e}",
+                           exc_info=True)
             return False

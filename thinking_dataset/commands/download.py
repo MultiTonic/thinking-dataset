@@ -14,10 +14,11 @@ import click
 from dotenv import load_dotenv
 from thinking_dataset.datasets.dataset import Dataset
 from thinking_dataset.tonics.data_tonic import DataTonic
-from thinking_dataset.utilities.log import Log
+from thinking_dataset.utilities.log import Log as Log
+from thinking_dataset.config.dataset_config import DatasetConfig
 
 
-def load_env_variables(logger):
+def load_env_variables(log):
     try:
         load_dotenv()
         env_vars = {
@@ -36,23 +37,23 @@ def load_env_variables(logger):
             "HF_DATASET":
             os.getenv("HF_DATASET"),
         }
-        Log.info(logger, "Environment variables loaded successfully.")
+        Log.info(log, "Environment variables loaded successfully.")
         return env_vars
     except Exception as e:
-        Log.error(logger,
+        Log.error(log,
                   f"Error loading environment variables: {e}",
                   exc_info=True)
         sys.exit(1)
 
 
-def print_env_config(env_vars, logger):
+def print_env_config(env_vars, log):
     try:
-        Log.info(logger, "Environment Configuration:")
+        Log.info(log, "Environment Configuration:")
         for key, value in env_vars.items():
-            Log.info(logger, f"{key}: {value}")
-        Log.info(logger, "Environment configuration printed successfully.")
+            Log.info(log, f"{key}: {value}")
+        Log.info(log, "Environment configuration printed successfully.")
     except Exception as e:
-        Log.error(logger,
+        Log.error(log,
                   f"Error printing environment configuration: {e}",
                   exc_info=True)
         sys.exit(1)
@@ -64,7 +65,7 @@ def construct_paths(root_dir, data_dir, logger):
         raw_dir = os.path.join(base_dir, "raw")
         processed_dir = os.path.join(base_dir, "processed")
         Log.info(
-            logger, f"Constructed paths: base_dir={base_dir}, "
+            Log, f"Constructed paths: base_dir={base_dir}, "
             f"raw_dir={raw_dir}, processed_dir={processed_dir}")
         return raw_dir, processed_dir
     except Exception as e:
@@ -96,36 +97,41 @@ def download(data_dir):
     """
     Download datasets from Hugging Face.
     """
-    logger = Log.setup(__name__)
-    Log.info(logger, "Starting the download command.")
+    log = Log.setup(__name__)
+    Log.info(log, "Starting the download command.")
 
-    env_vars = load_env_variables(logger)
+    env_vars = load_env_variables(log)
     if env_vars is None:
-        Log.error(logger, "Failed to load environment variables.")
+        Log.error(log, "Failed to load environment variables.")
         sys.exit(1)
 
-    print_env_config(env_vars, logger)
+    print_env_config(env_vars, log)
 
-    if not validate_env_variables(env_vars, logger):
-        Log.error(logger, "Failed to validate environment variables.")
+    if not validate_env_variables(env_vars, log):
+        Log.error(log, "Failed to validate environment variables.")
         sys.exit(1)
 
     try:
+        dataset_config_path = env_vars['DATASET_CONFIG_PATH']
+        dataset_config = DatasetConfig(dataset_config_path)
+        dataset_config.validate()
+
         data_tonic = DataTonic(token=env_vars['HF_TOKEN'],
                                organization=env_vars['HF_ORGANIZATION'],
-                               dataset=env_vars['HF_DATASET'])
-        Log.info(logger, "Initialized DataTonic instance.")
+                               dataset=env_vars['HF_DATASET'],
+                               config=dataset_config)
+        Log.info(log, "Initialized DataTonic instance.")
     except Exception as e:
-        Log.error(logger,
+        Log.error(log,
                   f"Error initializing DataTonic instance: {e}",
                   exc_info=True)
         sys.exit(1)
 
     try:
-        dataset = Dataset(data_tonic=data_tonic, config=env_vars)
-        Log.info(logger, "Initialized Dataset instance.")
+        dataset = Dataset(data_tonic=data_tonic)
+        Log.info(log, "Initialized Dataset instance.")
     except Exception as e:
-        Log.error(logger,
+        Log.error(log,
                   f"Error initializing Dataset instance: {e}",
                   exc_info=True)
         sys.exit(1)
@@ -133,11 +139,11 @@ def download(data_dir):
     if not dataset.download(
             env_vars['HF_TOKEN'],
             f"{env_vars['HF_ORGANIZATION']}/{env_vars['HF_DATASET']}"):
-        Log.error(logger, "Failed to download dataset files.")
+        Log.error(log, "Failed to download dataset files.")
         sys.exit(1)
     else:
         Log.info(
-            logger,
+            log,
             f"Downloaded all dataset files to {os.path.normpath(data_dir)}")
 
 

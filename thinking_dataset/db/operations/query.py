@@ -21,17 +21,10 @@ class Query(DatabaseOperation):
     def __init__(self, database, query: str):
         """
         Constructs all the necessary attributes for the Query operation.
-
-        Parameters
-        ----------
-        database : Database
-            An instance of the Database class to perform operations on.
-        query : str
-            The SQL query to execute.
         """
         super().__init__(database)
         self.query = query
-        self.logger = Log.setup(__name__)
+        self.log = Log.setup(self.__class__.__name__)
 
     def execute(self):
         """
@@ -41,6 +34,6 @@ class Query(DatabaseOperation):
             with self.database.engine.connect() as connection:
                 connection.execute(text(self.query))
                 connection.commit()
-                Log.info(self.logger, "Query executed successfully")
+                Log.info(self.log, "Query executed successfully")
         except Exception as e:
-            Log.error(self.logger, f"Error executing query: {e}")
+            Log.error(self.log, f"Error executing query: {e}")
