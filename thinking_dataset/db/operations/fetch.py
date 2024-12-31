@@ -1,11 +1,8 @@
 """
-@file thinking_dataset/db/operations/fetch_data.py
+@file thinking_dataset/db/operations/fetch.py
 @description Defines a concrete class for fetching data from the database.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 from sqlalchemy import text
@@ -15,7 +12,7 @@ from ...utilities.log import Log
 
 class Fetch(DatabaseOperation):
     """
-    A class to handle fetching data from the database.
+    A class to handle fetching from the database.
     """
 
     def __init__(self, database, query: str):

@@ -3,9 +3,6 @@
 @description Handles getting a database session.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 from .database_operation import DatabaseOperation
@@ -21,11 +18,6 @@ class GetSession(DatabaseOperation):
     def __init__(self, database):
         """
         Constructs all the necessary attributes for the GetSession operation.
-
-        Parameters
-        ----------
-        database : Database
-            An instance of the Database class to perform operations on.
         """
         super().__init__(database)
         self.log = Log.setup(self.__class__.__name__)

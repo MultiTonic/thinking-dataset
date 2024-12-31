@@ -3,21 +3,22 @@
 @description Implementation of the Database class.
 @version 1.0.0
 @license MIT
-author Kara Rawson
+@author Kara Rawson
 @see {@link https://github.com/MultiTonic|GitHub Repository}
 @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 import os
 import sys
+import logging
 from sqlalchemy import create_engine, exc
 from contextlib import contextmanager
-from ..utilities.log import Log
 from ..utilities.execute import execute
 from .operations.query import Query
 from .operations.fetch import Fetch
 from ..config.database_config import DatabaseConfig
 from .database_session import DatabaseSession as Session
+from ..utilities.log import Log
 
 
 class Database:
@@ -61,6 +62,13 @@ class Database:
                 'timeout': self.config.connect_timeout if self.config else 30
             },
             echo=self.config.log_queries if self.config else False)
+
+        # Configure SQLAlchemy to use the standard logger
+        sqlalchemy_logger = logging.getLogger('sqlalchemy.engine')
+        sqlalchemy_logger.handlers = [Log.get_handler()]
+        sqlalchemy_logger.propagate = False
+        sqlalchemy_logger.setLevel(logging.INFO)
+
         Log.info(self.log, "Database engine created successfully.")
 
     def _initialize_session(self):

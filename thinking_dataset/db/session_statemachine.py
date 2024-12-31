@@ -3,9 +3,6 @@
 @description Defines the state machine for session management.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 from statemachine import StateMachine, State
@@ -31,16 +28,26 @@ class SessionStateMachine(StateMachine):
         super().__init__()
         self.log = Log.setup(self.__class__.__name__)
 
+    @property
+    def is_idle(self):
+        """Check if the state is idle."""
+        return self.current_state == self.idle
+
+    @property
+    def is_active(self):
+        """Check if the state is active."""
+        return self.current_state == self.active
+
     def on_enter_commit(self):
         """Define actions to take when entering the commit state."""
         try:
-            self.log.info("Entering commit state.")
+            Log.info(self.log, "Entering commit state.")
         except Exception as e:
-            self.log.error(f"Error entering commit state: {e}")
+            Log.error(self.log, f"Error entering commit state: {e}")
 
     def on_enter_rollback(self):
         """Define actions to take when entering the rollback state."""
         try:
-            self.log.info("Entering rollback state.")
+            Log.info(self.log, "Entering rollback state.")
         except Exception as e:
-            self.log.error(f"Error entering rollback state: {e}")
+            Log.error(self.log, f"Error entering rollback state: {e}")

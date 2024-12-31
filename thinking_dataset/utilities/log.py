@@ -3,17 +3,13 @@
 @description Defines the Log class for unified logging.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 import logging
-from rich.logging import RichHandler
-from rich.traceback import install
+import sys
 
-# Install rich traceback handler for pretty errors
-install(show_locals=True)
+# Customize the log format to include a timestamp
+LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 
 class Log:
@@ -24,34 +20,44 @@ class Log:
     @staticmethod
     def setup(name):
         """
-        Sets up a logger with the specified name using RichHandler.
+        Sets up a logger with the specified name using standard logging.
         """
-        log = logging.getLogger(name)
-        if not log.hasHandlers():
-            rich_handler = RichHandler(show_path=True,
-                                       tracebacks_show_locals=True,
-                                       tracebacks_word_wrap=False)
-            log.addHandler(rich_handler)
-            log.setLevel(logging.INFO)
-        return log
+        logging.basicConfig(level=logging.INFO,
+                            format=LOG_FORMAT,
+                            datefmt='%Y-%m-%d %H:%M:%S',
+                            handlers=[logging.StreamHandler(sys.stdout)])
+
+        # Set up SQLAlchemy to use the standard logging
+        sqlalchemy_logger = logging.getLogger('sqlalchemy.engine')
+        sqlalchemy_logger.setLevel(logging.INFO)
+        sqlalchemy_logger.propagate = False
+
+        return logging.getLogger(name)
 
     @staticmethod
     def info(log, message):
         """
         Logs an informational message.
         """
-        log.info(message, stacklevel=2)
+        log.info(message)
 
     @staticmethod
     def error(log, message, exc_info=None):
         """
         Logs an error message with an optional exception.
         """
-        log.error(message, exc_info=exc_info, stacklevel=2)
+        log.error(message, exc_info=exc_info)
 
     @staticmethod
     def warn(log, message):
         """
         Logs a warning message.
         """
-        log.warning(message, stacklevel=2)
+        log.warning(message)
+
+    @staticmethod
+    def get_handler():
+        """
+        Returns the standard logging handler.
+        """
+        return logging.StreamHandler(sys.stdout)

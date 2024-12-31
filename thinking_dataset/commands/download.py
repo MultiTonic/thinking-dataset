@@ -3,9 +3,6 @@
 @description CLI command to download datasets from Hugging Face.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 import os
@@ -65,7 +62,7 @@ def construct_paths(root_dir, data_dir, logger):
         raw_dir = os.path.join(base_dir, "raw")
         processed_dir = os.path.join(base_dir, "processed")
         Log.info(
-            Log, f"Constructed paths: base_dir={base_dir}, "
+            logger, f"Constructed paths: base_dir={base_dir}, "
             f"raw_dir={raw_dir}, processed_dir={processed_dir}")
         return raw_dir, processed_dir
     except Exception as e:
@@ -136,15 +133,18 @@ def download(data_dir):
                   exc_info=True)
         sys.exit(1)
 
+    raw_dir, processed_dir = construct_paths(env_vars['ROOT_DIR'],
+                                             env_vars['DATA_DIR'], log)
     if not dataset.download(
             env_vars['HF_TOKEN'],
-            f"{env_vars['HF_ORGANIZATION']}/{env_vars['HF_DATASET']}"):
+            f"{env_vars['HF_ORGANIZATION']}/{env_vars['HF_DATASET']}",
+            raw_dir):
         Log.error(log, "Failed to download dataset files.")
         sys.exit(1)
     else:
         Log.info(
             log,
-            f"Downloaded all dataset files to {os.path.normpath(data_dir)}")
+            f"Downloaded all dataset files to {os.path.normpath(raw_dir)}")
 
 
 if __name__ == "__main__":

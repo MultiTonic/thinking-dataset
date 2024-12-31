@@ -1,18 +1,17 @@
 """
 @file thinking_dataset/commands/load.py
-@description CLI command to load downloaded dataset files into SQLite database.
+@description CLI command to load datasets into the database.
 @version 1.0.0
 @license MIT
-author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 import os
+import sys
 import click
 from dotenv import load_dotenv
 from thinking_dataset.datasets.dataset import Dataset
 from thinking_dataset.tonics.data_tonic import DataTonic
+from thinking_dataset.config.dataset_config import DatasetConfig
 from thinking_dataset.utilities.log import Log
 
 
@@ -33,13 +32,15 @@ def load_env_variables(log):
             "HF_ORGANIZATION":
             os.getenv("HF_ORGANIZATION"),
             "HF_DATASET":
-            os.getenv("HF_DATASET")
+            os.getenv("HF_DATASET"),
         }
         Log.info(log, "Environment variables loaded successfully.")
         return env_vars
     except Exception as e:
-        Log.error(log, f"Error loading environment variables: {e}")
-        return None
+        Log.error(log,
+                  f"Error loading environment variables: {e}",
+                  exc_info=True)
+        sys.exit(1)
 
 
 def print_env_config(env_vars, log):
@@ -49,34 +50,25 @@ def print_env_config(env_vars, log):
             Log.info(log, f"{key}: {value}")
         Log.info(log, "Environment configuration printed successfully.")
     except Exception as e:
-        Log.error(log, f"Error printing environment configuration: {e}")
+        Log.error(log,
+                  f"Error printing environment configuration: {e}",
+                  exc_info=True)
+        sys.exit(1)
 
 
-def construct_paths(root_dir, data_dir, log):
-    try:
-        base_dir = os.path.join(root_dir, data_dir)
-        raw_dir = os.path.join(base_dir, "raw")
-        processed_dir = os.path.join(base_dir, "processed")
-        Log.info(
-            log, f"Constructed paths: base_dir={base_dir}, "
-            f"raw_dir={raw_dir}, processed_dir={processed_dir}")
-        return raw_dir, processed_dir
-    except Exception as e:
-        Log.error(log, f"Error constructing paths: {e}")
-        return None, None
-
-
-def validate_env_variables(env_vars, log):
+def validate_env_variables(env_vars, logger):
     try:
         if not all(env_vars.values()):
             Log.error(
-                log,
+                logger,
                 "Environment validation failed. Some variables are not set.")
             return False
-        Log.info(log, "Environment variables validated successfully.")
+        Log.info(logger, "Environment variables validated successfully.")
         return True
     except Exception as e:
-        Log.error(log, f"Error validating environment variables: {e}")
+        Log.error(logger,
+                  f"Error validating environment variables: {e}",
+                  exc_info=True)
         return False
 
 
@@ -86,7 +78,7 @@ def validate_env_variables(env_vars, log):
               help='Directory containing raw dataset files.')
 def load(data_dir):
     """
-    Load downloaded dataset files into SQLite database.
+    Load datasets into the database.
     """
     log = Log.setup(__name__)
     Log.info(log, "Starting the load command.")
@@ -94,40 +86,52 @@ def load(data_dir):
     env_vars = load_env_variables(log)
     if env_vars is None:
         Log.error(log, "Failed to load environment variables.")
-        return
+        sys.exit(1)
 
     print_env_config(env_vars, log)
 
     if not validate_env_variables(env_vars, log):
         Log.error(log, "Failed to validate environment variables.")
-        return
+        sys.exit(1)
 
     try:
+        dataset_config_path = env_vars['DATASET_CONFIG_PATH']
+        dataset_config = DatasetConfig(dataset_config_path)
+        dataset_config.validate()
+
         data_tonic = DataTonic(token=env_vars['HF_TOKEN'],
                                organization=env_vars['HF_ORGANIZATION'],
                                dataset=env_vars['HF_DATASET'],
-                               config=env_vars['DATASET_CONFIG_PATH'])
+                               config=dataset_config)
         Log.info(log, "Initialized DataTonic instance.")
     except Exception as e:
-        Log.error(log, f"Error initializing DataTonic instance: {e}")
-        return
+        Log.error(log,
+                  f"Error initializing DataTonic instance: {e}",
+                  exc_info=True)
+        sys.exit(1)
 
     try:
         dataset = Dataset(data_tonic=data_tonic)
         Log.info(log, "Initialized Dataset instance.")
     except Exception as e:
-        Log.error(log, f"Error initializing Dataset instance: {e}")
-        return
+        Log.error(log,
+                  f"Error initializing Dataset instance: {e}",
+                  exc_info=True)
+        sys.exit(1)
 
-    database_url = dataset.config['DATABASE_URL']  # Extract the actual URL
-    database = dataset.create(db_url=database_url,
-                              db_config=env_vars['DATABASE_CONFIG_PATH'])
+    database_url = 'sqlite:///data/db/cablegate-pdf-dataset.db'
+    try:
+        database = dataset.create(db_url=database_url,
+                                  db_config=env_vars['DATABASE_CONFIG_PATH'])
+    except Exception as e:
+        Log.error(log, f"Error creating database: {e}", exc_info=True)
+        sys.exit(1)
 
-    if not dataset.load(database=database, data_dir=data_dir):
+    if not dataset.load(database=database):
         Log.error(log, "Failed to load dataset files.")
+        sys.exit(1)
     else:
-        Log.info(
-            log, f"Loaded all dataset files from {os.path.normpath(data_dir)}")
+        Log.info(log, "Loaded dataset files into the database successfully.")
 
 
 if __name__ == "__main__":
