@@ -1,19 +1,15 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Configuration settings for the dataset.                                      #
-# @file config/dataset_config.yaml                                            #
-# @description Configuration settings for the dataset.                        #
-# @version 1.0.0                                                              #
-# @license MIT                                                                #
-# author Kara Rawson                                                          #
-# @see {@link https://github.com/MultiTonic|thinking-dataset|GH Repository}   #
-# @see {@link https://huggingface.co/DataTonic|Hugging Face Organization}     #
-#=============================================================================#
-# It includes the following settings:                                         #
-# - HF_DATASET: The name of the dataset to manage.                            #
-# - DATABASE_URL: The URL for the database.                                   #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 dataset:
-  HF_DATASET: "cablegate-pdf-dataset"
-  DATASET_TYPE: "parquet"
-  DATABASE_URL: "sqlite:///data/db/{name}.db"
+  huggingface:
+    name: "cablegate-pdf-dataset"
+    type: "parquet"
+  database:
+    url: "sqlite:///data/db/{name}.db"
+  paths:
+    root: "."
+    data: "data"
+    database: "db"
+  files:
+    include:
+    - "train-00000-of-00001.parquet"
+    exclude:
+    - "cleaned_data.parquet"

@@ -24,7 +24,7 @@ class Log:
         """
         logging.basicConfig(level=logging.INFO,
                             format=LOG_FORMAT,
-                            datefmt='%Y-%m-%d %H:%M:%S',
+                            datefmt='%Y.%m.%d:%H:%M:%S',
                             handlers=[logging.StreamHandler(sys.stdout)])
 
         # Set up SQLAlchemy to use the standard logging

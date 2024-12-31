@@ -3,9 +3,6 @@
 @description Defines DatasetConfig class for storing dataset configuration.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic|thinking-dataset|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 from thinking_dataset.utilities.config_loader import ConfigLoader
@@ -19,9 +16,15 @@ class DatasetConfig:
     def __init__(self, config_path: str):
         loader = ConfigLoader(config_path)
         config = loader.get('dataset')
-        self.HF_DATASET = config.get('HF_DATASET')
-        self.DATASET_TYPE = config.get('DATASET_TYPE', 'parquet')
-        self.DATABASE_URL = config.get('DATABASE_URL')
+        self.HF_DATASET = config.get('huggingface', {}).get('name')
+        self.DATASET_TYPE = config.get('huggingface',
+                                       {}).get('type', 'parquet')
+        self.DATABASE_URL = config.get('database', {}).get('url')
+        self.ROOT_DIR = config.get('paths', {}).get('root', '.')
+        self.DATA_DIR = config.get('paths', {}).get('data', 'data')
+        self.DB_DIR = config.get('paths', {}).get('database', 'db')
+        self.INCLUDE_FILES = config.get('files', {}).get('include', [])
+        self.EXCLUDE_FILES = config.get('files', {}).get('exclude', [])
 
     def validate(self):
         """

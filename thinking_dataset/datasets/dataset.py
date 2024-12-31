@@ -3,9 +3,6 @@
 @description Implementation of the Dataset class extending BaseDataset.
 @version 1.0.0
 @license MIT
-author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 import os
@@ -26,7 +23,7 @@ class Dataset(BaseDataset):
         """
         Constructs all the necessary attributes for the Dataset object.
         """
-        self.log = Log.setup(__name__)
+        self.log = Log.setup(self.__class__.__name__)
         try:
             self.data_tonic = data_tonic
 
@@ -42,7 +39,9 @@ class Dataset(BaseDataset):
                 'DATASET_TYPE': dataset_config.DATASET_TYPE,
                 'DATABASE_URL':
                 dataset_config.DATABASE_URL.format(name=self.name),
-                'DATA_DIR': os.getenv('DATA_DIR', 'data')
+                'DATA_DIR': os.getenv('DATA_DIR', 'data'),
+                'INCLUDE_FILES': dataset_config.INCLUDE_FILES,
+                'EXCLUDE_FILES': dataset_config.EXCLUDE_FILES
             }
 
             # Log the contents of self.config for debugging
