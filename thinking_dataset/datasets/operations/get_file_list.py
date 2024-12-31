@@ -3,9 +3,6 @@
 @description Operation to retrieve list of dataset files.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 import sys
@@ -22,16 +19,6 @@ class GetFileList(BaseOperation):
     def execute(self, data_dir: str):
         """
         Retrieves the list of files in the dataset.
-
-        Parameters
-        ----------
-        data_dir : str
-            The directory containing the dataset files.
-
-        Returns
-        -------
-        list
-            A list of files in the dataset.
         """
         try:
             # Get dataset information

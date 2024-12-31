@@ -7,11 +7,11 @@
 
 import sys
 import click
-from thinking_dataset.datasets.dataset import Dataset
-from thinking_dataset.tonics.data_tonic import DataTonic
-from thinking_dataset.config.dataset_config import DatasetConfig
-from thinking_dataset.utilities.log import Log
-from thinking_dataset.utilities.command_utils import CommandUtils
+from ..datasets.dataset import Dataset
+from ..tonics.data_tonic import DataTonic
+from ..config.dataset_config import DatasetConfig
+from ..utilities.log import Log
+from ..utilities.command_utils import CommandUtils
 
 
 @click.command()

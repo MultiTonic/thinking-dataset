@@ -3,9 +3,6 @@
 @description Operation to retrieve dataset download URLs.
 @version 1.0.0
 @license MIT
-author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|GitHub Organization}
 """
 
 from .base_operation import BaseOperation

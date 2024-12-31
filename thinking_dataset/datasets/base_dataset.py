@@ -10,7 +10,7 @@ import sys
 import pandas as pd
 from dotenv import load_dotenv
 from typing import List, Union, Optional
-from thinking_dataset.db.database import Database
+from ..db.database import Database
 from ..utilities.log import Log
 
 

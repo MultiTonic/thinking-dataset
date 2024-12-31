@@ -3,9 +3,6 @@
 @description Operation to download a specific file from the dataset.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|GitHub Organization}
 """
 import os
 import stat

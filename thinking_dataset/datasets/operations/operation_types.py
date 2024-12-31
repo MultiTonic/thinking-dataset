@@ -3,9 +3,6 @@
 @description Defines the OperationTypes enum for dataset operations.
 @version 1.0.0
 @license MIT
-@param Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 from enum import Enum

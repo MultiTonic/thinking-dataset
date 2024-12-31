@@ -3,9 +3,6 @@
 @description Retrieves the dataset information.
 @version 1.0.0
 @license MIT
-author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 from .base_operation import BaseOperation

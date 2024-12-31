@@ -3,12 +3,9 @@
 @description Defines DatabaseConfig class for storing database configuration.
 @version 1.0.0
 @license MIT
-author Kara Rawson
-@see {@link https://github.com/MultiTonic|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
-from thinking_dataset.utilities.config_loader import ConfigLoader
+from ..utilities.config_loader import ConfigLoader
 
 
 class DatabaseConfig:

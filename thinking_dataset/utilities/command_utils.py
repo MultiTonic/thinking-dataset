@@ -6,8 +6,10 @@
 """
 
 import os
+import importlib
 from dotenv import load_dotenv
 from thinking_dataset.utilities.log import Log as Log
+import pandas as pd
 
 
 class CommandUtils:
@@ -42,12 +44,13 @@ class CommandUtils:
         Log.info(log, "Environment configuration printed successfully.")
 
     @staticmethod
-    def construct_paths(root_dir, data_dir, log):
+    def get_raw_data_path(log, root_dir, data_dir, raw_dir):
         base_dir = os.path.join(root_dir, data_dir)
-        raw_dir = os.path.join(base_dir, "raw")
-        Log.info(log,
-                 f"Constructed paths: base_dir={base_dir}, raw_dir={raw_dir}")
-        return raw_dir
+        raw_dir_path = os.path.join(base_dir, raw_dir)
+        Log.info(
+            log,
+            f"Constructed paths: base_dir={base_dir}, raw_dir={raw_dir_path}")
+        return raw_dir_path
 
     @staticmethod
     def validate_env_variables(env_vars, log):
@@ -58,3 +61,64 @@ class CommandUtils:
             return False
         Log.info(log, "Environment variables validated successfully.")
         return True
+
+    @staticmethod
+    def load_dataset_config(dataset_config_path):
+        """
+        Load and validate the dataset configuration.
+        """
+        from ..config.dataset_config import DatasetConfig
+        dataset_config = DatasetConfig(dataset_config_path)
+        dataset_config.validate()
+        return dataset_config
+
+    @staticmethod
+    def load_data(input_file, dataset_type):
+        """
+        Load data from the specified file based on the dataset type.
+        """
+        if dataset_type == "parquet":
+            return pd.read_parquet(input_file)
+        elif dataset_type == "csv":
+            return pd.read_csv(input_file)
+        else:
+            raise ValueError(f"Unsupported dataset type: {dataset_type}")
+
+    @staticmethod
+    def save_data(df, output_file, dataset_type):
+        """
+        Save data to the specified file based on the dataset type.
+        """
+        if dataset_type == "parquet":
+            df.to_parquet(output_file, index=False)
+        elif dataset_type == "csv":
+            df.to_csv(output_file, index=False)
+        else:
+            raise ValueError(f"Unsupported dataset type: {dataset_type}")
+
+    @staticmethod
+    def camel_to_snake(name):
+        """
+        Convert CamelCase to snake_case.
+        """
+        import re
+        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+    @staticmethod
+    def get_pipe_class(pipe_type, log):
+        """
+        Dynamically import and return the pipe class based on the pipe type.
+        """
+        module_name = "thinking_dataset.pipeworks.pipes."
+        f"{CommandUtils.camel_to_snake(pipe_type)}"
+        pipe_class_name = pipe_type
+
+        try:
+            module = importlib.import_module(module_name)
+            return getattr(module, pipe_class_name)
+        except (ImportError, AttributeError) as e:
+            Log.error(
+                log, f"Error loading pipe class {pipe_class_name} "
+                f"from module {module_name}: {e}")
+            raise

@@ -17,11 +17,6 @@ class DatabaseOperation(ABC):
     def __init__(self, database):
         """
         Constructs all the necessary attributes for the DatabaseOperation.
-
-        Parameters
-        ----------
-        database : Database
-            An instance of the Database class to perform operations on.
         """
         self.database = database
         self.log = Log.setup(self.__class__.__name__)

@@ -5,7 +5,7 @@
 @license MIT
 """
 
-from thinking_dataset.utilities.config_loader import ConfigLoader
+from ..utilities.config_loader import ConfigLoader
 
 
 class DatasetConfig:
@@ -22,9 +22,11 @@ class DatasetConfig:
         self.DATABASE_URL = config.get('database', {}).get('url')
         self.ROOT_DIR = config.get('paths', {}).get('root', '.')
         self.DATA_DIR = config.get('paths', {}).get('data', 'data')
+        self.RAW_DIR = config.get('paths', {}).get('raw', 'raw')
         self.DB_DIR = config.get('paths', {}).get('database', 'db')
         self.INCLUDE_FILES = config.get('files', {}).get('include', [])
         self.EXCLUDE_FILES = config.get('files', {}).get('exclude', [])
+        self.PIPELINES = config.get('pipelines', [])
 
     def validate(self):
         """
@@ -36,3 +38,5 @@ class DatasetConfig:
             raise ValueError("DATASET_TYPE must be set.")
         if not self.DATABASE_URL:
             raise ValueError("DATABASE_URL must be set.")
+        if not self.PIPELINES:
+            raise ValueError("PIPELINES must be set.")

@@ -6,10 +6,26 @@ dataset:
     url: "sqlite:///data/db/{name}.db"
   paths:
     root: "."
-    data: "data"
     database: "db"
+    data: "data"
+    raw: "raw"
   files:
     include:
     - "train-00000-of-00001.parquet"
     exclude:
     - "cleaned_data.parquet"
+  pipelines:
+  - pipeline:
+      name: "preprocessor"
+      description: "Default preprocessing pipeline"
+      pipes:
+      - pipe:
+          name: "Remove Duplicates"
+          type: "RemoveDuplicatesPipe"
+          config:
+            columns: [ "pdf_content", "filename" ]
+      - pipe:
+          name: "Handle Missing Values"
+          type: "HandleMissingValuesPipe"
+          config:
+            columns: [ "pdf_content", "filename" ]

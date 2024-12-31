@@ -3,9 +3,6 @@
 @description Handles file i/o operations for the Thinking Dataset Project.
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 """
 
 import os
@@ -27,18 +24,6 @@ class Files:
     def list_files(self, dir_path, file_extension=None):
         """
         List files in a directory with an optional file extension filter.
-
-        Parameters
-        ----------
-        dir_path : str
-            Path to the directory to list files from.
-        file_extension : str, optional
-            File extension to filter files by (e.g., '.parquet').
-
-        Returns
-        -------
-        list
-            List of file names in the directory with the specified extension.
         """
         if file_extension:
             return [

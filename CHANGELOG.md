@@ -4,9 +4,35 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2024-12-31
+
+### Added
+- Updated all source code header comments to be more concise for improved readability and maintenance.
+- Enhanced `command_utils.py`:
+  - Fixed issues with dynamic pipe class loading to correctly reflect user-defined types.
+  - Improved environment variable management functions for better configuration handling.
+  - Refactored paths construction to `get_raw_data_path` for clarity.
+- Developed `pipe` and `pipeline` modules:
+  - `pipe.py`: Defined the base `Pipe` class with input and output handling for data processing.
+  - `pipeline.py`: Created the `Pipeline` class for managing and executing data processing pipelines.
+  - Implemented `Pipeline.setup` to dynamically load and configure pipes based on dataset config.
+- Expanded `preprocess.py` CLI command:
+  - Integrated new `Pipe` and `Pipeline` classes.
+  - Added logging support throughout the preprocessing workflow.
+  - Enhanced environment variable loading and validation.
+  - Improved data loading, processing, and saving with modular functions.
+- Updated dataset configuration:
+  - Reorganized dataset config structure for better clarity and flexibility.
+  - Added support for dynamic loading of processing pipes based on user-defined types.
+  - Included display names and descriptions for better identification of processing steps.
+
+### Fixed
+- Ensured thorough logging at each step for better traceability and debugging.
+
 ## [Unreleased] - 2024-12-30
 
 ### Added
+
 - Implemented a new `Log` class for unified logging across the project.
 - Configured `RichHandler` for rich logging and pretty errors.
 - Ensured consistent formatting in log messages with customizable time format including milliseconds.

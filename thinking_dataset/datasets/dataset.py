@@ -7,7 +7,7 @@
 
 import os
 import sys
-from thinking_dataset.tonics.data_tonic import DataTonic
+from ..tonics.data_tonic import DataTonic
 from ..datasets.base_dataset import BaseDataset
 from ..config.dataset_config import DatasetConfig
 from ..config.database_config import DatabaseConfig

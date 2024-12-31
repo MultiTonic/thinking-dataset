@@ -8,11 +8,11 @@
 import os
 import sys
 import click
-from thinking_dataset.datasets.dataset import Dataset
-from thinking_dataset.tonics.data_tonic import DataTonic
-from thinking_dataset.utilities.log import Log as Log
-from thinking_dataset.config.dataset_config import DatasetConfig
-from thinking_dataset.utilities.command_utils import CommandUtils
+from ..datasets.dataset import Dataset
+from ..tonics.data_tonic import DataTonic
+from ..utilities.log import Log as Log
+from ..config.dataset_config import DatasetConfig
+from ..utilities.command_utils import CommandUtils
 
 
 @click.command()
@@ -43,8 +43,9 @@ def download():
         dataset = Dataset(data_tonic=data_tonic)
         Log.info(log, "Initialized Dataset instance.")
 
-        raw_dir = CommandUtils.construct_paths(env_vars['ROOT_DIR'],
-                                               env_vars['DATA_DIR'], log)
+        raw_dir = CommandUtils.get_raw_data_path(log, env_vars['ROOT_DIR'],
+                                                 env_vars['DATA_DIR'],
+                                                 dataset_config.RAW_DIR)
 
         dataset.download(
             env_vars['HF_TOKEN'],
