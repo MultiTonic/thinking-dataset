@@ -1,8 +1,8 @@
-# Usage
+# Usage Guide
 
 ## Overview
 
-This document provides detailed usage instructions for the "Dark Thoughts" thinking-dataset project, including how to interact with the application, examples of typical workflows, and common commands.
+This document offers detailed usage instructions for the "Dark Thoughts" thinking-dataset project. It covers how to interact with the application, provides examples of typical workflows, and outlines common commands. This guide ensures users can efficiently navigate the application and leverage its powerful features for generating and analyzing complex hypothetical scenarios.
 
 ## Table of Contents
 - [Running the Application](#running-the-application)
@@ -30,7 +30,7 @@ thinking-dataset
 
 ## Using the CLI
 
-The Command Line Interface (CLI) of the "Dark Thoughts" thinking-dataset project allows you to perform various tasks and operations efficiently.
+The Command Line Interface (CLI) of the "Dark Thoughts" thinking-dataset project allows you to efficiently perform various tasks and operations.
 
 ### Basic Commands
 
@@ -96,20 +96,18 @@ The project supports various inference adapters to interface with different serv
 
 ### Registering Adapters
 
-Register an adapter to use a specific inference endpoint (e.g., LLama.cpp, Ollama).
+To register an adapter for a specific inference endpoint (e.g., LLama.cpp, Ollama):
 
-**Algorithm**:
-- Initialize the `InferenceManager`.
-- Register the desired adapter (e.g., `LLamaCppAdapter`) with the `InferenceManager`.
+1. **Initialize the `InferenceManager`**.
+2. **Register the desired adapter** (e.g., `LLamaCppAdapter`) with the `InferenceManager`.
 
 ### Making Predictions
 
-Use registered adapters to make predictions based on input data.
+To make predictions using registered adapters:
 
-**Algorithm**:
-- Provide input data.
-- Use the `InferenceManager` to predict results from all registered adapters.
-- Display the results.
+1. **Provide input data**.
+2. **Use the `InferenceManager`** to predict results from all registered adapters.
+3. **Display the results**.
 
 ## Data Management
 
@@ -151,9 +149,9 @@ Custom configurations can be set using environment variables in the `.env` file.
 Enhanced logging can be implemented using `loguru` for better monitoring and debugging.
 
 **Algorithm**:
-- Add logging configuration with desired format and level.
-- Log important events during the application's execution for better traceability.
+1. **Add logging configuration** with the desired format and level.
+2. **Log important events** during the application's execution for better traceability.
 
 ## Conclusion
 
-The "Dark Thoughts" thinking-dataset project provides powerful tools and workflows for generating and analyzing complex hypothetical scenarios. By following the detailed instructions provided in this guide, users can effectively utilize the CLI commands, manage data, interact with inference adapters, and configure advanced settings. This comprehensive approach ensures that the project remains versatile, user-friendly, and capable of supporting diverse research and development objectives in AI and cognitive science.
+The "Dark Thoughts" thinking-dataset project offers robust tools for generating and analyzing complex scenarios. By following this guide, users can efficiently use CLI commands, manage data, interact with inference adapters, and configure settings. This ensures the project is versatile, user-friendly, and supports diverse research in AI and cognitive science.

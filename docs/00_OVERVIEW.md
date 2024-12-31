@@ -2,12 +2,10 @@
 
 ### Abstract
 
-The "Dark Thoughts" thinking-dataset project aims to develop a comprehensive dataset focused on hypothetical scenarios involving ethical dilemmas, cognitive biases, and complex decision-making processes. This dataset is designed to aid in the analysis and simulation of human cognitive processes, ultimately contributing to the advancement of artificial intelligence (AI) and machine learning (ML) in understanding and replicating human thought patterns.
+The "Dark Thoughts" thinking-dataset project aims to create a comprehensive dataset focused on hypothetical scenarios involving ethical dilemmas, cognitive biases, and complex decision-making processes. This dataset aids in the analysis and simulation of human cognitive processes, advancing AI and ML capabilities in understanding and replicating human thought patterns.
 
 ### Table of Contents
-- [Overview](#overview)
 - [Abstract](#abstract)
-- [Directive](#directive)
 - [Objectives](#objectives)
 - [Key Features](#key-features)
 - [Structure](#structure)
@@ -17,32 +15,27 @@ The "Dark Thoughts" thinking-dataset project aims to develop a comprehensive dat
 
 ### Objectives
 
-The primary goal of the "Dark Thoughts" thinking-dataset project is to generate accurate and complex chains of thought reasoning for real-world Situational Reports (SitReps) and create useful and meaningful case study reports based on a set of socio-economic conditions and stakeholders. By achieving this, the project seeks to provide valuable insights into decision-making processes and enhance the capabilities of AI models in handling complicated scenarios. The key objectives of the "Dark Thoughts" thinking-dataset project are to:
+The primary goal of the "Dark Thoughts" thinking-dataset project is to generate accurate and complex chains of thought reasoning for real-world Situational Reports (SitReps) and create meaningful case study reports based on socio-economic conditions and stakeholders. Key objectives include:
 
-- **Create Diverse Scenarios**: Develop a wide range of hypothetical scenarios that encompass various ethical dilemmas and cognitive biases.
+- **Create Diverse Scenarios**: Develop a wide range of hypothetical scenarios encompassing various ethical dilemmas and cognitive biases.
 - **Analyze Human Cognition**: Use the dataset to analyze and simulate human cognitive processes, improving our understanding of decision-making and ethics.
-- **Train AI Models**: Train AI models in reasoning, ethics, and decision-making using the generated dataset, enhancing their ability to handle complex situations.
-- **Promote AI Ethics**: Contribute to the field of AI ethics by providing a dataset that highlights ethical considerations in AI development.
+- **Train AI Models**: Train AI models in reasoning, ethics, and decision-making using the dataset, enhancing their ability to handle complex situations.
+- **Promote AI Ethics**: Contribute to AI ethics by providing a dataset that highlights ethical considerations in AI development.
 
 ### Key Features
 
-- **Data Ingestion and Preprocessing**: Efficient methods for collecting and preprocessing raw data from various sources, ensuring data quality and consistency.
-- **Scenario Generation**: Innovative techniques for generating detailed hypothetical scenarios using seed objects and cables.
-- **Model Training and Evaluation**: Comprehensive processes for training and evaluating AI models, including baseline and fine-tuned models.
-- **Inference Adapters**: Flexible adapters for integrating with various inference endpoints, such as Hugging Face, Ollama, testcontainers, and Runpod.
-- **Continuous Improvement**: An iterative feedback loop for refining and updating the dataset and models based on user and system feedback.
-- **Utilization of WikiLeaks Cablegate Dataset**: Leveraging the WikiLeaks Cablegate dataset as a de facto standard for real-world economic crisis scenarios, providing a rich source of socio-economic conditions and stakeholder interactions.
+The project enhances dataset quality through efficient data ingestion, preprocessing, and scenario generation using innovative techniques. Comprehensive AI model training and evaluation processes incorporate both baseline and fine-tuned models. Flexible inference adapters integrate with various endpoints like Hugging Face, Ollama, testcontainers, and Runpod. Continuous refinement is supported by an iterative feedback loop, leveraging the WikiLeaks Cablegate dataset for rich socio-economic scenarios.
 
 ### Structure
 
-The project is organized into several key components, each responsible for a specific phase of the pipeline:
+The project is organized into key components covering each phase of the pipeline:
 
-1. **Data Ingestion**: Collecting raw data from multiple sources, including historical records, literature, and user-generated content.
-2. **Data Preprocessing**: Implementing data cleaning methods to remove duplicates, handle missing values, and normalize data for consistent quality.
-3. **Data Enrichment and Case Study Creation**: Generating detailed case studies by combining seed objects to form cables and refining them into a standardized format.
-4. **Model Training and Evaluation**: Preparing the dataset for training, training AI models, and evaluating their performance against ethical benchmarks.
-5. **Inference Endpoint Adapters/Bridges**: Developing and integrating flexible adapters to support various serverless endpoints.
-6. **Continuous Improvement**: Iteratively refining the dataset and models based on user and system feedback, ensuring up-to-date and relevant data.
+1. **Data Ingestion**: Collecting raw data from diverse sources, including historical records, literature, and user-generated content.
+2. **Data Preprocessing**: Cleaning data to remove duplicates, handle missing values, and normalize it for consistency.
+3. **Data Enrichment and Case Study Creation**: Generating detailed case studies by combining seed objects into cables and refining them into a standard format.
+4. **Model Training and Evaluation**: Preparing datasets for training, training AI models, and evaluating their performance against ethical benchmarks.
+5. **Inference Endpoint Adapters/Bridges**: Developing and integrating adapters to support various serverless endpoints.
+6. **Continuous Improvement**: Iteratively refining datasets and models based on user and system feedback, keeping the project current and relevant.
 
 ### Technologies Used
 
@@ -57,6 +50,12 @@ The project is organized into several key components, each responsible for a spe
 - **Runpod**: Serverless computing platform.
 - **Jupyter Notebook**: Interactive environment for data analysis and visualization.
 - **Docker**: Containerization technology for consistent deployment environments.
+- **python-statemachine**: Library for creating and managing state machines, used for complex workflows and state transitions.
+- **SQLAlchemy**: SQL toolkit and Object-Relational Mapping (ORM) library for efficient database access.
+- **loguru**: Logging library for better monitoring and debugging.
+- **pytest**: Framework for testing the project components.
+- **requests**: Library for making HTTP requests, used for data collection and integration with external APIs.
+- **MediatR**: Event system integration for handling commands, queries, and notifications.
 
 ### Getting Started
 
@@ -81,4 +80,4 @@ To get started with the project, refer to the following documentation:
 
 ### Conclusion
 
-The "Dark Thoughts" thinking-dataset project is an ambitious and innovative initiative aimed at advancing our understanding of human cognition and ethical decision-making. By creating a comprehensive dataset and leveraging cutting-edge AI technologies, the project seeks to contribute significantly to the fields of AI and machine learning. Through continuous improvement and community engagement, the project aims to remain at the forefront of AI ethics and cognitive science research.
+The "Dark Thoughts" thinking-dataset project aims to advance our understanding of human cognition and ethical decision-making. By creating a comprehensive dataset and leveraging cutting-edge AI technologies, the project seeks to significantly contribute to AI and machine learning fields. Through continuous improvement and community engagement, it aims to remain at the forefront of AI ethics and cognitive science research.

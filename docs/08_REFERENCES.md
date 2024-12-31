@@ -7,33 +7,33 @@ This document provides a list of key references and resources used in the "Dark 
 ### Academic Papers
 
 1. **Moral Decision Making in Autonomous Systems**
-   - Author: John Doe, Jane Smith
+   - Authors: John Doe, Jane Smith
    - Journal: Journal of AI Ethics, 2022
-   - Summary: This paper explores the integration of moral decision-making frameworks in autonomous systems and their implications for AI ethics.
+   - Summary: Explores the integration of moral decision-making frameworks in autonomous systems and their implications for AI ethics.
 
 2. **Cognitive Biases in Human Decision Making**
-   - Author: Emily Johnson, Michael Brown
+   - Authors: Emily Johnson, Michael Brown
    - Journal: Cognitive Science Review, 2021
-   - Summary: The paper provides an in-depth analysis of common cognitive biases that affect human decision-making processes.
+   - Summary: Provides an in-depth analysis of common cognitive biases that affect human decision-making processes.
 
 3. **Ethical Considerations in AI Development**
-   - Author: Richard Lee, Sarah Wilson
+   - Authors: Richard Lee, Sarah Wilson
    - Journal: AI & Society, 2020
-   - Summary: The authors discuss ethical considerations in AI development, focusing on transparency, fairness, and accountability.
+   - Summary: Discusses ethical considerations in AI development, focusing on transparency, fairness, and accountability.
 
 ### Books
 
 1. **Thinking, Fast and Slow**
    - Author: Daniel Kahneman
-   - Summary: This book delves into the two systems of thought that drive human decision-making: the fast, intuitive System 1 and the slow, deliberate System 2.
+   - Summary: Delves into the two systems of thought that drive human decision-making: the fast, intuitive System 1 and the slow, deliberate System 2.
 
 2. **The Ethical Algorithm: The Science of Socially Aware Algorithm Design**
-   - Author: Michael Kearns, Aaron Roth
-   - Summary: The book addresses the challenges and solutions for designing socially responsible algorithms.
+   - Authors: Michael Kearns, Aaron Roth
+   - Summary: Addresses the challenges and solutions for designing socially responsible algorithms.
 
 3. **Artificial Intelligence: A Guide for Thinking Humans**
    - Author: Melanie Mitchell
-   - Summary: Melanie Mitchell provides a comprehensive overview of AI, its capabilities, and its limitations, with a focus on ethical considerations.
+   - Summary: Provides a comprehensive overview of AI, its capabilities, and its limitations, with a focus on ethical considerations.
 
 ### External Tools and Libraries
 

@@ -2,16 +2,16 @@
 
 ## Overview
 
-The primary objective of this test plan is to ensure that the processes for downloading, processing, and ingesting the Hugging Face dataset into SQLite3 are robust, reliable, and meet the specified requirements. By implementing Test-Driven Development (TDD), we aim to create a comprehensive suite of granular tests that cover all critical functionalities of the data pipeline. The tests will be organized into structured directories to enhance maintainability.
+This test plan aims to ensure the robustness, reliability, and compliance of processes for downloading, processing, and ingesting the Hugging Face dataset into SQLite3. By implementing Test-Driven Development (TDD), we create a comprehensive suite of granular tests covering all critical functionalities of the data pipeline. These tests are organized into structured directories to enhance maintainability.
 
 ## Objectives
 
-- **Validate dataset download**: Ensure the dataset can be successfully downloaded from Hugging Face.
-- **Verify PDF text extraction**: Confirm text can be accurately extracted from PDF files.
-- **Test dataset processing**: Ensure the dataset is correctly processed into a DataFrame.
-- **Validate data ingestion**: Confirm the processed data is correctly inserted into the SQLite3 database.
+- **Validate dataset download**: Ensure successful download from Hugging Face.
+- **Verify PDF text extraction**: Confirm accurate text extraction from PDF files.
+- **Test dataset processing**: Ensure correct processing into a DataFrame.
+- **Validate data ingestion**: Confirm correct insertion into the SQLite3 database.
 - **Ensure data cleaning accuracy**: Validate operations such as removing duplicates and handling missing values.
-- **Confirm data transformation**: Validate operations such as merging datasets, enriching data, and deriving new features.
+- **Confirm data transformation**: Validate operations like merging datasets, enriching data, and deriving new features.
 - **Verify data validation**: Ensure schema validation and data integrity checks.
 - **Quality assurance**: Verify the final dataset meets quality standards and performance metrics, incorporating user feedback.
 
@@ -45,35 +45,35 @@ tests/
 
 ### 1. Dataset Download
 
-**Objective:** Verify successful download and integrity of the dataset from Hugging Face.
+**Objective**: Verify successful download and integrity of the dataset from Hugging Face.
 
 ### 2. PDF Text Extraction
 
-**Objective:** Ensure text can be accurately extracted from PDF files.
+**Objective**: Ensure accurate text extraction from PDF files.
 
 ### 3. Dataset Processing
 
-**Objective:** Confirm the dataset is processed correctly into a DataFrame.
+**Objective**: Confirm the dataset is processed correctly into a DataFrame.
 
 ### 4. Data Ingestion into SQLite3
 
-**Objective:** Validate that processed data is correctly inserted into the SQLite3 database.
+**Objective**: Validate that processed data is correctly inserted into the SQLite3 database.
 
 ### 5. Data Cleaning
 
-**Objective:** Ensure data cleaning operations such as removing duplicates and handling missing values are accurate.
+**Objective**: Ensure accuracy of data cleaning operations like removing duplicates and handling missing values.
 
 ### 6. Data Transformation
 
-**Objective:** Confirm that data transformation operations such as merging datasets, enriching data, and deriving new features are performed correctly.
+**Objective**: Confirm that data transformation operations like merging datasets, enriching data, and deriving new features are performed correctly.
 
 ### 7. Data Validation
 
-**Objective:** Validate the schema and integrity of the data, ensuring consistency across subsets.
+**Objective**: Validate the schema and integrity of the data, ensuring consistency across subsets.
 
 ### 8. Quality Assurance
 
-**Objective:** Verify the final dataset meets quality standards and performance metrics, incorporating user feedback.
+**Objective**: Verify the final dataset meets quality standards and performance metrics, incorporating user feedback.
 
 ## Running Tests
 
@@ -83,7 +83,7 @@ To run the tests, navigate to the root of your project directory and use the fol
 pytest tests/
 ```
 
-This command will run all the tests in the specified directory, ensuring that each component of the data pipeline functions as expected.
+This command runs all the tests in the specified directory, ensuring that each component of the data pipeline functions as expected.
 
 ## Conclusion
 

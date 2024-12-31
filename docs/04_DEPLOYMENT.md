@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides step-by-step instructions for deploying the "Dark Thoughts" thinking-dataset project. Follow these steps to ensure a smooth deployment process.
+This document provides step-by-step instructions for deploying the "Dark Thoughts" thinking-dataset project. Follow these steps to ensure a smooth deployment process, including setting up the server environment, initializing the application, and configuring nodes for distributed processing.
 
 ## Prerequisites
 
@@ -27,7 +27,7 @@ Before you begin, ensure you have the following:
 3. **Create a Virtual Environment**: Create and activate a virtual environment:
    ```bash
    python -m venv venv
-   source venv/bin/activate   # On Windows, use .\venv\Scripts\activate
+   source venv/bin/activate  # On Windows, use .\venv\Scripts\activate
    ```
 
 ### 2. Install Dependencies
@@ -43,13 +43,21 @@ Create a `.env` file in the project root directory and configure the necessary e
 ```bash
 cp .env.example .env
 ```
-Edit the `.env` file to include your specific configuration settings.
+Edit the `.env` file to include your specific configuration settings:
+```plaintext
+HF_HOME="~/.cache/huggingface"
+HF_TOKEN="my_huggingface_access_token"
+HF_PROJECT="thinking-dataset"
+HF_DATASET="cablegate-pdf-dataset"
+HF_ORGANIZATION="DataTonic"
+HF_USER="my_huggingface_username"
+```
 
 ### 4. Initialize the Database
 
-Run the script to initialize the database:
+Run the following command to initialize the database:
 ```bash
-python scripts/init_db.py
+thinking-dataset load
 ```
 
 ### 5. Configure the Application
@@ -63,11 +71,19 @@ Ensure the application is configured correctly by updating any necessary setting
 
 Start the application using the following command:
 ```bash
-thinking-dataset
+thinking-dataset serve
 ```
 Ensure the application is running correctly and accessible from the desired endpoint.
 
-### 7. Set Up Process Manager (Optional)
+### 7. Setting Up Nodes for Distributed Processing
+
+To set up nodes that will handle inference or other distributed processing tasks, use the following command:
+```bash
+thinking-dataset node
+```
+Nodes will be automatically provisioned based on their capabilities. The server instance acts as the root in the swarm, managing the nodes. If multiple server instances are present in the same swarm cluster, they will mirror each other for replication and redundancy.
+
+### 8. Set Up Process Manager (Optional)
 
 For production environments, it is recommended to use a process manager such as `pm2` or `supervisord` to ensure the application runs continuously and restarts automatically if it crashes.
 
@@ -79,7 +95,7 @@ For production environments, it is recommended to use a process manager such as 
 
 2. **Start the Application with pm2**:
    ```bash
-   pm2 start thinking-dataset
+   pm2 start thinking-dataset serve
    ```
 
 3. **Save the pm2 Process List**:
@@ -92,13 +108,14 @@ For production environments, it is recommended to use a process manager such as 
    pm2 startup
    ```
 
-### 8. Monitoring and Logging
+### 9. Monitoring and Logging
 
 Implement monitoring and logging to keep track of the application’s performance and diagnose any issues. Tools such as `Loguru` (for logging) and various monitoring services can be used.
 
-### 9. Regular Maintenance
+### 10. Regular Maintenance
 
 Regularly update the project dependencies and environment to ensure the application remains secure and up-to-date:
+
 - **Update Dependencies**:
   ```bash
   pip install --upgrade -r requirements.txt
@@ -109,6 +126,6 @@ Regularly update the project dependencies and environment to ensure the applicat
   git pull origin main
   ```
 
-### 10. Troubleshooting
+### 11. Troubleshooting
 
 If you encounter any issues during deployment, refer to the [TROUBLESHOOTING.md](TROUBLESHOOTING.md) file for common issues and their solutions.

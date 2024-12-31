@@ -24,9 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Refactored database and session handling for better performance and readability.
 - Created `dataset.py` class to encapsulate dataset operations.
 - Updated connector logic and created YAML configurations for dataset and database configurations.
-- Updated `load` and `download` commands to reflect the new logic and configurations (WIP).
-
-### Added
+- Updated `load` and `download` commands to reflect the new logic and configurations.
 - Implemented the `load` command to load downloaded dataset files into SQLite database.
 - Updated `Files` class to include file extension filtering using `HF_DATASET_TYPE` from .env.
 - Enhanced the `load` command to queue parquet files and process each one.
@@ -37,12 +35,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Implemented the `DatabaseConfig` class for storing database configuration.
 - Added a validate method to ensure all configuration settings are valid.
 - Created unit tests for instantiation, validation, default values, invalid data types, and edge cases.
-  - Test initialization of `DatabaseConfig` with valid and invalid configurations.
+  - Tested initialization of `DatabaseConfig` with valid and invalid configurations.
   - Verified default values are set correctly when config options are omitted.
   - Ensured invalid data types for configuration settings raise appropriate errors.
   - Tested edge cases for numerical values such as 0 for pool_size, max_overflow, connect_timeout, and read_timeout.
 - Updated test fixtures and mocks for `ConfigLoader` to simulate different configuration scenarios.
 - Improved test coverage for the `DatabaseConfig` class to ensure robustness and reliability.
+- Refactored and enhanced `BaseDataset` class to leverage DataTonic operations for dataset information retrieval and file listing.
+- Fixed errors in dataset download by replacing deprecated function calls with new operations.
+- Updated `GetInfo` operation to handle missing keys gracefully.
+- Modified `GetDownloadUrls` to use DataTonic's `get_info` operation for retrieving dataset information.
+- Improved logging consistency across `BaseDataset`, `GetDownloadFile`, and other operations to ensure clear and structured logs.
+- Removed `tqdm` to fix double logging of progress bars and ensure proper text alignment.
+- Updated `clean.py` script to use Log setup similar to `download.py` for consistent logging.
+- Organized and cleaned DataTonic class by initializing all operations, ensuring modularity and maintainability.
+- Validated and printed environment configuration for better debugging and operational transparency.
 
 ### Fixed
 - Renamed test class in `tests/thinking_dataset/utilities/test_execute.py` to `ExampleClass` to avoid `PytestCollectionWarning`.
@@ -52,52 +59,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Updated scripts to consistently run tests, generate reports, and measure coverage.
 - Confirmed all tests adhere to `flake8` formatting and PEP8 guidelines.
 
-### Added
-- Implemented `Log` class in `thinking_dataset/utilities/log.py` for unified logging.
-- Created `ConfigLoader` class in `thinking_dataset/utilities/config_loader.py` for loading configuration from YAML files.
-- Added `execute` decorator in `thinking_dataset/utilities/execute.py` for executing database operations.
-- Developed comprehensive unit tests for the `Log` class:
-  - `tests/thinking_dataset/utilities/test_log.py`
-  - Tested `info`, `error`, and `warn` logging methods.
-  - Ensured exceptions are raised and log messages are captured.
-- Created unit tests for the `execute` decorator:
-  - `tests/thinking_dataset/utilities/test_execute.py`
-  - Verified correct execution of mock operations and multiple calls.
-- Added unit tests for the `ConfigLoader` class:
-  - `tests/thinking_dataset/utilities/test_config_loader.py`
-  - Tested loading valid configuration, file not found errors, YAML parsing errors, and retrieving non-existent sections.
-- Ensured all tests pass successfully, adhering to `flake8` formatting and PEP8 guidelines.
-
-### Added
-- Initial project setup and database implementation.
-- Added `DatabaseConfig` class for configuration management.
-- Implemented `Database` class for database operations using SQLAlchemy.
-- Created `Query` and `Fetch` classes for executing and fetching data.
-- Added `GetSession` class for handling database sessions.
-- Updated `ConfigLoader` class for loading YAML configuration.
-- Added comprehensive YAML configuration file for the database.
-- Improved and updated various documentation files:
-  - `README.md`
-  - `ARCHITECTURE.md`
-  - `INSTALLATION.md`
-  - `USAGE.md`
-  - `TROUBLESHOOTING.md`
-  - `FAQ.md`
-  - `REFERENCES.md`
-  - `IDEAS.md`
-  - `DEVELOPMENT_NOTES.md`
-
-- Added new sections and refined content in the documentation to enhance clarity and comprehensiveness.
-- Added more detailed examples, new ideas, and expanded sections in `IDEAS.md` to cover a wider range of project enhancements.
-- Updated `PROMPT_TEMPLATE.md` to reflect the latest changes and improvements in prompt templates for better AI model interactions.
-- Revised the format, structure, and content of the documentation to ensure consistency and usability.
-- Incorporated feedback and suggestions to refine the overall documentation quality and completeness.
-- Refactored database handling and operations with FSM and decorators.
-- Centralized database management in `Database` class with unified logging.
-- Implemented session management using FSM (`SessionStateMachine`).
-- Modularized database operations: `Query` and `Fetch`.
-- Simplified operation execution with the `@execute` decorator.
-- Ensured clean and concise code structure and maintainability.
+### Recent Work
+- Refactored and enhanced `BaseDataset` class to leverage DataTonic operations for dataset information retrieval and file listing.
+- Fixed errors in dataset download by replacing deprecated function calls with new operations.
+- Updated `GetInfo` operation to handle missing keys gracefully.
+- Modified `GetDownloadUrls` to use DataTonic's `get_info` operation for retrieving dataset information.
+- Improved logging consistency across `BaseDataset`, `GetDownloadFile`, and other operations to ensure clear and structured logs.
+- Removed `tqdm` to fix double logging of progress bars and ensure proper text alignment.
+- Updated `clean.py` script to use Log setup similar to `download.py` for consistent logging.
+- Organized and cleaned DataTonic class by initializing all operations, ensuring modularity and maintainability.
+- Validated and printed environment configuration for better debugging and operational transparency.
 
 ## [Unreleased] - 2024-12-29
 

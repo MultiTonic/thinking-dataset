@@ -63,35 +63,44 @@ cp .env.example .env
 Edit the `.env` file to include your specific configuration settings. Here is an example of what you might include:
 
 ```plaintext
-HF_TOKEN=your_huggingface_token
-HF_DATASET=your_dataset_name
-HF_ORGANIZATION=your_organization_name
-ROOT_DIR=your_root_directory
-DATA_DIR=your_data_directory
+HF_HOME="~/.cache/huggingface"
+HF_TOKEN="my_huggingface_access_token"
+HF_PROJECT="thinking-dataset"
+HF_DATASET="cablegate-pdf-dataset"
+HF_ORGANIZATION="DataTonic"
+HF_USER="my_huggingface_username"
 ```
 
-### 6. Initialize the SQLite Database
+### 6. Initialize the CLI Tool
 
-Run the following script to initialize the SQLite database and create the necessary tables:
+Initialize the CLI tool to set it up for use:
 
 ```bash
-python scripts/init_db.py
+thinking-dataset init
 ```
 
-### 7. Running the Application
+### 7. Download the Dataset
 
-To run the application, use the following command:
+Download the required dataset using the CLI command:
 
 ```bash
-thinking-dataset
+thinking-dataset download
 ```
 
-### 8. Deactivate the Virtual Environment (Optional)
+### 8. Load the Dataset
 
-Once you're done working with the project, you can deactivate the virtual environment:
+Load the dataset into the SQLite database:
 
 ```bash
-deactivate
+thinking-dataset load
+```
+
+### 9. Clean the Data Directory (Optional)
+
+If needed, clean the data directory and remove any leftovers:
+
+```bash
+thinking-dataset clean
 ```
 
 ## Troubleshooting

@@ -66,15 +66,44 @@ This template documents the recent changes and improvements made to the project 
      ## [Unreleased] - 2024-12-30
      
      ### Added
-     - Implemented the `load` command to load downloaded dataset files into the SQLite database.
+     - Implemented a new `Log` class for unified logging across the project.
+     - Configured `RichHandler` for rich logging and pretty errors.
+     - Ensured consistent formatting in log messages with customizable time format including milliseconds.
+     - Improved error handling in `DataTonic` and `Dataset` classes.
+       - Added detailed exception logging with rich traceback.
+       - Ensured the logger is initialized before any operation in the `Dataset` class.
+       - Handled missing configuration errors gracefully with clear error messages and immediate exits.
+     - Fixed issues with repetitive log entries and improved log output clarity.
+     - Customized log messages to display the file name and line number on the right side.
+     - Enhanced the `download.py` script to exit on critical errors and validate environment variables efficiently.
+     - Improved the readability of log outputs by including only relevant information and removing redundancy.
+     - Added stack traces to error logs without disrupting existing formatting and style.
+     - Ensured all modifications maintain the project’s coding standards and style guidelines.
+     - Added `db_dir` to our `env.sample` for database directory configuration.
+     - Refactored database and session handling for better performance and readability.
+     - Created `dataset.py` class to encapsulate dataset operations.
+     - Updated connector logic and created YAML configurations for dataset and database configurations.
+     - Updated `load` and `download` commands to reflect the new logic and configurations.
+     - Implemented the `load` command to load downloaded dataset files into SQLite database.
+     - Updated `Files` class to include file extension filtering using `HF_DATASET_TYPE` from .env.
      - Enhanced the `load` command to queue parquet files and process each one.
      - Created unit tests for the `Files` class, including extension filtering.
      - Added high-level tests for the `load` command in `test_main_function.py`.
      - Created `test_load.py` to test the `load` command, ensuring proper functionality.
+     - Updated coverage reports to reflect new tests and enhancements.
      - Implemented the `DatabaseConfig` class for storing database configuration.
      - Added a validate method to ensure all configuration settings are valid.
      - Created unit tests for instantiation, validation, default values, invalid data types, and edge cases.
      - Improved test coverage for the `DatabaseConfig` class to ensure robustness and reliability.
+     - Refactored and enhanced `BaseDataset` class to leverage DataTonic operations for dataset information retrieval and file listing.
+     - Fixed errors in dataset download by replacing deprecated function calls with new operations.
+     - Updated `GetInfo` operation to handle missing keys gracefully.
+     - Modified `GetDownloadUrls` to use DataTonic's `get_info` operation for retrieving dataset information.
+     - Improved logging consistency across `BaseDataset`, `GetDownloadFile`, and other operations to ensure clear and structured logs.
+     - Removed `tqdm` to fix double logging of progress bars and ensure proper text alignment.
+     - Updated `clean.py` script to use Log setup similar to `download.py` for consistent logging.
+     - Organized and cleaned DataTonic class by initializing all operations, ensuring modularity and maintainability.
+     - Validated and printed environment configuration for better debugging and operational transparency.
      
      ### Fixed
      - Resolved PytestCollectionWarning by renaming the test class in `tests/thinking_dataset/utilities/test_execute.py` to `ExampleClass`.
@@ -84,24 +113,41 @@ This template documents the recent changes and improvements made to the project 
      - Confirmed all tests adhere to `flake8` formatting and PEP8 guidelines.
      ```
 
-2. **Commit Messages**:
+2. **Recent Commit History**:
    - Generated commit messages summarizing each significant change:
      ```plaintext
-     ✨ feat: Implement load command and enhance test coverage
-     - Added the `load` command to load downloaded dataset files into the SQLite database.
-     - Enhanced the `load` command to queue parquet files and process each one.
-     - Created unit tests for the `Files` class, including extension filtering.
-     - Added high-level tests for the `load` command in `test_main_function.py`.
-     - Created `test_load.py` to test the `load` command, ensuring proper functionality.
-     - Updated coverage reports to reflect new tests and enhancements.
-     
-     ✨ feat: Enhance and validate DatabaseConfig class with comprehensive tests
-     - Implemented the DatabaseConfig class for storing database configuration.
-     - Added a validate method to ensure all configuration settings are valid.
-     - Created unit tests for instantiation, validation, default values, invalid data types, and edge cases.
-     - Improved test coverage for the DatabaseConfig class to ensure robustness and reliability.
-     
-     ✨ fix: Resolve PytestCollectionWarning and update coverage report
+     ✨ feat: Refactor and troubleshoot download command
+     - Refactored and enhanced `BaseDataset` class to leverage DataTonic operations for dataset information retrieval and file listing.
+     - Fixed errors in dataset download by replacing deprecated function calls with new operations.
+     - Updated `GetInfo` operation to handle missing keys gracefully.
+     - Modified `GetDownloadUrls` to use DataTonic's `get_info` operation for retrieving dataset information.
+     - Improved logging consistency across `BaseDataset`, `GetDownloadFile`, and other operations to ensure clear and structured logs.
+     - Removed `tqdm` to fix double logging of progress bars and ensure proper text alignment.
+     - Updated `clean.py` script to use Log setup similar to `download.py` for consistent logging.
+     - Organized and cleaned DataTonic class by initializing all operations, ensuring modularity and maintainability.
+     - Validated and printed environment configuration for better debugging and operational transparency.
+
+     ✨ feat: Enhance logging setup and error handling across the project
+     - Implemented a new `Log` class for unified logging across the project.
+     - Configured `RichHandler` for rich logging and pretty errors.
+     - Ensured consistent formatting in log messages with customizable time format including milliseconds.
+     - Improved error handling in `DataTonic` and `Dataset` classes.
+       - Added detailed exception logging with rich traceback.
+       - Ensured the logger is initialized before any operation in the `Dataset` class.
+       - Handled missing configuration errors gracefully with clear error messages and immediate exits.
+     - Fixed issues with repetitive log entries and improved log output clarity.
+     - Customized log messages to display the file name and line number on the right side.
+     - Enhanced the `download.py` script to exit on critical errors and validate environment variables efficiently.
+     - Improved the readability of log outputs by including only relevant information and removing redundancy.
+     - Added stack traces to error logs without disrupting existing formatting and style.
+     - Ensured all modifications maintain the project’s coding standards and style guidelines.
+     - Added `db_dir` to our `env.sample` for database directory configuration.
+     - Refactored database and session handling for better performance and readability.
+     - Created `dataset.py` class to encapsulate dataset operations.
+     - Updated connector logic and created YAML configurations for dataset and database configurations.
+     - Updated `load` and `download` commands to reflect the new logic and configurations (WIP).
+
+          ✨ fix: Resolve PytestCollectionWarning and update coverage report
      - Renamed the test class in `tests/thinking_dataset/utilities/test_execute.py` to `ExampleClass` to avoid `PytestCollectionWarning`.
      - Verified that all tests pass successfully without warnings.
      - Generated and updated HTML report and coverage report.
@@ -114,7 +160,7 @@ This template documents the recent changes and improvements made to the project 
      - Developed comprehensive unit tests for the `Log` class.
      - Created unit tests for the `execute` decorator.
      - Added unit tests for the `ConfigLoader` class.
-     
+
      ✨ Initial project setup and database implementation
      - Added the `DatabaseConfig` class for configuration management.
      - Implemented the `Database` class for database operations using SQLAlchemy.
@@ -122,7 +168,7 @@ This template documents the recent changes and improvements made to the project 
      - Added the `GetSession` class for handling database sessions.
      - Updated the `ConfigLoader` class for loading YAML configuration.
      - Added a comprehensive YAML configuration file for the database.
-     
+
      📚✨ Update Documentation and Prompt Templates
      - Improved and updated various documentation files.
      - Added new sections and refined content in the documentation to enhance clarity and comprehensiveness.
