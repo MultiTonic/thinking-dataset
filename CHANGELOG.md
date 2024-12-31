@@ -51,13 +51,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Organized and cleaned DataTonic class by initializing all operations, ensuring modularity and maintainability.
 - Validated and printed environment configuration for better debugging and operational transparency.
 
+## [Unreleased] - 2024-12-31
+
+### Added
+- Implemented a new `Log` class for unified logging across the project.
+- Configured standard logging with timestamps for better traceability.
+- Ensured all log messages, including those from SQLAlchemy, are prefixed with timestamps.
+- Verified that the CLI load command works with proper logging and error messages.
+
 ### Fixed
-- Renamed test class in `tests/thinking_dataset/utilities/test_execute.py` to `ExampleClass` to avoid `PytestCollectionWarning`.
-- Verified that all tests pass successfully without warnings.
-- Generated and updated HTML report and coverage report.
-- Ensured comprehensive test coverage for new and existing functionality.
-- Updated scripts to consistently run tests, generate reports, and measure coverage.
-- Confirmed all tests adhere to `flake8` formatting and PEP8 guidelines.
+- Addressed potential issues with the log handler configurations to avoid errors during logging.
 
 ### Recent Work
 - Refactored and enhanced `BaseDataset` class to leverage DataTonic operations for dataset information retrieval and file listing.
