@@ -140,11 +140,20 @@ thinking-dataset/
 **Example:**
 
 ```
-✨ feat: Add download functionality for Cablegate dataset
-- Implemented CLI command to download Cablegate dataset parquet files.
-- Ensured environment variables are loaded correctly.
-- Stored data in appropriate directories under project_root/data/.
-- Configured VS Code to use YAPF for formatting Python code.
+✨ feat: Enhance dataset management with config improvements and error handling
+
+- Refactored dataset management commands to utilize configuration from `dataset_config.yaml`
+- Consolidated ROOT_DIR, DATA_DIR, and DB_DIR into `paths` section in `dataset_config.yaml`
+- Grouped INCLUDE_FILES and EXCLUDE_FILES into `files` section in `dataset_config.yaml`
+- Added `huggingface` and `database` sections in `dataset_config.yaml` for better organization
+- Updated `DatasetConfig` class to parse new configuration structure
+- Updated `BaseDataset` class to utilize paths from the new configuration structure
+- Updated `download.py` command to correctly construct paths and apply filters
+- Updated `load.py` command to correctly apply and utilize filters when loading datasets
+- Refactored `CommandUtils` to include environment variable handling and path construction
+- Combined `try-except` blocks in `download.py`, `load.py`, and `clean.py` for better error handling
+- Ensured `clean.py` uses paths from `dataset_config.yaml` instead of environment variables
+- Enhanced logging to track the flow of operations and error handling more effectively
 ```
 
 ### 8. Personality and Response Style
