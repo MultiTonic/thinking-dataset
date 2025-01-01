@@ -7,27 +7,71 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased] - 2024-12-31
 
 ### Added
-- Updated all source code header comments to be more concise for improved readability and maintenance.
-- Enhanced `command_utils.py`:
-  - Fixed issues with dynamic pipe class loading to correctly reflect user-defined types.
-  - Improved environment variable management functions for better configuration handling.
-  - Refactored paths construction to `get_raw_data_path` for clarity.
-- Developed `pipe` and `pipeline` modules:
-  - `pipe.py`: Defined the base `Pipe` class with input and output handling for data processing.
-  - `pipeline.py`: Created the `Pipeline` class for managing and executing data processing pipelines.
-  - Implemented `Pipeline.setup` to dynamically load and configure pipes based on dataset config.
-- Expanded `preprocess.py` CLI command:
-  - Integrated new `Pipe` and `Pipeline` classes.
-  - Added logging support throughout the preprocessing workflow.
-  - Enhanced environment variable loading and validation.
-  - Improved data loading, processing, and saving with modular functions.
-- Updated dataset configuration:
-  - Reorganized dataset config structure for better clarity and flexibility.
-  - Added support for dynamic loading of processing pipes based on user-defined types.
-  - Included display names and descriptions for better identification of processing steps.
+- Add `logger` decorator to `clean`, `download`, `load`, and `prepare` commands
+- Modify `dotenv` decorator to correctly handle logger setup
+- Update `files.py` to include `log` argument in `make_dir` and `remove_dir` methods
+- Enhance logging to use module classpath with dot notation
+- Add detailed logging for steps in the load process
+- Add `thinking_dataset/utilities/log.py` for unified logging with timestamps
+- Implement `Pipe` and `Pipeline` classes with dynamic pipe loading
+- Integrated new `Pipe` and `Pipeline` classes into `preprocess.py` CLI command
+- Add sections for `huggingface`, `database`, `paths`, and `files` in `dataset_config.yaml`
+- Add comprehensive unit tests for new features and operations
+- Add support for dynamic loading of processing pipes based on user-defined types
+- Include display names and descriptions for better identification of processing steps
 
 ### Fixed
-- Ensured thorough logging at each step for better traceability and debugging.
+- Fix database name formatting issue in `DatasetConfig`
+- Fixed issues with dynamic pipe class loading in `command_utils.py`
+- Improve error handling and type annotations across various modules
+- Ensure thorough logging at each step for better traceability and debugging
+- Enhanced error handling in `DatabaseSession` and `Database` classes
+- Improved `GetFileList` operation to handle dataset configuration properly
+- Gracefully exit on file list retrieval errors to maintain consistency
+- Updated error reporting to match previous functions and simplified logging without rich traces
+- Ensured environment variables were loaded and validated successfully
+- Ensure correct file paths and use local file system for listing files
+
+### Changed
+- Refactor exception handling to use `log` parameter
+- Refactor `BaseDataset` to use processed directory for loading files
+- Ensure proper database creation and loading of prepared parquet files
+- Improve file path construction in `Files` class
+- Remove unnecessary filtering for local files in the load process
+- Ensure accurate logging messages with correct timestamp format
+- Refactored `thinking_dataset/io/files.py` to accept dataset config object for encapsulated logic
+- Renamed `touch` method to `make_dir` for clarity
+- Added full path construction using `self.config.ROOT_DIR`
+- Updated methods for consistency and modularity
+- Utilize dataset configuration paths for constructing file paths in preprocess and download commands
+- Create raw data directory if it doesn't exist in preprocess command
+- Improve logging to debug file paths and directory contents in preprocess command
+- Improved logging for better traceability in download command
+- Rename method `load_data` to `read_data` in `command_utils.py` for consistency
+- Add `get_raw_path` method to `files.py` to construct raw data paths with multiple components
+- Improve directory and file management methods in `files.py`
+- Ensure correct file handling and error management in preprocess command
+- Reorganized dataset config structure for better clarity and flexibility
+- Consolidated ROOT_DIR, DATA_DIR, and DB_DIR into `paths` section in `dataset_config.yaml`
+- Grouped INCLUDE_FILES and EXCLUDE_FILES into `files` section in `dataset_config.yaml`
+- Added `huggingface` and `database` sections in `dataset_config.yaml` for better organization
+- Updated `DatasetConfig` class to parse new configuration structure
+- Updated `BaseDataset` class to utilize paths from the new configuration structure
+- Updated `download.py` command to correctly construct paths and apply filters
+- Updated `load.py` command to correctly apply and utilize filters when loading datasets
+- Refactored `CommandUtils` to include environment variable handling and path construction
+- Combined `try-except` blocks in `download.py`, `load.py`, and `clean.py` for better error handling
+- Ensured `clean.py` uses paths from `dataset_config.yaml` instead of environment variables
+- Enhanced logging to track the flow of operations and error handling more effectively
+- Updated changelog with recent changes and refactor details
+- Enhanced most recent work template to reflect new operations, features, and fixed issues
+- Consolidated documentation to improve clarity and readability
+- Improved logging and error handling across various components
+- Refined database and session handling for better performance
+- Ensured all changes adhere to coding standards and style guidelines
+- Updated the prompt template for better clarity and comprehensiveness
+- Rewrote all documentation with the latest knowledge, including INSTALLATION.md, DEPLOYMENT.md, TESTING.md, TROUBLESHOOTING.md, FAQ.md, and PIPELINE.md
+- Enhanced the changelog to reflect all recent updates and improvements
 
 ## [Unreleased] - 2024-12-30
 

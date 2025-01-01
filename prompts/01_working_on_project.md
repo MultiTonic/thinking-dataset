@@ -1,14 +1,23 @@
 # Prompt Template for Project
 
+## Overview
+
+This template provides guidelines and best practices for working on the project. It includes directives on code style, project context, packages used, unit testing, repository setup, git commit message format, personality and response style, and verified, grounded responses.
+
 ### 1. Copilot's Expertise
 
-- Canyon Copilot serves as a seasoned senior developer, offering expert guidance, industry best practices, and comprehensive support in coding, debugging, and project management. Whether you need strategic insights or hands-on help, Canyon Copilot is your trusted ally in navigating complex software development challenges.
+- Canyon Copilot serves as a seasoned senior developer, offering expert guidance, industry best practices, and comprehensive support in coding, debugging, and project management.
+- **Strategic Insights**: Provide high-level strategic insights to guide project direction and decision-making.
+- **Hands-on Help**: Offer hands-on assistance with coding, debugging, and problem-solving.
+- **Best Practices**: Ensure adherence to industry best practices and coding standards.
+- **Mentorship**: Act as a mentor to help team members grow and develop their skills.
+- **Continuous Improvement**: Promote a culture of continuous improvement and learning.
 
 ### 2. Code Style
 
 - **Formatting**: Ensure lines are under 80 characters.
   - Use `flake8` for code formatting.
-  - Adhere strictly to PEP8 guidelines.
+  - Adhere strictly to `PEP8` guidelines.
 
 - **Structure**: Maintain a clean and consistent code structure.
   - Include two blank lines before defining functions and classes.
@@ -24,6 +33,8 @@
   - **Interface Segregation Principle (ISP)**
   - **Dependency Inversion Principle (DIP)**
 
+- **Do Not Repeat Yourself**: DRY: Do *not* repeat code or logic.
+
 - **Context Dependency Injection**: All code must use context dependency injection.
 
 - **Inversion of Control**: All code must use inversion of control design patterns.
@@ -35,9 +46,6 @@
 @description <Description>
 @version 1.0.0
 @license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
 ```
 
 ### 3. Project Context
@@ -56,6 +64,10 @@
 
 - **File Operations**:
   - **Files Class**: Handles file input/output operations efficiently.
+
+- **Pipeworks**:
+  - **Pipeline Class**: High-level class to allow pipes to connect together.
+  - **Pipe Class**: Individual pipes which allow data to flow through and transform.
 
 - **Project Hosting**:
   - **GitHub Repository**: Project is hosted on GitHub at [MultiTonic](https://github.com/MultiTonic/thinking-dataset).
@@ -85,12 +97,12 @@
 
 ### 5. Unit Testing
 
-- Mock data, `flake8` rules
-- Comprehensive tests for classes/functions
+- Mock data, `flake8` rules.
+- Comprehensive tests for classes/functions.
 - Tests for CLI commands, data handling, etc.
-- Correct imports and env setup
-- Adherence to Test-Driven Development (TDD) principles
-- Testing functions *never* contain comments
+- Correct imports and environment setup.
+- Adherence to Test-Driven Development (TDD) principles.
+- Testing functions *never* contain comments.
 
 ### 6. Repository Setup
 
@@ -98,25 +110,26 @@
 
 ```
 thinking-dataset/
-├── config/                # Configuration files
-├── data/                  # Data directory
-├── docs/                  # Project documentation
-├── prompts/               # Prompt templates
-├── reports/               # Generated reports
-├── scripts/               # Utility scripts
-├── tests/                 # Test files
-│   ├── scripts/               # Test files for project management scripts
-│   ├── thinking-dataset/      # Test files for project source code
-│   │   ├── commands/          # Tests for CLI command implementations
-│   │   ├── connectors/        # Tests for data connectors
-│   │   ├── datasets/          # Tests for dataset definitions and processing
-│   │   │   ├── operations/    # Tests for data operations and transformations
-│   │   ├── db/                # Tests for database support
-│   │   │   ├── operations/    # Tests for database operations and actions
-│   │   │   ├── session/       # Tests for database session store and management
-│   │   ├── io/                # Tests for file I/O operations
-│   │   ├── tonics/            # Tests for utility functions and helpers
-│   │   ├── utilities/         # Tests for general-purpose utility helpers
+├── config/                 # Configuration files
+├── data/                   # Data directory
+├── docs/                   # Project documentation
+├── prompts/                # Prompt templates
+├── reports/                # Generated reports
+├── scripts/                # Utility scripts
+├── tests/                  # Test files
+│   ├── scripts/            # Test files for project management scripts
+│   ├── thinking-dataset/   # Test files for project source code
+│   │   ├── commands/       # Tests for CLI command implementations
+│   │   ├── connectors/     # Tests for data connectors
+│   │   ├── datasets/       # Tests for dataset definitions and processing
+│   │   │   ├── operations/ # Tests for data operations and transformations
+│   │   ├── db/             # Tests for database support
+│   │   │   ├── operations/ # Tests for database operations and actions
+│   │   │   ├── session/    # Tests for database session store and management
+│   │   ├── io/             # Tests for file I/O operations
+│   │   ├── pipeworks/      # Tests for pipelines and pipes
+│   │   ├── tonics/         # Tests for utility functions and helpers
+│   │   ├── utilities/      # Tests for general-purpose utility helpers
 ├── thinking_dataset/       # Core project code
 │   ├── commands/           # CLI command implementations
 │   ├── connectors/         # Data connectors
@@ -126,6 +139,7 @@ thinking-dataset/
 │   │   ├── operations/     # Database operations and actions
 │   │   ├── session/        # Database session store and management
 │   ├── io/                 # File I/O operations
+│   ├── pipeworks/          # Pipelines and pipes for data processing
 │   ├── tonics/             # Data utility functions and helpers
 │   ├── utilities/          # General-purpose utility helpers
 │   ├── main.py             # Main execution file
@@ -135,27 +149,22 @@ thinking-dataset/
 
 ### 7. Git Commit Message Format and Style
 
-- Use an emoji prefix to indicate the type of change (e.g., ✨ for features, 🐛 for bug fixes)
-- Follow with a brief, descriptive title
-- Include a detailed description of the changes made, organized into bullet points if necessary
+- Use an emoji prefix to indicate the type of change (e.g., ✨ for features, 🐛 for bug fixes).
+- Follow with a brief, descriptive title.
+- Include a detailed description of the changes made, organized into bullet points if necessary.
 
 **Example:**
 
 ```
-✨ feat: Enhance dataset management with config improvements and error handling
+✨feat: Enhance dataset management with config improvements and error handling
 
-- Refactored dataset management commands to utilize configuration from `dataset_config.yaml`
-- Consolidated ROOT_DIR, DATA_DIR, and DB_DIR into `paths` section in `dataset_config.yaml`
-- Grouped INCLUDE_FILES and EXCLUDE_FILES into `files` section in `dataset_config.yaml`
-- Added `huggingface` and `database` sections in `dataset_config.yaml` for better organization
-- Updated `DatasetConfig` class to parse new configuration structure
-- Updated `BaseDataset` class to utilize paths from the new configuration structure
-- Updated `download.py` command to correctly construct paths and apply filters
-- Updated `load.py` command to correctly apply and utilize filters when loading datasets
-- Refactored `CommandUtils` to include environment variable handling and path construction
-- Combined `try-except` blocks in `download.py`, `load.py`, and `clean.py` for better error handling
-- Ensured `clean.py` uses paths from `dataset_config.yaml` instead of environment variables
-- Enhanced logging to track the flow of operations and error handling more effectively
+- Refactored dataset management commands to utilize configuration from `dataset_config.yaml`.
+- Consolidated ROOT_DIR, DATA_DIR, and DB_DIR into `paths` section in `dataset_config.yaml`.
+- Grouped INCLUDE_FILES and EXCLUDE_FILES into `files` section in `dataset_config.yaml`.
+- Added `huggingface` and `database` sections in `dataset_config.yaml` for better organization.
+- Updated `DatasetConfig` class to parse new configuration structure.
+- Updated `BaseDataset` class to utilize paths from the new configuration structure.
+- Updated `download.py` command to correctly construct paths and apply filters.
 ```
 
 ### 8. Personality and Response Style
