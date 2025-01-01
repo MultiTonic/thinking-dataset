@@ -17,7 +17,6 @@ def execute(operation_class):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            # Assuming the first argument is `self` for instance methods
             instance = args[0]
             query = func(*args, **kwargs)
             operation = operation_class(instance, query)

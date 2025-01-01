@@ -1,5 +1,5 @@
 """
-@file thinking_dataset/utilities/handle_exceptions.py
+@file thinking_dataset/utilities/exceptions.py
 @description Defines a decorator for handling exceptions and logging.
 @version 1.0.0
 @license MIT
@@ -7,17 +7,17 @@
 
 import sys
 from functools import wraps
-from thinking_dataset.utilities.log import Log
+from ..utilities.log import Log
 
 
-def handle_exceptions(func):
+def exceptions(func):
     """
     A decorator to handle exceptions and logging for a function.
     """
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        log = kwargs.get('log', Log.setup("default"))
+        log = kwargs.get('log', Log.setup(func.__name__))
         error_occurred = False
         try:
             return func(*args, **kwargs)
@@ -37,8 +37,5 @@ def handle_exceptions(func):
             if error_occurred:
                 Log.error(log, f"{func.__name__} command did not complete.")
                 sys.exit(1)
-            else:
-                Log.info(log,
-                         f"{func.__name__} command completed successfully.")
 
     return wrapper

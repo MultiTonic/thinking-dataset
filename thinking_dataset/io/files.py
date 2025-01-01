@@ -6,6 +6,7 @@
 """
 
 import os
+import shutil
 from ..utilities.log import Log
 
 
@@ -29,12 +30,23 @@ class Files:
         base_dir = os.path.join(self.config.ROOT_DIR, self.config.DATA_DIR)
         return os.path.join(base_dir, self.config.PROCESSED_DIR)
 
-    def make_dir(self, path):
+    def make_dir(self, path, log):
         """
         Creates the directory if it doesn't exist.
         """
         full_path = os.path.join(self.config.ROOT_DIR, path)
         os.makedirs(full_path, exist_ok=True)
+        Log.info(log, f"Ensured directory exists: {full_path}")
+
+    @staticmethod
+    def remove_dir(path, log):
+        """
+        Removes the directory if it exists.
+        """
+        abs_path = os.path.abspath(path)
+        if Files.exists(abs_path):
+            shutil.rmtree(abs_path)
+            Log.info(log, f"Removed directory: {abs_path}")
 
     @staticmethod
     def list(dir_path, file_extension=None):

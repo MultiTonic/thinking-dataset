@@ -5,47 +5,37 @@
 @license MIT
 """
 
-import os
-import shutil
 import click
 from ..utilities.log import Log
-from ..utilities.command_utils import CommandUtils
-from ..utilities.handle_exceptions import handle_exceptions
+from ..utilities.command_utils import CommandUtils as Utils
+from ..utilities.exceptions import exceptions
+from ..utilities.logger import logger
+from ..utilities.load_dotenv import dotenv
 from ..io.files import Files
 
 
 @click.command()
 @click.pass_context
-@handle_exceptions
-def clean(ctx):
+@exceptions
+@logger
+@dotenv(print=True)
+def clean(ctx, **kwargs):
     """
     Cleans the data directory and other dynamic resources.
     """
-    log = Log.setup(__name__)
+    log = kwargs['log']
     ctx.obj = log
     Log.info(log, "Starting the clean command.")
 
-    env_vars = CommandUtils.load_env_vars(log)
-    CommandUtils.print_env_vars(env_vars, log)
+    config_path = kwargs['dotenv']['DATASET_CONFIG_PATH']
+    config = Utils.load_dataset_config(config_path)
 
-    if not CommandUtils.validate_env_vars(env_vars, log):
-        raise ValueError("Failed to validate environment variables.")
+    files = Files(config)
+    path = files.get_path(config.ROOT_DIR, config.DATA_DIR)
 
-    dataset_config_path = env_vars['DATASET_CONFIG_PATH']
-    dataset_config = CommandUtils.load_dataset_config(dataset_config_path)
+    Files.remove_dir(path, log)
 
-    files = Files(dataset_config)
-    base_dir_path = os.path.abspath(
-        files.get_path(dataset_config.ROOT_DIR, dataset_config.DATA_DIR))
-
-    if files.exists(base_dir_path):
-        shutil.rmtree(base_dir_path)
-        Log.info(log, f"Removed directory: {base_dir_path}")
-    else:
-        Log.info(log, f"No directory found at {base_dir_path}")
-
-    files.make_dir(base_dir_path)
-    Log.info(log, f"Created clean directory: {base_dir_path}")
+    Log.info(log, "Clean command completed successfully.")
 
 
 if __name__ == "__main__":
