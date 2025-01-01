@@ -13,15 +13,6 @@ from ..pipeworks.pipelines.pipeline import Pipeline
 from ..utilities.command_utils import CommandUtils as Utils
 
 
-def process_file(df, pipelines, log):
-    """
-    Apply the preprocessing pipelines to the data.
-    """
-    for pipeline in pipelines:
-        df = pipeline.flow(df, log)
-    return df
-
-
 @click.command()
 def preprocess():
     """
@@ -55,7 +46,10 @@ def preprocess():
             output_file = os.path.join(raw_data_dir, f"processed_{file}")
 
             df = Utils.load_data(input_file, dataset_config.DATASET_TYPE)
-            df = process_file(df, pipelines, log)
+
+            for pipeline in pipelines:
+                df = pipeline.flow(df, log)
+
             Utils.save_data(df, output_file, dataset_config.DATASET_TYPE)
 
             Log.info(log, f"Data preprocessed and saved to {output_file}")

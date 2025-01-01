@@ -110,15 +110,14 @@ class CommandUtils:
         """
         Dynamically import and return the pipe class based on the pipe type.
         """
-        module_name = "thinking_dataset.pipeworks.pipes."
-        f"{CommandUtils.camel_to_snake(pipe_type)}"
-        pipe_class_name = pipe_type
+        module_name = "thinking_dataset.pipeworks.pipes." + \
+            CommandUtils.camel_to_snake(pipe_type)
 
         try:
             module = importlib.import_module(module_name)
-            return getattr(module, pipe_class_name)
+            return getattr(module, pipe_type)
         except (ImportError, AttributeError) as e:
             Log.error(
-                log, f"Error loading pipe class {pipe_class_name} "
+                log, f"Error loading pipe class {pipe_type} "
                 f"from module {module_name}: {e}")
             raise
