@@ -16,13 +16,14 @@ class DatasetConfig:
     def __init__(self, config_path: str):
         loader = ConfigLoader(config_path)
         config = loader.get('dataset')
-        self.HF_DATASET = config.get('huggingface', {}).get('name')
-        self.DATASET_TYPE = config.get('huggingface',
-                                       {}).get('type', 'parquet')
+        self.HF_DATASET = config.get('hfapi', {}).get('name')
+        self.DATASET_TYPE = config.get('hfapi', {}).get('type', 'parquet')
         self.DATABASE_URL = config.get('database', {}).get('url')
         self.ROOT_DIR = config.get('paths', {}).get('root', '.')
         self.DATA_DIR = config.get('paths', {}).get('data', 'data')
         self.RAW_DIR = config.get('paths', {}).get('raw', 'raw')
+        self.PROCESSED_DIR = config.get('paths',
+                                        {}).get('processed', 'processed')
         self.DB_DIR = config.get('paths', {}).get('database', 'db')
         self.INCLUDE_FILES = config.get('files', {}).get('include', [])
         self.EXCLUDE_FILES = config.get('files', {}).get('exclude', [])

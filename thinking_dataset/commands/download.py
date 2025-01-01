@@ -23,6 +23,7 @@ def download():
     """
     log = Log.setup(__name__)
     Log.info(log, "Starting the download command.")
+    error_occurred = False
 
     try:
         env_vars = CommandUtils.load_env_vars(log)
@@ -44,9 +45,11 @@ def download():
         dataset = Dataset(data_tonic=data_tonic)
         Log.info(log, "Initialized Dataset instance.")
 
-        raw_dir = Files.get_raw_path(log, env_vars['ROOT_DIR'],
-                                     env_vars['DATA_DIR'],
-                                     dataset_config.RAW_DIR)
+        files = Files(dataset_config)
+
+        raw_dir = files.get_raw_path()
+        files.make_dir(raw_dir)
+        Log.info(log, f"Ensured raw data directory exists: {raw_dir}")
 
         dataset.download(
             env_vars['HF_TOKEN'],
@@ -58,13 +61,19 @@ def download():
 
     except ValueError as e:
         Log.error(log, f"Validation error: {e}", exc_info=True)
-        sys.exit(1)
+        error_occurred = True
     except FileNotFoundError as e:
         Log.error(log, f"File not found error: {e}", exc_info=True)
-        sys.exit(1)
+        error_occurred = True
     except Exception as e:
         Log.error(log, f"An unexpected error occurred: {e}", exc_info=True)
-        sys.exit(1)
+        error_occurred = True
+    finally:
+        if error_occurred:
+            Log.error(log, "Download command did not complete.")
+            sys.exit(1)
+        else:
+            Log.info(log, "Download command completed successfully.")
 
 
 if __name__ == "__main__":

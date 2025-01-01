@@ -1,6 +1,6 @@
 """
 @file thinking_dataset/io/files.py
-@description Handles file i/o operations for the Thinking Dataset Project.
+@description Handles file I/O operations for the Thinking Dataset Project.
 @version 1.0.0
 @license MIT
 """
@@ -11,16 +11,23 @@ from ..utilities.log import Log
 
 class Files:
 
-    def __init__(self, raw_dir, processed_dir=None):
-        self.raw_dir = raw_dir
-        self.processed_dir = processed_dir
+    def __init__(self, config):
+        self.config = config
 
-    def touch(self):
-        directories = [self.raw_dir]
-        if self.processed_dir:
-            directories.append(self.processed_dir)
-        for directory in directories:
-            os.makedirs(directory, exist_ok=True)
+    def make_dir(self, path):
+        """
+        Creates the directory if it doesn't exist.
+        """
+        full_path = os.path.join(self.config.ROOT_DIR, path)
+        os.makedirs(full_path, exist_ok=True)
+
+    def get_raw_path(self):
+        base_dir = os.path.join(self.config.ROOT_DIR, self.config.DATA_DIR)
+        return os.path.join(base_dir, self.config.RAW_DIR)
+
+    def get_processed_path(self):
+        base_dir = os.path.join(self.config.ROOT_DIR, self.config.DATA_DIR)
+        return os.path.join(base_dir, self.config.PROCESSED_DIR)
 
     @staticmethod
     def list(dir_path, file_extension=None):
@@ -46,11 +53,3 @@ class Files:
             Log.info(log, f"Skipping excluded file: {file}")
             return True
         return False
-
-    @staticmethod
-    def get_raw_path(log, root_dir, data_dir, raw_dir):
-        base_dir = os.path.join(root_dir, data_dir)
-        raw_dir_path = os.path.join(base_dir, raw_dir)
-        Log.info(log,
-                 f"Data paths: base_dir={base_dir}, raw_dir={raw_dir_path}")
-        return raw_dir_path

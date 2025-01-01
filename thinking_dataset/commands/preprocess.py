@@ -32,22 +32,11 @@ def preprocess():
 
         dataset_config = Utils.load_dataset_config(
             env_vars['DATASET_CONFIG_PATH'])
-        files = Files(dataset_config.ROOT_DIR, dataset_config.DATA_DIR)
-        files.touch()
+        files = Files(dataset_config)
 
-        raw_data_dir = Files.get_raw_path(log, dataset_config.ROOT_DIR,
-                                          dataset_config.DATA_DIR,
-                                          dataset_config.RAW_DIR)
-        Log.info(log, f"Constructed raw data path: {raw_data_dir}")
-
-        # Create the raw data directory if it doesn't exist
-        if not os.path.exists(raw_data_dir):
-            os.makedirs(raw_data_dir)
-            Log.info(log, f"Created raw data directory: {raw_data_dir}")
-
-        # List files in the raw data directory for debugging
-        raw_files = files.list(raw_data_dir)
-        Log.info(log, f"Files in raw data directory: {raw_files}")
+        raw_data_dir = files.get_raw_path()
+        files.make_dir(raw_data_dir)
+        Log.info(log, f"Ensured raw data directory exists: {raw_data_dir}")
 
         pipelines = Pipeline.setup(dataset_config, log)
 

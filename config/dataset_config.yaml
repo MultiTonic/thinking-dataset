@@ -1,5 +1,5 @@
 dataset:
-  huggingface:
+  hfapi:
     name: "cablegate-pdf-dataset"
     type: "parquet"
   database:
@@ -9,6 +9,7 @@ dataset:
     database: "db"
     data: "data"
     raw: "raw"
+    processed: "processed"
   files:
     include:
     - "train-00000-of-00001.parquet"
