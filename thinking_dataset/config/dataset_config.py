@@ -27,6 +27,8 @@ class DatasetConfig:
         self.DB_DIR = config.get('paths', {}).get('database', 'db')
         self.INCLUDE_FILES = config.get('files', {}).get('include', [])
         self.EXCLUDE_FILES = config.get('files', {}).get('exclude', [])
+        self.LOAD_PATTERNS = config.get('files', {}).get(
+            'load', ['{file_root}_prepare{file_ext}'])
         self.PIPELINES = config.get('pipelines', [])
 
     def validate(self):

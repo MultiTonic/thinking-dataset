@@ -6,7 +6,6 @@
 """
 
 import os
-import sys
 import pandas as pd
 from dotenv import load_dotenv
 from typing import List, Union, Optional
@@ -35,6 +34,7 @@ class BaseDataset:
             self.root_dir,
             self.config.get("paths", {}).get("data", "data"))
         self.raw_dir = os.path.join(self.data_dir, "raw")
+        self.processed_dir = os.path.join(self.data_dir, "processed")
 
     def get_path(self,
                  dataset_id: Optional[str] = None) -> Union[str, dict, None]:
@@ -52,19 +52,21 @@ class BaseDataset:
         except Exception as e:
             Log.error(self.log, f"Error constructing dataset path: {e}")
 
-    def list_files(self) -> Optional[List[str]]:
+    def list_files(self, dir_path: str) -> Optional[List[str]]:
         """
-        List dataset files in the raw directory.
+        List dataset files in the given directory.
         """
         try:
-            dataset_files = self.data_tonic.get_file_list.execute(self.raw_dir)
-            Log.info(
-                self.log,
-                f"Listed files in directory {self.raw_dir}: {dataset_files}")
+            dataset_files = [
+                f for f in os.listdir(dir_path)
+                if os.path.isfile(os.path.join(dir_path, f))
+            ]
+            Log.info(self.log,
+                     f"Listed files in directory {dir_path}: {dataset_files}")
             return dataset_files
         except Exception as e:
             Log.error(self.log,
-                      f"Error listing files in directory {self.raw_dir}: {e}")
+                      f"Error listing files in directory {dir_path}: {e}")
 
     def create(self, db_url: str, db_config: str) -> Optional[Database]:
         """
@@ -83,30 +85,34 @@ class BaseDataset:
         """
         Load dataset files into the database.
         """
-        if files_to_load is None:
-            files_to_load = self.list_files()
-
         if not files_to_load:
-            Log.error(self.log, "No files found in the data directory.")
-            sys.exit(1)
+            Log.error(self.log, "No files to load provided.")
+            return False
 
-        parquet_files = [os.path.join(self.raw_dir, f) for f in files_to_load]
+        # Use processed_dir instead of raw_dir
+        parquet_files = [
+            os.path.join(self.processed_dir, os.path.basename(f))
+            for f in files_to_load
+        ]
         Log.info(self.log, f"Parquet files to be loaded: {parquet_files}")
 
-        # Log the contents of the raw directory to verify if the files exist
+        # Log the contents of the processed directory to verify if exists
         try:
-            files_in_directory = os.listdir(self.raw_dir)
+            files_in_directory = os.listdir(self.processed_dir)
             Log.info(
-                self.log,
-                f"Files in directory {self.raw_dir}: {files_in_directory}")
+                self.log, "Files in directory "
+                f"{self.processed_dir}: {files_in_directory}")
         except Exception as e:
-            Log.error(self.log, f"Error listing directory {self.raw_dir}: {e}")
-            sys.exit(1)
+            Log.error(self.log,
+                      f"Error listing directory {self.processed_dir}: {e}")
+            return False
 
         with database.get_session() as session:
             for file_path in parquet_files:
                 try:
                     Log.info(self.log, f"Attempting to load file: {file_path}")
+                    if not os.path.exists(file_path):
+                        raise FileNotFoundError(f"File not found: {file_path}")
                     df = pd.read_parquet(file_path)
                     Log.info(self.log, f"DataFrame columns: {df.columns}")
                     table_name = os.path.splitext(
@@ -115,16 +121,16 @@ class BaseDataset:
                               con=database.engine,
                               if_exists='append',
                               index=False)
-                except FileNotFoundError:
-                    Log.error(self.log, f"File not found: {file_path}")
+                except FileNotFoundError as e:
+                    Log.error(self.log, f"{e}")
                     session.rollback()
-                    sys.exit(1)
+                    return False
                 except Exception as e:
                     Log.error(self.log,
                               f"Error loading file {file_path}: {e}",
                               exc_info=True)
                     session.rollback()
-                    sys.exit(1)
+                    return False
             try:
                 session.commit()
                 Log.info(
@@ -134,7 +140,7 @@ class BaseDataset:
             except Exception as e:
                 session.rollback()
                 Log.error(self.log, f"Error committing the session: {e}")
-                sys.exit(1)
+                return False
 
     def filter_files(self, all_files: List[str], include_files: List[str],
                      exclude_files: List[str]) -> List[str]:

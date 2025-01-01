@@ -33,7 +33,6 @@ class CommandUtils:
             "HF_DATASET":
             os.getenv("HF_DATASET"),
         }
-        Log.info(log, "Environment variables loaded successfully.")
         return env_vars
 
     @staticmethod
@@ -41,7 +40,6 @@ class CommandUtils:
         Log.info(log, "Environment Configuration:")
         for key, value in env_vars.items():
             Log.info(log, f"{key}: {value}")
-        Log.info(log, "Environment configuration printed successfully.")
 
     @staticmethod
     def validate_env_vars(env_vars, log):

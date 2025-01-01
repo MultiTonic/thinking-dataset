@@ -14,12 +14,12 @@ class Files:
     def __init__(self, config):
         self.config = config
 
-    def make_dir(self, path):
+    @staticmethod
+    def exists(path):
         """
-        Creates the directory if it doesn't exist.
+        Check if the given path exists.
         """
-        full_path = os.path.join(self.config.ROOT_DIR, path)
-        os.makedirs(full_path, exist_ok=True)
+        return os.path.exists(path)
 
     def get_raw_path(self):
         base_dir = os.path.join(self.config.ROOT_DIR, self.config.DATA_DIR)
@@ -28,6 +28,13 @@ class Files:
     def get_processed_path(self):
         base_dir = os.path.join(self.config.ROOT_DIR, self.config.DATA_DIR)
         return os.path.join(base_dir, self.config.PROCESSED_DIR)
+
+    def make_dir(self, path):
+        """
+        Creates the directory if it doesn't exist.
+        """
+        full_path = os.path.join(self.config.ROOT_DIR, path)
+        os.makedirs(full_path, exist_ok=True)
 
     @staticmethod
     def list(dir_path, file_extension=None):
@@ -53,3 +60,11 @@ class Files:
             Log.info(log, f"Skipping excluded file: {file}")
             return True
         return False
+
+    @staticmethod
+    def format(file, pattern):
+        """
+        Format the load pattern with the given file's root and extension.
+        """
+        file_root, file_ext = os.path.splitext(file)
+        return pattern.format(file_root=file_root, file_ext=file_ext)

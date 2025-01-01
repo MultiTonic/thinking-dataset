@@ -15,10 +15,14 @@ dataset:
     - "train-00000-of-00001.parquet"
     exclude:
     - "cleaned_data.parquet"
+    load:
+    - "{file_root}_prepare{file_ext}"
   pipelines:
   - pipeline:
-      name: "preprocessor"
-      description: "Default preprocessing pipeline"
+      name: "prepare"
+      description: "Default prepare pipeline"
+      config:
+        prepare_file: "{file_base}_prepare{file_ext}"
       pipes:
       - pipe:
           name: "Remove Duplicates"

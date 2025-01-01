@@ -15,6 +15,6 @@ class HandleMissingValuesPipe(BasePipe):
     """
 
     def flow(self, df, log, **args):
-        Log.info(log, "Starting HandleMissingValuesPipe")
+        Log.info(log, "Starting -- HandleMissingValuesPipe")
         Log.info(log, "Passing data through without modification")
         return df

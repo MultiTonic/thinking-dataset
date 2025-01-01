@@ -15,6 +15,6 @@ class RemoveDuplicatesPipe(BasePipe):
     """
 
     def flow(self, df, log, **args):
-        Log.info(log, "Starting RemoveDuplicatesPipe")
+        Log.info(log, "Starting -- RemoveDuplicatesPipe")
         Log.info(log, "Passing data through without modification")
         return df

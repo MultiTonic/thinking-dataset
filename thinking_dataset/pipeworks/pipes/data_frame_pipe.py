@@ -15,6 +15,6 @@ class DataFramePipe(BasePipe):
     """
 
     def flow(self, df, log, **args):
-        Log.info(log, "Starting DataFramePipe")
+        Log.info(log, "Starting -- DataFramePipe")
         Log.info(log, "Performing DataFrame-specific operations")
         return df

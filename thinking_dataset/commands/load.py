@@ -5,69 +5,69 @@
 @license MIT
 """
 
-import sys
 import click
 from ..datasets.dataset import Dataset
 from ..tonics.data_tonic import DataTonic
-from ..config.dataset_config import DatasetConfig
 from ..utilities.log import Log
-from ..utilities.command_utils import CommandUtils
+from ..utilities.command_utils import CommandUtils as Utils
+from ..utilities.handle_exceptions import handle_exceptions
+from ..io.files import Files
 
 
 @click.command()
-def load():
+@click.pass_context
+@handle_exceptions
+def load(ctx):
     """
-    Load datasets into the database.
+    Load downloaded datasets into local sqlite database.
     """
-    log = Log.setup(__package__)
+    log = Log.setup(__name__)
+    ctx.obj = log
     Log.info(log, "Starting the load command.")
 
-    try:
-        env_vars = CommandUtils.load_env_vars(log)
-        CommandUtils.print_env_vars(env_vars, log)
+    env_vars = Utils.load_env_vars(log)
+    Utils.print_env_vars(env_vars, log)
 
-        if not CommandUtils.validate_env_vars(env_vars, log):
-            raise ValueError("Failed to validate environment variables.")
+    if not Utils.validate_env_vars(env_vars, log):
+        raise ValueError("Failed to validate environment variables.")
 
-        dataset_config_path = env_vars['DATASET_CONFIG_PATH']
-        dataset_config = DatasetConfig(dataset_config_path)
-        dataset_config.validate()
+    dataset_config_path = env_vars['DATASET_CONFIG_PATH']
+    dataset_config = Utils.load_dataset_config(dataset_config_path)
 
-        data_tonic = DataTonic(token=env_vars['HF_TOKEN'],
-                               organization=env_vars['HF_ORGANIZATION'],
-                               dataset=env_vars['HF_DATASET'],
-                               config=dataset_config)
-        Log.info(log, "Initialized DataTonic instance.")
+    data_tonic = DataTonic(token=env_vars['HF_TOKEN'],
+                           organization=env_vars['HF_ORGANIZATION'],
+                           dataset=env_vars['HF_DATASET'],
+                           config=dataset_config)
+    Log.info(log, "Initialized DataTonic instance.")
 
-        dataset = Dataset(data_tonic=data_tonic)
-        Log.info(log, "Initialized Dataset instance.")
+    dataset = Dataset(data_tonic=data_tonic)
+    Log.info(log, "Initialized Dataset instance.")
 
-        filtered_files = dataset.filter_files(dataset.list_files(),
-                                              dataset.config['INCLUDE_FILES'],
-                                              dataset.config['EXCLUDE_FILES'])
+    files = Files(dataset_config)
+    processed_data_dir = files.get_processed_path()
 
-        if filtered_files:
-            database = dataset.create(
-                db_url=dataset.config['DATABASE_URL'],
-                db_config=env_vars['DATABASE_CONFIG_PATH'])
+    load_files = [
+        files.get_path(processed_data_dir, files.format(file, pattern))
+        for file in dataset_config.INCLUDE_FILES
+        for pattern in dataset_config.LOAD_PATTERNS
+        if file not in dataset_config.EXCLUDE_FILES
+    ]
 
-            dataset.load(database=database, files_to_load=filtered_files)
-            Log.info(log,
-                     "Loaded dataset files into the database successfully.")
-        else:
-            Log.info(
-                log,
-                "No files matched the filters to be loaded into the database.")
+    Log.info(log, f"Parquet files to be loaded: {load_files}")
 
-    except ValueError as e:
-        Log.error(log, f"Validation error: {e}", exc_info=True)
-        sys.exit(1)
-    except FileNotFoundError as e:
-        Log.error(log, f"File not found error: {e}", exc_info=True)
-        sys.exit(1)
-    except Exception as e:
-        Log.error(log, f"An unexpected error occurred: {e}", exc_info=True)
-        sys.exit(1)
+    if load_files:
+        database = dataset.create(db_url=dataset_config.DATABASE_URL.format(
+            name=dataset_config.HF_DATASET),
+                                  db_config=env_vars['DATABASE_CONFIG_PATH'])
+
+        if not dataset.load(database=database, files_to_load=load_files):
+            raise RuntimeError(
+                "Failed to load dataset files into the database.")
+
+        Log.info(log, "Loaded dataset files into the database successfully.")
+    else:
+        raise RuntimeError(
+            "No files matched the filters to be loaded into the database.")
 
 
 if __name__ == "__main__":

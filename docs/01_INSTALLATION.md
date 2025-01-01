@@ -65,7 +65,6 @@ Edit the `.env` file to include your specific configuration settings. Here is an
 ```plaintext
 HF_HOME="~/.cache/huggingface"
 HF_TOKEN="my_huggingface_access_token"
-HF_PROJECT="thinking-dataset"
 HF_DATASET="cablegate-pdf-dataset"
 HF_ORGANIZATION="DataTonic"
 HF_USER="my_huggingface_username"

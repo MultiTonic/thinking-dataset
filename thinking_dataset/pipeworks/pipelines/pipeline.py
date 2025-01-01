@@ -12,8 +12,9 @@ from ...utilities.command_utils import CommandUtils
 
 class Pipeline:
 
-    def __init__(self, pipes: List[Pipe]):
+    def __init__(self, pipes: List[Pipe], config: dict):
         self.pipes = pipes
+        self.config = config
 
     def flow(self, df, log):
         for pipe in self.pipes:
@@ -25,7 +26,6 @@ class Pipeline:
         """
         Set up the pipeline based on the dataset configuration.
         """
-
         pipeline_configs = dataset_config.PIPELINES
         pipelines = []
         for pipeline_config in pipeline_configs:
@@ -36,7 +36,7 @@ class Pipeline:
                 pipe_class = CommandUtils.get_pipe_class(pipe_type, log)
                 pipes.append(Pipe(pipe_class, pipe_details['config']))
 
-            pipeline = Pipeline(pipes)
+            pipeline = Pipeline(pipes, pipeline_config['pipeline']['config'])
             pipelines.append(pipeline)
 
         return pipelines
