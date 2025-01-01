@@ -15,7 +15,7 @@ import pandas as pd
 class CommandUtils:
 
     @staticmethod
-    def load_env_variables(log):
+    def load_env_vars(log):
         load_dotenv()
         env_vars = {
             "ROOT_DIR":
@@ -37,23 +37,14 @@ class CommandUtils:
         return env_vars
 
     @staticmethod
-    def print_env_config(env_vars, log):
+    def print_env_vars(env_vars, log):
         Log.info(log, "Environment Configuration:")
         for key, value in env_vars.items():
             Log.info(log, f"{key}: {value}")
         Log.info(log, "Environment configuration printed successfully.")
 
     @staticmethod
-    def get_raw_data_path(log, root_dir, data_dir, raw_dir):
-        base_dir = os.path.join(root_dir, data_dir)
-        raw_dir_path = os.path.join(base_dir, raw_dir)
-        Log.info(
-            log,
-            f"Constructed paths: base_dir={base_dir}, raw_dir={raw_dir_path}")
-        return raw_dir_path
-
-    @staticmethod
-    def validate_env_variables(env_vars, log):
+    def validate_env_vars(env_vars, log):
         if not all(env_vars.values()):
             Log.error(
                 log,
@@ -73,7 +64,7 @@ class CommandUtils:
         return dataset_config
 
     @staticmethod
-    def load_data(input_file, dataset_type):
+    def read_data(input_file, dataset_type):
         """
         Load data from the specified file based on the dataset type.
         """

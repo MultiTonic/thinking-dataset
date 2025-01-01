@@ -23,10 +23,10 @@ def load():
     Log.info(log, "Starting the load command.")
 
     try:
-        env_vars = CommandUtils.load_env_variables(log)
-        CommandUtils.print_env_config(env_vars, log)
+        env_vars = CommandUtils.load_env_vars(log)
+        CommandUtils.print_env_vars(env_vars, log)
 
-        if not CommandUtils.validate_env_variables(env_vars, log):
+        if not CommandUtils.validate_env_vars(env_vars, log):
             raise ValueError("Failed to validate environment variables.")
 
         dataset_config_path = env_vars['DATASET_CONFIG_PATH']

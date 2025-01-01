@@ -13,6 +13,7 @@ from ..tonics.data_tonic import DataTonic
 from ..utilities.log import Log as Log
 from ..config.dataset_config import DatasetConfig
 from ..utilities.command_utils import CommandUtils
+from ..io.files import Files
 
 
 @click.command()
@@ -24,10 +25,10 @@ def download():
     Log.info(log, "Starting the download command.")
 
     try:
-        env_vars = CommandUtils.load_env_variables(log)
-        CommandUtils.print_env_config(env_vars, log)
+        env_vars = CommandUtils.load_env_vars(log)
+        CommandUtils.print_env_vars(env_vars, log)
 
-        if not CommandUtils.validate_env_variables(env_vars, log):
+        if not CommandUtils.validate_env_vars(env_vars, log):
             raise ValueError("Failed to validate environment variables.")
 
         dataset_config_path = env_vars['DATASET_CONFIG_PATH']
@@ -43,9 +44,9 @@ def download():
         dataset = Dataset(data_tonic=data_tonic)
         Log.info(log, "Initialized Dataset instance.")
 
-        raw_dir = CommandUtils.get_raw_data_path(log, env_vars['ROOT_DIR'],
-                                                 env_vars['DATA_DIR'],
-                                                 dataset_config.RAW_DIR)
+        raw_dir = Files.get_raw_path(log, env_vars['ROOT_DIR'],
+                                     env_vars['DATA_DIR'],
+                                     dataset_config.RAW_DIR)
 
         dataset.download(
             env_vars['HF_TOKEN'],
