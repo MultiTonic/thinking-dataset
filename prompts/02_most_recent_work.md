@@ -2,7 +2,7 @@
 
 ## Overview
 
-This template documents the recent changes and improvements made to the project from yesterday until now. It includes refactoring, new features, added tests, and updates to documentation.
+This template documents the recent changes and improvements made to the project from yesterday until now. It includes refactoring, new features, added tests, and updates to documentation. 
 
 ## Changes Summary
 
@@ -19,6 +19,9 @@ This template documents the recent changes and improvements made to the project 
    - `thinking_dataset/utilities/load_dotenv.py`
    - `thinking_dataset/utilities/logger.py`
    - `thinking_dataset/utilities/log.py`
+   - `thinking_dataset/pipeworks/pipes/pipe.py`
+   - `thinking_dataset/pipeworks/pipelines/pipeline.py`
+   - `thinking_dataset/config/dataset_config.yaml`
 
 2. **Added `logger` and `dotenv` Decorators**:
    - Add `logger` decorator to `clean`, `download`, `load`, and `prepare` commands
@@ -49,9 +52,9 @@ This template documents the recent changes and improvements made to the project 
 6. **Developed `pipe` and `pipeline` Modules**:
    - `pipe.py`: Defined the base `Pipe` class with input and output handling for data processing
    - `pipeline.py`: Created the `Pipeline` class for managing and executing data processing pipelines
-   - Implemented `Pipeline.setup` to dynamically load and configure pipes based on dataset config
+   - Implemented `Pipeline` ctor to dynamically load and configure pipes based on dataset config
 
-7. **Expanded `preprocess.py` CLI Command**:
+7. **Expanded `prepare.py` CLI Command**:
    - Integrated new `Pipe` and `Pipeline` classes
    - Added logging support throughout the preprocessing workflow
    - Enhanced environment variable loading and validation
@@ -92,9 +95,9 @@ This template documents the recent changes and improvements made to the project 
    - Rename method `load_data` to `read_data` in `command_utils.py` for consistency
 
 2. **Enhanced CLI Commands**:
-   - Utilize dataset configuration paths for constructing file paths in preprocess and download commands
-   - Create raw data directory if it doesn't exist in preprocess command
-   - Improve logging to debug file paths and directory contents in preprocess command
+   - Utilize dataset configuration paths for constructing file paths in prepare and download commands
+   - Create raw data directory if it doesn't exist in prepare command
+   - Improve logging to debug file paths and directory contents in prepare command
    - Improved logging for better traceability in download command
 
 3. **Reorganized Configuration Structure**:
@@ -116,17 +119,17 @@ This template documents the recent changes and improvements made to the project 
 
 ## Next Steps
 
-1. **Enhance the `preprocess` Command**:
-   - Continue improving the `preprocess` command to ensure efficient cleaning of raw data before loading
+1. **Enhance the `prepare` Command**:
+   - Continue improving the `prepare` command to ensure efficient cleaning of raw data before loading
 
 2. **Write Comprehensive Tests**:
-   - Develop and expand unit tests for the `preprocess` command to ensure its robustness and reliability
+   - Develop and expand unit tests for the `prepare` command to ensure its robustness and reliability
 
 3. **Improve Error Handling**:
-   - Implement and test comprehensive error handling mechanisms within the `preprocess` command
+   - Implement and test comprehensive error handling mechanisms within the `prepare` command
 
 4. **Documentation**:
-   - Update the documentation to include recent changes, specifically the enhancements to the `preprocess` command
+   - Update the documentation to include recent changes, specifically the enhancements to the `prepare` command
    - Ensure all changes are clearly documented in the changelog with detailed commit messages
 
 5. **Review and Refine**:
@@ -163,7 +166,7 @@ This template documents the recent changes and improvements made to the project 
 ## Notes for Next Session
 
 1. **Pending Issues**: Ensure we address any unresolved issues from today’s session
-2. **Performance Optimization**: Focus on optimizing the performance of the `preprocess` command
+2. **Performance Optimization**: Focus on optimizing the performance of the `prepare` command
 3. **New Features**: Consider potential new features we can add to improve the user experience
 4. **Code Review**: Plan a thorough code review to ensure code quality and maintainability
 5. **Team Feedback**: Collect and discuss feedback from the team on recent changes and new features

@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2025-1-1
+
+### Added
+- Add `logger` and `dotenv` decorators to `clean`, `download`, `load`, and `prepare` commands
+- Implement progress tracking with `tqdm` for data preprocessing pipes
+- Enhance logging for better traceability and human-readable output
+- Support `auto` column detection for `RemoveDuplicatesPipe` and `HandleMissingValuesPipe`
+- Added `remove_partials` and `allow_empty` configurations for `HandleMissingValuesPipe`
+- Improve error handling for missing columns in preprocessing pipes
+- Break down `_process_file` into smaller private methods within `Pipeline` class
+- Introduce `Pipe` and `Pipeline` classes with dynamic pipe loading
+- Support dynamic loading of processing pipes based on user-defined types
+- Updated prompt template for project guidelines with detailed sections
+
+### Fixed
+- Ensure robust error handling and accurate logging with correct timestamp format
+- Resolved deprecation warnings and ensured maintainable code
+
+### Changed
+- Rename `run_flows` method to `open` in `Pipeline` class to align with pipe metaphor
+- Refactor `Pipeline` class for improved modularity and encapsulation
+- Improved `dataset_config.yaml` structure for better clarity and flexibility
+- Updated CLI commands (`prepare`, `download`) to utilize new pipeline methods
+- Enhanced documentation for improved clarity and readability
+
 ## [Unreleased] - 2024-12-31
 
 ### Added
