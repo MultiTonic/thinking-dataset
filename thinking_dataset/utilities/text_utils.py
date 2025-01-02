@@ -17,3 +17,13 @@ class TextUtils:
             return "..."[:max_length]
         return text if len(text) <= max_length else text[:max_length -
                                                          3] + '...'
+
+    @staticmethod
+    def human_readable_size(size, decimal_places=2):
+        """
+        Convert a size in bytes to a human-readable format.
+        """
+        for unit in ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB']:
+            if size < 1024.0:
+                return f"{size:.{decimal_places}f} {unit}"
+            size /= 1024.0

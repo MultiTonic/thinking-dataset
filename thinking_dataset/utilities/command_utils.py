@@ -6,7 +6,6 @@
 """
 
 import os
-import importlib
 import pandas as pd
 from ..utilities.log import Log
 from dotenv import load_dotenv as dotenv
@@ -93,20 +92,3 @@ class CommandUtils:
         import re
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
-
-    @staticmethod
-    def get_pipe_class(type, log):
-        """
-        Dynamically import and return the pipe class based on the pipe type.
-        """
-        module_name = "thinking_dataset.pipeworks.pipes." + \
-            CommandUtils.camel_to_snake(type)
-
-        try:
-            module = importlib.import_module(module_name)
-            return getattr(module, type)
-        except (ImportError, AttributeError) as e:
-            Log.error(
-                log, f"Error loading pipe class {type} "
-                f"from module {module_name}: {e}")
-            raise

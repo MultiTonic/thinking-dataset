@@ -6,11 +6,11 @@
 """
 
 import pandas as pd
-from .base_pipe import BasePipe
+from .pipe import Pipe
 from ...utilities.log import Log
 
 
-class HandleMissingValuesPipe(BasePipe):
+class HandleMissingValuesPipe(Pipe):
     """
     Pipe to handle missing values in the DataFrame.
     """
@@ -34,12 +34,13 @@ class HandleMissingValuesPipe(BasePipe):
         if "auto" not in columns:
             missing_columns = [col for col in columns if col not in df.columns]
             if missing_columns:
-                raise KeyError("Missing columns for "
-                               f"missing values check: {missing_columns}")
+                raise KeyError("Missing columns for missing "
+                               f"values check: {missing_columns}")
 
         if remove_partials:
             if not allow_empty:
                 for col in columns:
+                    Log.info(log, f"Processing column: {col}")
                     df[col] = df[col].replace(r'^\s*$', pd.NA, regex=True)
             df = df.dropna(subset=columns)
 

@@ -7,7 +7,6 @@
 
 from typing import List
 from ..pipes.pipe import Pipe
-from ...utilities.command_utils import CommandUtils as Utils
 
 
 class Pipeline:
@@ -33,8 +32,8 @@ class Pipeline:
             for pipe_config in pipeline_config['pipeline']['pipes']:
                 pipe_details = pipe_config['pipe']
                 pipe_type = pipe_details['type']
-                pipe_class = Utils.get_pipe_class(pipe_type, log)
-                pipes.append(Pipe(pipe_class, pipe_details['config']))
+                pipe_class = Pipe.get_class(pipe_type)
+                pipes.append(pipe_class(pipe_details['config']))
 
             pipeline = Pipeline(pipes, pipeline_config['pipeline']['config'])
             pipelines.append(pipeline)

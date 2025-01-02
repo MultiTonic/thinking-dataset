@@ -14,6 +14,7 @@ from ..utilities.command_utils import CommandUtils as Utils
 from ..utilities.exceptions import exceptions
 from ..utilities.logger import logger
 from ..utilities.load_dotenv import dotenv
+from ..utilities.text_utils import TextUtils as Text
 
 
 @click.command()
@@ -50,7 +51,8 @@ def prepare(ctx, **kwargs):
             Log.info(log, f"Processing file: {input_file}")
 
             if not Files.exists(input_file):
-                raise FileNotFoundError(f"File not found: {input_file}")
+                Log.warn(log, f"File not found: {input_file}")
+                continue
 
             file_root, file_ext = os.path.splitext(file)
             file_name = prepare_file.format(file_base=file_root,
@@ -60,11 +62,18 @@ def prepare(ctx, **kwargs):
             df = Utils.read_data(input_file, config.DATASET_TYPE)
 
             for pipe in pipeline.pipes:
+                Log.info(log, f"Running {pipe.__class__.__name__} on {file}")
                 df = pipe.flow(df, log)
 
             Utils.to(df, file_path, config.DATASET_TYPE)
 
-            Log.info(log, f"Data processed and saved to {file_path}")
+            file_size = os.path.getsize(file_path)
+            human_readable_file_size = Text.human_readable_size(file_size)
+            Log.info(
+                log, f"Data processed and saved to {file_path} "
+                f"(Size: {human_readable_file_size})")
+
+    Log.info(log, "Prepare command completed successfully.")
 
 
 if __name__ == "__main__":

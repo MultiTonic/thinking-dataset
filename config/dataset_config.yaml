@@ -36,3 +36,8 @@ dataset:
             columns: [ "auto" ]
             remove_partials: True
             allow_empty: False
+      - pipe:
+          name: "Clean Whitespace"
+          type: "CleanWhitespacePipe"
+          config:
+            columns: [ "pdf_content" ]

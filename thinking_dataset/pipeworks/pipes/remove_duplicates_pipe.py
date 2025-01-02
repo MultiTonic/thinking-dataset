@@ -6,11 +6,11 @@
 """
 
 import pandas as pd
-from .base_pipe import BasePipe
+from .pipe import Pipe
 from ...utilities.log import Log
 
 
-class RemoveDuplicatesPipe(BasePipe):
+class RemoveDuplicatesPipe(Pipe):
     """
     Pipe to remove duplicates from the DataFrame.
     """

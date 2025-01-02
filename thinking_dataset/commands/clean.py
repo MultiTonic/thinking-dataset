@@ -33,7 +33,12 @@ def clean(ctx, **kwargs):
     files = Files(config)
     path = files.get_path(config.ROOT_DIR, config.DATA_DIR)
 
-    Files.remove_dir(path, log)
+    try:
+        Files.remove_dir(path, log)
+    except PermissionError as e:
+        Log.warning(
+            log, f"Skipping file {e.filename} as it is "
+            "being used by another process.")
 
     Log.info(log, "Clean command completed successfully.")
 

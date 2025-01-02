@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'huggingface_hub[cli]', 'datasets', 'PyPDF2', 'python-dotenv', 'click',
-        'requests', 'rich', 'sqlite-utils', 'pytest', 'pytest-html',
+        'requests', 'rich', 'sqlite-utils', 'pytest', 'pytest-html', 'psutil',
         'pytest-cov', 'loguru', 'pandas', 'numpy', 'scikit-learn',
         'sqlalchemy', 'tqdm', 'pydantic', 'python-statemachine'
     ],

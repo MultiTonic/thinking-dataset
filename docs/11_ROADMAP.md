@@ -29,12 +29,22 @@ This document outlines the future plans, features, and milestones for the "Dark 
 ### Phase 3: Data Enrichment and Case Study Creation
 - **Cable Creation**
   - [ ] Combine multiple seed objects to generate cables (detailed scenarios).
+- **Persona Database**
+  - [ ] Extract and store stakeholder personas from the source material.
+- **Synthetic SitRep Generation**
+  - [ ] Generate synthetic Situation Reports (SitReps) based on the cables.
 - **Case Study Generation**
-  - [ ] Use cables to create detailed case studies with injected data points.
-- **Standard Format Distillation**
-  - [ ] Refine case studies into a consistent format for model training.
+  - [ ] Distribute SitReps to various imaginary stakeholders.
+  - [ ] Stakeholders write detailed case studies maximizing their stake or claim.
 
-### Phase 4: Model Training and Evaluation
+### Phase 4: Critic Agents and Evaluation
+- **Critic Agents Implementation**
+  - [ ] Create critic agents to evaluate the case studies.
+  - [ ] Evaluate case studies based on benchmarks and provide feedback.
+- **Research and Improvement**
+  - [ ] Use benchmarks to drive research and improve case studies through Reinforcement Learning from Human Feedback (RLHF).
+
+### Phase 5: Model Training and Evaluation
 - **Dataset Preparation**
   - [ ] Validate data integrity and balance classes.
   - [ ] Split data into training and testing sets.
@@ -45,7 +55,7 @@ This document outlines the future plans, features, and milestones for the "Dark 
   - [ ] Implement an evaluation system to score models.
   - [ ] Compare fine-tuned models against baseline models.
 
-### Phase 5: Inference Endpoint Adapters/Bridges
+### Phase 6: Inference Endpoint Adapters/Bridges
 - **Unified Interface**
   - [ ] Create a common interface or abstract class for adapters.
 - **Adapter Implementations**
@@ -53,7 +63,7 @@ This document outlines the future plans, features, and milestones for the "Dark 
 - **Integration**
   - [ ] Seamlessly integrate adapters into the main application.
 
-### Phase 6: Continuous Improvement
+### Phase 7: Continuous Improvement
 - **Feedback Loop**
   - [ ] Gather user and system feedback to iteratively refine the dataset and models.
 - **Documentation**
