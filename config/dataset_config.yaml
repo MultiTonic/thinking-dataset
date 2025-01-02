@@ -28,9 +28,11 @@ dataset:
           name: "Remove Duplicates"
           type: "RemoveDuplicatesPipe"
           config:
-            columns: [ "pdf_content", "filename" ]
+            columns: [ "auto" ]
       - pipe:
           name: "Handle Missing Values"
           type: "HandleMissingValuesPipe"
           config:
-            columns: [ "pdf_content", "filename" ]
+            columns: [ "auto" ]
+            remove_partials: True
+            allow_empty: False
