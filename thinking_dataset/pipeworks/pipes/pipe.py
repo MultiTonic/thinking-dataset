@@ -29,7 +29,7 @@ class Pipe(ABC):
         pass
 
     @staticmethod
-    def get_class(type):
+    def get_pipe(type):
         """
         Dynamically import and return the pipe class based on the pipe type.
         """

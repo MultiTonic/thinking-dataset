@@ -5,7 +5,6 @@
 @license MIT
 """
 
-import os
 import click
 from ..io.files import Files
 from ..utilities.log import Log
@@ -14,7 +13,6 @@ from ..utilities.command_utils import CommandUtils as Utils
 from ..utilities.exceptions import exceptions
 from ..utilities.logger import logger
 from ..utilities.load_dotenv import dotenv
-from ..utilities.text_utils import TextUtils as Text
 
 
 @click.command()
@@ -38,40 +36,10 @@ def prepare(ctx, **kwargs):
     files.make_dir(processed_path, log)
     Log.info(log, f"Ensured processed data directory exists: {processed_path}")
 
-    pipelines = Pipeline.setup(config, log)
+    pipelines = Pipeline.get_pipelines(config)
 
     for pipeline in pipelines:
-        prepare_file = pipeline.config.get("prepare_file")
-
-        for file in config.INCLUDE_FILES:
-            if Files.is_excluded(file, config.EXCLUDE_FILES, log):
-                continue
-
-            input_file = Files.get_path(raw_path, file)
-            Log.info(log, f"Processing file: {input_file}")
-
-            if not Files.exists(input_file):
-                Log.warn(log, f"File not found: {input_file}")
-                continue
-
-            file_root, file_ext = os.path.splitext(file)
-            file_name = prepare_file.format(file_base=file_root,
-                                            file_ext=file_ext)
-            file_path = Files.get_path(processed_path, file_name)
-
-            df = Utils.read_data(input_file, config.DATASET_TYPE)
-
-            for pipe in pipeline.pipes:
-                Log.info(log, f"Running {pipe.__class__.__name__} on {file}")
-                df = pipe.flow(df, log)
-
-            Utils.to(df, file_path, config.DATASET_TYPE)
-
-            file_size = os.path.getsize(file_path)
-            human_readable_file_size = Text.human_readable_size(file_size)
-            Log.info(
-                log, f"Data processed and saved to {file_path} "
-                f"(Size: {human_readable_file_size})")
+        pipeline.flow(config, raw_path, processed_path, log)
 
     Log.info(log, "Prepare command completed successfully.")
 
