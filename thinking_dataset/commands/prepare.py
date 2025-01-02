@@ -6,10 +6,8 @@
 """
 
 import click
-from ..io.files import Files
 from ..utilities.log import Log
 from ..pipeworks.pipelines.pipeline import Pipeline
-from ..utilities.command_utils import CommandUtils as Utils
 from ..utilities.exceptions import exceptions
 from ..utilities.logger import logger
 from ..utilities.load_dotenv import dotenv
@@ -28,18 +26,8 @@ def prepare(ctx, **kwargs):
     ctx.obj = log
     Log.info(log, "Starting the prepare command.")
 
-    config = Utils.load_dataset_config(kwargs['dotenv']['DATASET_CONFIG_PATH'])
-    files = Files(config)
-
-    raw_path = files.get_raw_path()
-    processed_path = files.get_processed_path()
-    files.make_dir(processed_path, log)
-    Log.info(log, f"Ensured processed data directory exists: {processed_path}")
-
-    pipelines = Pipeline.get_pipelines(config)
-
-    for pipeline in pipelines:
-        pipeline.flow(config, raw_path, processed_path, log)
+    pipeline = Pipeline(log)
+    pipeline.open()
 
     Log.info(log, "Prepare command completed successfully.")
 

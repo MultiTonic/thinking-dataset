@@ -5,6 +5,7 @@
 @license MIT
 """
 
+from ..utilities.command_utils import CommandUtils
 from ..utilities.config_loader import ConfigLoader
 
 
@@ -35,11 +36,43 @@ class DatasetConfig:
         """
         Validate the configuration settings.
         """
+        missing = []
         if not self.HF_DATASET:
-            raise ValueError("HF_DATASET must be set.")
+            missing.append("HF_DATASET")
         if not self.DATASET_TYPE:
-            raise ValueError("DATASET_TYPE must be set.")
+            missing.append("DATASET_TYPE")
         if not self.DATABASE_URL:
-            raise ValueError("DATABASE_URL must be set.")
+            missing.append("DATABASE_URL")
+        if not self.ROOT_DIR:
+            missing.append("ROOT_DIR")
+        if not self.DATA_DIR:
+            missing.append("DATA_DIR")
+        if not self.RAW_DIR:
+            missing.append("RAW_DIR")
+        if not self.PROCESSED_DIR:
+            missing.append("PROCESSED_DIR")
+        if not self.DB_DIR:
+            missing.append("DB_DIR")
+        if not self.INCLUDE_FILES:
+            missing.append("INCLUDE_FILES")
+        if not self.EXCLUDE_FILES:
+            missing.append("EXCLUDE_FILES")
+        if not self.LOAD_PATTERNS:
+            missing.append("LOAD_PATTERNS")
         if not self.PIPELINES:
-            raise ValueError("PIPELINES must be set.")
+            missing.append("PIPELINES")
+
+        if missing:
+            raise ValueError(
+                f"Missing required configuration: {', '.join(missing)}")
+
+    @staticmethod
+    def get_config():
+        """
+        Get the dataset configuration.
+        """
+        dotenv = CommandUtils.load_dotenv()
+        config_path = dotenv.get("DATASET_CONFIG_PATH")
+        config = DatasetConfig(config_path)
+        config.validate()
+        return config
