@@ -7,7 +7,7 @@ This document provides answers to some of the most frequently asked questions ab
 ### General Questions
 
 **Q: What is the "Dark Thoughts" thinking-dataset project?**  
-**A:** The "Dark Thoughts" thinking-dataset project aims to develop a comprehensive dataset focused on hypothetical scenarios involving ethical dilemmas, cognitive biases, and complex decision-making processes. The goal is to analyze and simulate human cognitive processes and train AI models in reasoning, ethics, and decision-making.
+**A:** The "Dark Thoughts" thinking-dataset project aims to develop a focussed dataset focused on business case studies. The goal is to provide shrewd and realistic business advisory.
 
 **Q: Who can contribute to this project?**  
 **A:** Anyone is welcome to contribute! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for detailed guidelines on how to get involved.
