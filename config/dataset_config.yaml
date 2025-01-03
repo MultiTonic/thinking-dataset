@@ -25,19 +25,62 @@ dataset:
         prepare_file: "{file_base}_prepare{file_ext}"
       pipes:
       - pipe:
-          name: "Remove Duplicates"
+          type: "AddIdPipe"
+          config: {}
+      - pipe:
+          type: "DropColumnsPipe"
+          config:
+            columns: [ "file_name" ]
+      - pipe:
+          type: "RemapColumnsPipe"
+          config:
+            column_mapping:
+              pdf_content: cable
+            column_order:
+            - id
+            - cable
+      - pipe:
           type: "RemoveDuplicatesPipe"
           config:
             columns: [ "auto" ]
       - pipe:
-          name: "Handle Missing Values"
           type: "HandleMissingValuesPipe"
           config:
             columns: [ "auto" ]
             remove_partials: True
             allow_empty: False
       - pipe:
-          name: "Clean Whitespace"
           type: "CleanWhitespacePipe"
           config:
-            columns: [ "pdf_content" ]
+            columns: [ "cable" ]
+      - pipe:
+          type: "NormalizeTextPipe"
+          config:
+            columns: [ "cable" ]
+            contractions:
+              "don't": "do not"
+              "can't": "cannot"
+              "i'm": "i am"
+              "you're": "you are"
+              "it's": "it is"
+              "they're": "they are"
+              "we're": "we are"
+              "isn't": "is not"
+              "aren't": "are not"
+              "wasn't": "was not"
+              "weren't": "were not"
+              "hasn't": "has not"
+              "haven't": "have not"
+              "hadn't": "had not"
+              "won't": "will not"
+              "wouldn't": "would not"
+              "couldn't": "could not"
+              "shouldn't": "should not"
+              "mightn't": "might not"
+              "mustn't": "must not"
+      - pipe:
+          type: "FilterBySizePipe"
+          config:
+            column_name: "cable"
+            min_size: 500
+            max_size: 0

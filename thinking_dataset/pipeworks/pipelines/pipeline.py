@@ -6,6 +6,7 @@
 """
 
 import os
+import time
 from ...io.files import Files
 from ..pipes.pipe import Pipe
 from ...utilities.log import Log
@@ -34,11 +35,10 @@ class Pipeline:
         pipeline_configs = self.config.PIPELINES
         for pipeline_config in pipeline_configs:
             pipes = []
-            for pipe_config in pipeline_config['pipeline']['pipes']:
-                details = pipe_config['pipe']
-                pipe_type = details['type']
-                pipe = Pipe.get_pipe(pipe_type)
-                pipes.append(pipe(details['config']))
+            for pipe in pipeline_config['pipeline']['pipes']:
+                pipe_type = pipe['pipe']['type']
+                pipe_instance = Pipe.get_pipe(pipe_type)
+                pipes.append(pipe_instance(pipe['pipe'].get('config', {})))
             Pipeline.pipelines.append(
                 (pipes, pipeline_config['pipeline']['config']))
 
@@ -51,7 +51,7 @@ class Pipeline:
 
     def _process_pipes(self, df, pipes, file, log):
         for pipe in pipes:
-            Log.info(log, f"Running {pipe.__class__.__name__} on {file}")
+            Log.info(log, f"Open -- {pipe.__class__.__name__} on {file}")
             df = pipe.flow(df, log)
         return df
 
@@ -85,5 +85,11 @@ class Pipeline:
                 self._process_file(file, prepare_file, pipes, log)
 
     def open(self):
+        start_time = time.time()
         for pipes, pipe_config in Pipeline.pipelines:
             self._process_pipeline(pipes, pipe_config, self.log)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        human_readable_time = time.strftime("%H:%M:%S",
+                                            time.gmtime(elapsed_time))
+        Log.info(self.log, f"Total running time: {human_readable_time}")

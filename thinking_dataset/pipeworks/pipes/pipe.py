@@ -1,5 +1,5 @@
 """
-@file project_root/thinking_dataset/pipes/base_pipe.py
+@file project_root/thinking_dataset/pipeworks/pipes/pipe.py
 @description Defines BasePipe class for preprocessing tasks with logging.
 @version 1.0.0
 @license MIT
@@ -26,22 +26,23 @@ class Pipe(ABC):
         """
         Flow the DataFrame through the pipe. To be implemented by subclasses.
         """
+        self.log.info(f"Flow -- {self.__class__.__name__}")
         pass
 
     @staticmethod
-    def get_pipe(type):
+    def get_pipe(pipe_type):
         """
         Dynamically import and return the pipe class based on the pipe type.
         """
         module_name = "thinking_dataset.pipeworks.pipes." + \
-            Utils.camel_to_snake(type)
+            Utils.camel_to_snake(pipe_type)
 
         try:
             module = importlib.import_module(module_name)
-            return getattr(module, type)
+            return getattr(module, pipe_type)
         except (ImportError, AttributeError):
-            raise ImportError(
-                f"Error loading pipe class {type} from module {module_name}")
+            raise ImportError(f"Error loading pipe class {pipe_type} "
+                              f"from module {module_name}")
 
     def progress_apply(self, series, func, desc):
         """

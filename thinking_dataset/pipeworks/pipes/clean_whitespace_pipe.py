@@ -1,5 +1,5 @@
 """
-@file project_root/thinking_dataset/pipes/clean_whitespace_pipe.py
+@file thinking_dataset/pipeworks/pipes/clean_whitespace_pipe.py
 @description Defines CleanWhitespacePipe for cleaning unnecessary whitespace.
 @version 1.0.0
 @license MIT
@@ -7,6 +7,7 @@
 
 import pandas as pd
 import re
+from tqdm import tqdm
 from .pipe import Pipe
 from ...utilities.log import Log
 
@@ -18,6 +19,10 @@ class CleanWhitespacePipe(Pipe):
 
     def flow(self, df: pd.DataFrame, log, **args) -> pd.DataFrame:
         columns = self.config.get("columns", [])
+
+        # Support for auto-detection of columns
+        if columns == ["auto"]:
+            columns = df.columns.tolist()
 
         Log.info(log, "Starting CleanWhitespacePipe")
         Log.info(log, f"Columns to clean: {columns}")
@@ -31,9 +36,8 @@ class CleanWhitespacePipe(Pipe):
 
         for col in columns:
             Log.info(log, f"Cleaning column: {col}")
-            df[col] = self.progress_apply(df[col],
-                                          clean_text,
-                                          desc=f"Cleaning {col}")
+            tqdm.pandas(desc=f"Cleaning {col}")
+            df[col] = df[col].progress_apply(clean_text)
 
         final_lengths = df[columns].map(len)
         total_initial_length = initial_lengths.sum().sum()
