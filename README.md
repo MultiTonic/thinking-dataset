@@ -14,7 +14,7 @@
 
 ## Overview
 
-The Thinking Dataset Project is designed to build a comprehensive dataset focused on facilitating various data-driven tasks and analyses. This project aims to utilize cutting-edge technologies and frameworks to manage, process, and analyze a wide range of data efficiently.
+The Thinking Dataset Project is designed to build a comprehensive dataset focused on facilitating various data-driven tasks and analyses. Manage, process, and analyze a wide range of data efficiently.
 
 ## Features
 
@@ -114,7 +114,7 @@ result = database.fetch_data("YOUR_SQL_QUERY")
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure your code adheres to the project's coding standards and includes appropriate tests.
+Contributions are welcome! Add an issue on Github, then fork the repository and create a pull request with your changes. Ensure your code adheres to the project's coding standards and includes appropriate tests.
 
 ## License
 
