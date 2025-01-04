@@ -34,6 +34,11 @@ def clean(ctx, **kwargs):
     files = Files(config)
     path = files.get_path(config.ROOT_DIR, config.DATA_DIR)
 
+    if not os.path.exists(path):
+        Log.info(log, f"Directory not found: {path}")
+        Log.info(log, "Clean command completed with no changes.")
+        return
+
     removed_files_count = 0
     removed_dirs_count = 0
     skipped_count = 0
