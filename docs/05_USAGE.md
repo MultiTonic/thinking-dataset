@@ -77,7 +77,7 @@ The Command Line Interface (CLI) of the "Dark Thoughts" thinking-dataset project
 
 1. **Generate Seeds**: Create seed objects using predefined keywords.
    ```bash
-   thinking-dataset generate-seeds --keywords "ethics, bias"
+   thinking-dataset generate-seeds --keywords "strategy, ethics"
    ```
 
 2. **Create Cables**: Combine seed objects to generate cables.
@@ -125,7 +125,7 @@ To generate case studies from the data:
 
 1. **Generate Seeds**:
    ```bash
-   thinking-dataset generate-seeds --keywords "ethics, bias"
+   thinking-dataset generate-seeds --keywords "strategy, ethics"
    ```
 
 2. **Create Cables**:

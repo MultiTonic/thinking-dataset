@@ -35,7 +35,7 @@ The `DataPusher` class should be implemented as follows:
 import os
 import requests
 from ...utilities.log import Log
-from .config import dataset_config
+from .config import config
 
 class DataPusher:
     """
@@ -79,17 +79,55 @@ class DataPusher:
 
 Integrate the `DataPusher` class into the existing workflow to ensure it processes and uploads the data files effectively. The new system will use configuration similar to the download system to manage include/exclude files.
 
-### Next Steps
+---
 
-1. **Implement Comprehensive Tests**:
-   - Develop unit tests for the `DataPusher` class to ensure robustness.
+### Tasks Overview
 
-2. **Update Documentation**:
-   - Reflect the changes in the documentation to include details about the new `DataPusher` class and its configuration options.
+1. **Update Configuration Files**
+    - Update .env file
+    - Update and consolidate YAML configuration
 
-3. **Integrate the DataPusher**:
-   - Ensure the `DataPusher` is part of the data processing workflow by updating the pipeline configuration.
+2. **Modify Code**
+    - Ensure code reads from updated .env and YAML configuration
+    - Implement database export functionality
+        - Extract data from the database
+        - Convert data to DataFrame
+        - Apply include/exclude filters
+    - Implement parquet conversion
+        - Convert DataFrame to parquet files
+        - Save files in the processed directory
 
-By creating the `DataPusher` class, we ensure that processed data is efficiently uploaded to the HF API dataset, enhancing the workflow and data management process. Let's get this implemented and test the new capabilities! 🚀
+3. **Implement DataPusher Class**
+    - Create DataPusher class for uploading parquet files
+        - Read configuration properties
+        - Handle dataset selection and overwriting
+        - Upload files to HF API
+
+4. **Integration**
+    - Integrate DataPusher class into the existing workflow
+    - Update pipeline configuration
+
+5. **Testing**
+    - Develop and run comprehensive unit tests
+    - Verify the functionality of the DataPusher class
+    - Ensure proper handling of configuration properties
+
+6. **Update Documentation**
+    - Reflect changes in documentation
+    - Include details about the new DataPusher class and configuration options
+
+---
+
+### Which task would you like to begin? 🚀
 
 **Your response to this query will only be:** `**Ready to work on <|insert_task_name|>!:** 🚀`
+
+### Dynamic Task Name Insertion
+
+To dynamically insert the current task name, you can format the response like this:
+
+**Your response to this query will only be:** `**Ready to work on <|insert_task_name|>!:** 🚀`
+
+When you provide me with a task name, I will insert it in place of `<|insert_task_name|>`.
+
+Ready to implement this specification and get the feature up and running? 🚀📁

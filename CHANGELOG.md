@@ -4,6 +4,84 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2025-1-3
+
+### Added
+- **Files Worked On**:
+  - `thinking_dataset/commands/clean.py`
+  - `thinking_dataset/commands/download.py`
+  - `thinking_dataset/commands/load.py`
+  - `thinking_dataset/commands/prepare.py`
+  - `thinking_dataset/io/files.py`
+  - `thinking_dataset/utilities/command_utils.py`
+  - `thinking_dataset/pipeworks/pipes/normalize_text_pipe.py`
+  - `thinking_dataset/config/dataset_config.yaml`
+  - `thinking_dataset/utilities/text_utils.py`
+  - `thinking_dataset/pipelines/pipeline.py`
+- **Implemented Comprehensive Text Normalization**:
+  - Added `NormalizeTextPipe` class to handle text normalization tasks:
+    - Convert text to lowercase
+    - Expand contractions
+    - Remove separators and special characters
+    - Normalize numbers and space-separated characters
+    - Remove partial extract intros, section headers, and sign-offs
+    - Remove initial patterns and period patterns
+    - Remove headers before the first occurrence of `subject:`
+    - Clean unnecessary whitespace
+- **Enhanced `TextUtils` Class**:
+  - Added new methods:
+    - `expand_contractions`
+    - `remove_special_characters`
+    - `remove_separators`
+    - `remove_whitespace`
+    - `normalize_numbers`
+    - `normalize_spaced_characters`
+    - `remove_partial_extract_intro`
+    - `remove_section_headers`
+    - `remove_signoff`
+    - `remove_initial_pattern`
+    - `remove_period_patterns`
+    - `remove_header`
+- **Updated Pipeline Configuration**:
+  - Included the following pipes:
+    - AddIdPipe
+    - DropColumnsPipe
+    - RemapColumnsPipe
+    - RemoveDuplicatesPipe
+    - HandleMissingValuesPipe
+    - CleanWhitespacePipe
+    - NormalizeTextPipe
+    - FilterBySizePipe
+  - Ensured normalization before filtering by size
+  - Added contraction mappings for text normalization
+- **Implemented Logging and Testing**:
+  - Implemented logging for tracking the total running time of the pipeline
+  - Conducted comprehensive testing to ensure proper text normalization and data cleaning
+  - Verified that normalized text fits within LLaMA's 128k context window
+  - Ensured all changes align with defined goals and maintain code readability and efficiency
+- **ExpandTermsPipe**:
+  - Added `ExpandTermsPipe` class to handle expansion of abbreviations and acronyms:
+    - Configured columns to expand and terms to use for expansion.
+    - Utilized `TextUtils.expand_terms` method for term expansion.
+    - Ensured removal of unnecessary whitespace using `TextUtils.remove_whitespace`.
+
+### Fixed
+- **Enhanced Error Handling**:
+  - Updated the `clean` command to check if the data directory exists before attempting to remove it.
+  - Added a check to log a message and exit gracefully if the directory does not exist, avoiding FileNotFoundError.
+  - Improved logging and error handling to provide clear feedback on the cleanup process.
+  - Added handling for PermissionError to skip files in use by other processes, with appropriate logging.
+
+### Changed
+- **Documentation**:
+  - Created a specification for implementing multi-threaded processing in the Pipe class.
+  - Updated the "Prompt Template for Recent Work" to improve structure and readability:
+    - Replaced all mentions of `preprocess` command with `prepare` command.
+    - Adjusted the order of sections to ensure optimal memory usage.
+    - Updated "Files Worked On" to include relevant files for `pipeworks` pipeline, dataset configuration, and command enhancements.
+    - Enhanced the "Notes for Next Session" section to provide clear and actionable tasks.
+    - Refined the "Overview" section to ensure clear documentation of recent changes and improvements.
+
 ## [Unreleased] - 2025-1-2
 
 ### Added
