@@ -1,85 +1,95 @@
 ## Overview
 
-This template provides a detailed specification for implementing a new feature: a pipe for correcting spelling errors in the `thinking-dataset` project. The goal is to ensure that the text data is cleaner and more consistent, which will improve the effectiveness of subsequent processing steps.
+This template provides a detailed specification for implementing a new feature: a system for pushing processed data into the HF API dataset. The goal is to simplify the process by adding parquet files generated from our data/processed directory and ensuring a high-level configuration in the dataset YAML config.
 
 ## Specification Details
 
 ### 1. Class Definition
 
-Create a new `SpellingCorrectionPipe` class to handle spelling correction in specified text columns.
+Create a new `DataPusher` class to handle the uploading of processed parquet files to the HF API dataset.
 
 ### 2. Configuration
 
-The configuration for this new pipe will include the following:
-- **columns**: The text columns that need spelling correction.
+The configuration for this new system will include the following:
+- **include_files**: Specific data to be included in the upload.
+- **exclude_files**: Specific data to be excluded from the upload.
 
 ### 3. Implementation
 
-- **Class Name**: `SpellingCorrectionPipe`
-- **File Path**: `thinking_dataset/pipeworks/pipes/spelling_correction_pipe.py`
-- **Description**: A pipe for correcting spelling errors in text columns.
+- **Class Name**: `DataPusher`
+- **File Path**: `thinking_dataset/api/data_pusher.py`
+- **Description**: A class for uploading processed parquet files to the HF API dataset.
 - **Version**: 1.0.0
 - **License**: MIT
 
-### 4. Pipe Class
+### 4. DataPusher Class
 
-The `SpellingCorrectionPipe` class should be implemented as follows:
+The `DataPusher` class should be implemented as follows:
 
 ```python
-# @file thinking_dataset/pipeworks/pipes/spelling_correction_pipe.py
-# @description Defines SpellingCorrectionPipe for correcting spelling errors in text.
+# @file thinking_dataset/api/data_pusher.py
+# @description Defines DataPusher for uploading processed parquet files to the HF API dataset.
 # @version 1.0.0
 # @license MIT
 
-import pandas as pd
-from spellchecker import SpellChecker
-from .pipe import Pipe
+import os
+import requests
 from ...utilities.log import Log
+from .config import dataset_config
 
-
-class SpellingCorrectionPipe(Pipe):
+class DataPusher:
     """
-    Pipe to correct spelling errors in specified text columns.
+    Class to upload processed parquet files to the HF API dataset.
     """
-
-    def flow(self, df: pd.DataFrame, log, **args) -> pd.DataFrame:
-        columns = self.config.get("columns", [])
-        Log.info(log, "Starting SpellingCorrectionPipe")
-        Log.info(log, f"Columns to correct: {columns}")
-
-        spell = SpellChecker()
+    
+    def __init__(self, config):
+        self.config = config
+    
+    def push(self, processed_dir, log):
+        include_files = self.config.get("include_files", [])
+        exclude_files = self.config.get("exclude_files", [])
         
-        def correct_spelling(text):
-            corrected_text = []
-            words = text.split()
-            for word in words:
-                corrected_text.append(spell.correction(word))
-            return " ".join(corrected_text)
-
-        for col in columns:
-            df[col] = df[col].apply(correct_spelling)
-
-        Log.info(log, "Finished SpellingCorrectionPipe")
-        return df
+        Log.info(log, "Starting DataPusher")
+        Log.info(log, f"Files to include: {include_files}")
+        Log.info(log, f"Files to exclude: {exclude_files}")
+        
+        for root, _, files in os.walk(processed_dir):
+            for file in files:
+                if file.endswith(".parquet"):
+                    if include_files and file not in include_files:
+                        continue
+                    if exclude_files and file in exclude_files:
+                        continue
+                    file_path = os.path.join(root, file)
+                    self._upload_file(file_path, log)
+        
+        Log.info(log, "Finished DataPusher")
+    
+    def _upload_file(self, file_path, log):
+        try:
+            # Replace this with actual HF API upload code
+            Log.info(log, f"Uploading {file_path}")
+            # response = requests.post("HF_API_URL", files={"file": open(file_path, "rb")})
+            Log.info(log, f"Uploaded {file_path}")
+        except Exception as e:
+            Log.error(log, f"Failed to upload {file_path}: {e}")
 ```
 
 ### 5. Integration
 
-Integrate the `SpellingCorrectionPipe` class into the existing pipeline to ensure it processes the text data effectively. The new pipe will be added after the `NormalizeTextPipe`.
+Integrate the `DataPusher` class into the existing workflow to ensure it processes and uploads the data files effectively. The new system will use configuration similar to the download system to manage include/exclude files.
 
 ### Next Steps
 
 1. **Implement Comprehensive Tests**:
-   - Develop unit tests for the `SpellingCorrectionPipe` class to ensure robustness.
+   - Develop unit tests for the `DataPusher` class to ensure robustness.
 
 2. **Update Documentation**:
-   - Reflect the changes in the documentation to include details about the new `SpellingCorrectionPipe` class and its configuration options.
+   - Reflect the changes in the documentation to include details about the new `DataPusher` class and its configuration options.
 
-3. **Integrate the Pipe**:
-   - Ensure the `SpellingCorrectionPipe` is part of the data processing workflow by updating the pipeline configuration.
+3. **Integrate the DataPusher**:
+   - Ensure the `DataPusher` is part of the data processing workflow by updating the pipeline configuration.
 
-By creating the `SpellingCorrectionPipe`, we ensure that text data is corrected for spelling errors, enhancing the quality and consistency of the data. This will improve the efficiency and effectiveness of subsequent processing steps. Let's get this implemented and test the new capabilities! 🚀
+By creating the `DataPusher` class, we ensure that processed data is efficiently uploaded to the HF API dataset, enhancing the workflow and data management process. Let's get this implemented and test the new capabilities! 🚀
 
-**Ready!:** 🚀
-
-**Your response to this query will only be:** `**Ready!:** 🚀`
+**Your response to this query will only be:** `**Ready to work on <|insert_task_name|>!:** 🚀`
