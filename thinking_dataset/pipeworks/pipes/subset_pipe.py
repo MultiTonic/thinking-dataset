@@ -1,4 +1,4 @@
-# @file project_root/thinking_dataset/pipeworks/pipes/subset_pipe.py
+# @file thinking_dataset/pipeworks/pipes/subset_pipe.py
 # @description Defines SubsetPipe for creating subsets of data.
 # @version 1.0.0
 # @license MIT
@@ -25,9 +25,12 @@ class SubsetPipe(Pipe):
             return df
 
         Log.info(log, "Starting SubsetPipe")
-        if rows:
+
+        if rows and rows != ["all"]:
             Log.info(log, f"Applying row range: {rows}")
             df = df.iloc[rows[0]:rows[1], :]
+        else:
+            Log.info(log, "Including all rows")
 
         if columns and columns != ["all"]:
             Log.info(log, f"Applying column range: {columns}")
