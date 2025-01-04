@@ -27,7 +27,7 @@ dataset:
       - pipe:
           type: "SubsetPipe"
           config:
-            rows: [ 0, 100 ]
+            rows: [ all ]
             columns: [ "all" ]
       - pipe:
           type: "AddIdPipe"
