@@ -1,6 +1,6 @@
 # @file thinking_dataset/pipeworks/pipes/subset_pipe.py
 # @description Defines SubsetPipe for creating subsets of data.
-# @version 1.0.0
+# @version 1.1.0
 # @license MIT
 
 import pandas as pd
@@ -37,6 +37,9 @@ class SubsetPipe(Pipe):
             df = df.iloc[:, columns[0]:columns[1]]
         else:
             Log.info(log, "Including all columns")
+
+        if 'id' in df.columns:
+            df = df[['id'] + [col for col in df.columns if col != 'id']]
 
         total_rows = df.shape[0]
         total_columns = df.shape[1]

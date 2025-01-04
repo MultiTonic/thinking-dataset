@@ -329,3 +329,9 @@ dataset:
             column_name: "cable"
             min_size: 500
             max_size: 0
+      - pipe:
+          type: "ChunkingPipe"
+          config:
+            columns: [ "cable" ]
+            min_chunk_size: 500
+            max_chunk_size: 10000
