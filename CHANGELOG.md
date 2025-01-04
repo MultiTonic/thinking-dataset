@@ -4,6 +4,67 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2025-1-2
+
+### Added
+- Add `logger` and `dotenv` decorators to `clean`, `download`, `load`, and `prepare` commands
+- Implement progress tracking with `tqdm` for data preprocessing pipes
+- Enhance logging for better traceability and human-readable output
+- Support `auto` column detection for `RemoveDuplicatesPipe` and `HandleMissingValuesPipe`
+- Added `remove_partials` and `allow_empty` configurations for `HandleMissingValuesPipe`
+- Improve error handling for missing columns in preprocessing pipes
+- Break down `_process_file` into smaller private methods within `Pipeline` class
+- Introduce `Pipe` and `Pipeline` classes with dynamic pipe loading
+- Support dynamic loading of processing pipes based on user-defined types
+- Updated prompt template for project guidelines with detailed sections
+- Add `NormalizeTextPipe` class to handle text normalization tasks:
+  - Convert text to lowercase
+  - Expand contractions
+  - Remove separators and special characters
+  - Normalize numbers and space-separated characters
+  - Remove partial extract intros, section headers, and sign-offs
+  - Remove initial patterns and period patterns
+  - Remove headers before the first occurrence of `subject:`
+  - Clean unnecessary whitespace
+- Enhance `TextUtils` class with new methods:
+  - `expand_contractions`
+  - `remove_special_characters`
+  - `remove_separators`
+  - `remove_whitespace`
+  - `normalize_numbers`
+  - `normalize_spaced_characters`
+  - `remove_partial_extract_intro`
+  - `remove_section_headers`
+  - `remove_signoff`
+  - `remove_initial_pattern`
+  - `remove_period_patterns`
+  - `remove_header`
+- Update pipeline configuration to include:
+  - AddIdPipe, DropColumnsPipe, RemapColumnsPipe, RemoveDuplicatesPipe, HandleMissingValuesPipe, CleanWhitespacePipe, NormalizeTextPipe, FilterBySizePipe
+  - Ensure normalization before filtering by size
+  - Added contraction mappings for text normalization
+- Implement logging for tracking the total running time of the pipeline
+- Conduct comprehensive testing to ensure proper text normalization and data cleaning
+- Verified that normalized text fits within LLaMA's 128k context window
+- Ensured all changes align with defined goals and maintain code readability and efficiency
+
+### Fixed
+- Ensure robust error handling and accurate logging with correct timestamp format
+- Resolved deprecation warnings and ensured maintainable code
+
+### Changed
+- Rename `run_flows` method to `open` in `Pipeline` class to align with pipe metaphor
+- Refactor `Pipeline` class for improved modularity and encapsulation
+- Improved `dataset_config.yaml` structure for better clarity and flexibility
+- Updated CLI commands (`prepare`, `download`) to utilize new pipeline methods
+- Enhanced documentation for improved clarity and readability
+- Revised and optimized the "Prompt Template for Recent Work" to improve structure and readability:
+  - Replaced all mentions of `preprocess` command with `prepare` command
+  - Adjusted the order of sections to ensure optimal memory usage
+  - Updated "Files Worked On" to include relevant files for `pipeworks` pipeline, dataset configuration, and command enhancements
+  - Enhanced the "Notes for Next Session" section to provide clear and actionable tasks
+  - Refined the "Overview" section to ensure clear documentation of recent changes and improvements
+
 ## [Unreleased] - 2025-1-1
 
 ### Added
