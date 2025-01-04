@@ -42,10 +42,10 @@ This template provides guidelines and best practices for working on the project.
 - **Standard Header**: Each file should begin with the following standard header:
 
 ```python
-@file project_root/<file_name>.py
-@description <Description>
-@version 1.0.0
-@license MIT
+# @file project_root/<file_name>.py
+# @description <Description>
+# @version 1.0.0
+# @license MIT
 ```
 
 ### 3. Project Context
