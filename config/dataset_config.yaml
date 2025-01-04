@@ -25,6 +25,11 @@ dataset:
         prepare_file: "{file_base}_prepare{file_ext}"
       pipes:
       - pipe:
+          type: "SubsetPipe"
+          config:
+            rows: [ 0, 100 ]
+            columns: [ "all" ]
+      - pipe:
           type: "AddIdPipe"
           config: {}
       - pipe:
@@ -49,10 +54,6 @@ dataset:
             columns: [ "auto" ]
             remove_partials: True
             allow_empty: False
-      - pipe:
-          type: "CleanWhitespacePipe"
-          config:
-            columns: [ "cable" ]
       - pipe:
           type: "NormalizeTextPipe"
           config:
@@ -114,10 +115,6 @@ dataset:
               "you'll": "you will"
               "you're": "you are"
               "you've": "you have"
-      - pipe:
-          type: ExpandTermsPipe
-          config:
-            columns: [ "cable" ]
             terms:
               "i.e": "that is "
               "afg": "afghanistan"
@@ -163,6 +160,7 @@ dataset:
               "fin": "finland"
               "fm": "foreign minister"
               "fr": "france"
+              "fy": "fiscal year"
               "g7": "group of seven"
               "g8": "group of eight"
               "g20": "group of twenty"

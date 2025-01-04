@@ -1,14 +1,15 @@
-"""
-@file thinking_dataset/utilities/text_utils.py
-@description Utility functions for text processing in the thinking-dataset.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/utilities/text_utils.py
+# @description Utility functions for text processing in the thinking-dataset.
+# @version 1.0.0
+# @license MIT
 
 import re
 
 
 class TextUtils:
+    """
+    Utility functions for text processing in the thinking-dataset.
+    """
 
     @staticmethod
     def truncate_text(text, max_length=240):
@@ -35,11 +36,9 @@ class TextUtils:
         """
         Expand contractions in a given text using a dictionary of contractions.
         """
-        count = 0
         for contraction, full_form in contractions.items():
-            if re.search(r"\b" + contraction + r"\b", text):
-                count += 1
-                text = re.sub(r"\b" + contraction + r"\b", full_form, text)
+            text = re.sub(r'\b' + re.escape(contraction) + r'\b', full_form,
+                          text)
         return text
 
     @staticmethod
@@ -135,6 +134,30 @@ class TextUtils:
         Expand abbreviations in the text using a dictionary of terms.
         """
         for abbr, full in terms.items():
-            pattern = re.compile(re.escape(abbr), re.IGNORECASE)
+            pattern = re.compile(r'(?<!\w)' + re.escape(abbr) + r'(?!\w)',
+                                 re.IGNORECASE)
             text = pattern.sub(' ' + full + ' ', text)
         return text
+
+    @staticmethod
+    def remove_tiny_parentheses_content(text):
+        """
+        Remove content within parentheses that is very
+        short (e.g., 1 to 5 characters).
+        """
+        return re.sub(r'\(\w{1,5}\)', '', text)
+
+    @staticmethod
+    def remove_weird_ids(text):
+        """
+        Remove weird ID numbers that have nothing to do
+        with text (e.g., '031050z', '111433z').
+        """
+        return re.sub(r'\b\d{3,6}[a-z]+\b', '', text)
+
+    @staticmethod
+    def remove_weird_dates(text):
+        """
+        Remove weird date formats like '04/ 13/ 10'.
+        """
+        return re.sub(r'\b\d{2}/\s?\d{2}/\s?\d{2}\b', '', text)
