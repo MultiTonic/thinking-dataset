@@ -31,7 +31,7 @@ class TextUtils:
             size /= 1024.0
 
     @staticmethod
-    def expand_contractions(text, contractions, log):
+    def expand_contractions(text, contractions):
         """
         Expand contractions in a given text using a dictionary of contractions.
         """
@@ -128,3 +128,13 @@ class TextUtils:
         """
         return re.sub(r'^.*?(subject:)', r'\1', text,
                       flags=re.IGNORECASE).strip()
+
+    @staticmethod
+    def expand_terms(text, terms):
+        """
+        Expand abbreviations in the text using a dictionary of terms.
+        """
+        for abbr, full in terms.items():
+            pattern = re.compile(re.escape(abbr), re.IGNORECASE)
+            text = pattern.sub(' ' + full + ' ', text)
+        return text

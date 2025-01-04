@@ -28,7 +28,7 @@ class NormalizeTextPipe(Pipe):
 
         def normalize_text(text):
             text = text.lower()
-            text = Text.expand_contractions(text, contractions, log)
+            text = Text.expand_contractions(text, contractions)
             text = Text.remove_separators(text)
             text = Text.remove_special_characters(text)
             text = Text.normalize_numbers(text)
