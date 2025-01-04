@@ -1,14 +1,14 @@
-"""
-@file project_root/thinking_dataset/pipeworks/pipes/pipe.py
-@description Defines BasePipe class for preprocessing tasks with logging.
-@version 1.0.0
-@license MIT
-"""
+# @file project_root/thinking_dataset/pipeworks/pipes/pipe.py
+# @description Defines BasePipe class for preprocessing tasks with logging.
+# @version 1.1.1
+# @license MIT
 
 import importlib
-from abc import ABC, abstractmethod
+import pandas as pd
 from tqdm import tqdm
+from abc import ABC, abstractmethod
 from thinking_dataset.utilities.log import Log
+from concurrent.futures import ThreadPoolExecutor
 from thinking_dataset.utilities.command_utils import CommandUtils as Utils
 
 
@@ -50,3 +50,17 @@ class Pipe(ABC):
         """
         tqdm.pandas(desc=desc)
         return series.progress_apply(func)
+
+    def multi_thread_apply(self, series, func, desc, max_workers=4):
+        """
+        Apply a function to a pandas series using multiple threads with a
+        progress bar.
+        """
+        tqdm.pandas(desc=desc)
+        total = len(series)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(func, value) for value in series]
+            results = []
+            for future in tqdm(futures, total=total, desc=desc):
+                results.append(future.result())
+        return pd.Series(results, index=series.index)

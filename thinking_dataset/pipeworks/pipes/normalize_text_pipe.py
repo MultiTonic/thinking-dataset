@@ -1,10 +1,9 @@
 # @file thinking_dataset/pipeworks/pipes/normalize_text_pipe.py
-# @description Defines NormalizeTextPipe for normalizing text data.
-# @version 1.0.0
+# @description Normalizes text data.
+# @version 1.1.0
 # @license MIT
 
 import pandas as pd
-from tqdm import tqdm
 from .pipe import Pipe
 from ...utilities.log import Log
 from ...utilities.text_utils import TextUtils as Text
@@ -46,9 +45,8 @@ class NormalizeTextPipe(Pipe):
             return text
 
         for col in columns:
-            Log.info(log, f"Normalizing column: {col}")
-            tqdm.pandas(desc=f"Normalizing {col}")
-            df[col] = df[col].progress_apply(normalize_text)
+            df[col] = self.multi_thread_apply(df[col], normalize_text,
+                                              f"Normalizing {col}")
 
         Log.info(log, "Finished NormalizeTextPipe")
         return df

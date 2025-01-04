@@ -8,7 +8,8 @@ setup(
         'huggingface_hub[cli]', 'datasets', 'PyPDF2', 'python-dotenv', 'click',
         'requests', 'rich', 'sqlite-utils', 'pytest', 'pytest-html', 'psutil',
         'pytest-cov', 'loguru', 'pandas', 'numpy', 'scikit-learn',
-        'sqlalchemy', 'tqdm', 'pydantic', 'python-statemachine'
+        'sqlalchemy', 'tqdm', 'pydantic', 'python-statemachine',
+        'pyspellchecker'
     ],
     entry_points={
         'console_scripts': [
