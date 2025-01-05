@@ -15,11 +15,11 @@ class Config:
     def __init__(self, config_path: str):
         loader = Loader(config_path)
         config = loader.get('config')
-        self.HF_DATASET = config.get('huggingface', {}).get('name')
-        self.DATASET_TYPE = config.get('huggingface',
+        self.dataset_name = config.get('huggingface', {}).get('name')
+        self.dataset_type = config.get('huggingface',
                                        {}).get('type', 'parquet')
 
-        self.DATABASE_URL = config.get('database', {}).get('url')
+        self.database_url = config.get('database', {}).get('url')
         self.database_type = config.get('database', {}).get('type', 'sqlite')
         self.pool_size = config.get('database', {}).get('pool_size', 5)
         self.max_overflow = config.get('database', {}).get('max_overflow', 10)
@@ -30,45 +30,45 @@ class Config:
         self.environment = config.get('database',
                                       {}).get('environment', 'development')
 
-        self.ROOT_DIR = config.get('paths', {}).get('root', '.')
-        self.DATA_DIR = config.get('paths', {}).get('data', 'data')
-        self.RAW_DIR = config.get('paths', {}).get('raw', 'raw')
-        self.PROCESSED_DIR = config.get('paths',
-                                        {}).get('processed', 'processed')
-        self.DB_DIR = config.get('paths', {}).get('database', 'db')
+        self.root_path = config.get('paths', {}).get('root', '.')
+        self.data_path = config.get('paths', {}).get('data', 'data')
+        self.raw_path = config.get('paths', {}).get('raw', 'raw')
+        self.processed_path = config.get('paths',
+                                         {}).get('processed', 'processed')
+        self.database_path = config.get('paths', {}).get('database', 'db')
 
-        self.INCLUDE_FILES = config.get('files', {}).get('include', [])
-        self.EXCLUDE_FILES = config.get('files', {}).get('exclude', [])
-        self.LOAD_PATTERNS = config.get('files', {}).get(
+        self.include_files = config.get('files', {}).get('include', [])
+        self.exclude_files = config.get('files', {}).get('exclude', [])
+        self.load_patterns = config.get('files', {}).get(
             'load', ['{file_root}_prepare{file_ext}'])
-        self.PIPELINES = config.get('pipelines', [])
+        self.pipelines = config.get('pipelines', [])
 
     def validate(self):
         missing = []
-        if not self.HF_DATASET:
-            missing.append("HF_DATASET")
-        if not self.DATASET_TYPE:
-            missing.append("DATASET_TYPE")
-        if not self.DATABASE_URL:
-            missing.append("DATABASE_URL")
-        if not self.ROOT_DIR:
-            missing.append("ROOT_DIR")
-        if not self.DATA_DIR:
-            missing.append("DATA_DIR")
-        if not self.RAW_DIR:
-            missing.append("RAW_DIR")
-        if not self.PROCESSED_DIR:
-            missing.append("PROCESSED_DIR")
-        if not self.DB_DIR:
-            missing.append("DB_DIR")
-        if not self.INCLUDE_FILES:
-            missing.append("INCLUDE_FILES")
-        if not self.EXCLUDE_FILES:
-            missing.append("EXCLUDE_FILES")
-        if not self.LOAD_PATTERNS:
-            missing.append("LOAD_PATTERNS")
-        if not self.PIPELINES:
-            missing.append("PIPELINES")
+        if not self.dataset_name:
+            missing.append("dataset_name")
+        if not self.dataset_type:
+            missing.append("dataset_type")
+        if not self.database_url:
+            missing.append("database_url")
+        if not self.root_path:
+            missing.append("root_path")
+        if not self.data_path:
+            missing.append("data_path")
+        if not self.raw_path:
+            missing.append("raw_path")
+        if not self.processed_path:
+            missing.append("processed_path")
+        if not self.database_path:
+            missing.append("database_path")
+        if not self.include_files:
+            missing.append("include_files")
+        if not self.exclude_files:
+            missing.append("exclude_files")
+        if not self.load_patterns:
+            missing.append("load_patterns")
+        if not self.pipelines:
+            missing.append("pipelines")
 
         if missing:
             raise ValueError(

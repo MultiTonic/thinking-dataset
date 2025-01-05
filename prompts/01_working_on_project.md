@@ -42,7 +42,7 @@ This template provides guidelines and best practices for working on the project.
 - **Standard Header**: Each file should begin with the following standard header:
 
 ```python
-# @file project_root/<file_name>.py
+# @file <file_name>.py
 # @description <Description>
 # @version 1.0.0
 # @license MIT
@@ -111,6 +111,8 @@ This template provides guidelines and best practices for working on the project.
 ```
 thinking-dataset/
 ├── config/                 # Configuration files
+├── assets/                 # Assets directory for external resources
+├── config/                 # Configuration directory for local settings
 ├── data/                   # Data directory
 ├── docs/                   # Project documentation
 ├── prompts/                # Prompt templates
@@ -133,18 +135,20 @@ thinking-dataset/
 ├── thinking_dataset/       # Core project code
 │   ├── commands/           # CLI command implementations
 │   ├── connectors/         # Data connectors
+│   ├── config/             # Configuration loaders and management
 │   ├── datasets/           # Dataset definitions and processing
 │   │   ├── operations/     # Data operations and transformations
 │   ├── db/                 # Database support
-│   │   ├── operations/     # Database operations and actions
-│   │   ├── session/        # Database session store and management
+│   │   ├── operations/     # Database operations and transactions
 │   ├── io/                 # File I/O operations
 │   ├── pipeworks/          # Pipelines and pipes for data processing
+│   │   ├── pipelines/      # Pipeline management and control
+│   │   ├── pipes/          # Pipes used for data frame processing
 │   ├── tonics/             # Data utility functions and helpers
 │   ├── utilities/          # General-purpose utility helpers
 │   ├── main.py             # Main execution file
 └── setup.py                # Project setup
-└── .env                    # Environment variables file
+└── .env                    # Private Environment variables file
 ```
 
 ### 7. Git Commit Message Format and Style

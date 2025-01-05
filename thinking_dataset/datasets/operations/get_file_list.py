@@ -26,7 +26,7 @@ class GetFileList(BaseOperation):
 
             file_list = [
                 file.rfilename for file in dataset_info.siblings
-                if file.rfilename.endswith(f'.{self.config.DATASET_TYPE}')
+                if file.rfilename.endswith(f'.{self.config.dataset_type}')
             ]
             Log.info(self.log, f"Dataset files: {file_list}")
             return file_list

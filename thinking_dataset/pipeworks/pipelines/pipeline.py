@@ -16,10 +16,11 @@ from ...utilities.command_utils import CommandUtils as Utils
 class Pipeline:
     pipelines = []
 
-    def __init__(self, log):
+    def __init__(self, log, name=None):
         self.config = Config.get_config()
         self.log = log
         self.input_path, self.output_path = self._setup_paths()
+        self.name = name
         self._setup_pipelines()
 
     def _setup_paths(self):
@@ -30,21 +31,25 @@ class Pipeline:
         return input_path, output_path
 
     def _setup_pipelines(self):
-        configs = self.config.PIPELINES
+        configs = self.config.pipelines
+        pipes = []
         for config in configs:
-            pipes = []
-            for pipe in config['pipeline']['pipes']:
-                pipe_type = pipe['pipe']['type']
-                instance = Pipe.get_pipe(pipe_type)
-                pipes.append(instance(pipe['pipe'].get('config', {})))
-            Pipeline.pipelines.append((pipes, config['pipeline']['config']))
+            name = config['pipeline']['name']
+            if name == self.name:
+                for pipe in config['pipeline']['pipes']:
+                    pipe_type = pipe['pipe']['type']
+                    instance = Pipe.get_pipe(pipe_type)
+                    pipes.append(instance(pipe['pipe'].get('config', {})))
+                Pipeline.pipelines.append(
+                    (name, pipes, config['pipeline']['config']))
+                break
 
     def _prepare_file_name(self, file, prepare_file):
         file_root, file_ext = os.path.splitext(file)
         return prepare_file.format(file_base=file_root, file_ext=file_ext)
 
     def _read_data(self, input_file):
-        return Utils.read_data(input_file, self.config.DATASET_TYPE)
+        return Utils.read_data(input_file, self.config.dataset_type)
 
     def _process_pipes(self, df, pipes, file, log):
         for pipe in pipes:
@@ -53,7 +58,7 @@ class Pipeline:
         return df
 
     def _save_data(self, df, file_path, log):
-        Utils.to(df, file_path, self.config.DATASET_TYPE)
+        Utils.to(df, file_path, self.config.dataset_type)
         file_size = os.path.getsize(file_path)
         human_readable_file_size = Text.human_readable_size(file_size)
         Log.info(
@@ -77,14 +82,20 @@ class Pipeline:
     def _open(self, pipes, config, log):
         prepare_file = config["prepare_file"]
 
-        for file in self.config.INCLUDE_FILES:
-            if not Files.is_excluded(file, self.config.EXCLUDE_FILES, log):
+        for file in self.config.include_files:
+            if not Files.is_excluded(file, self.config.exclude_files, log):
                 self._process_file(file, prepare_file, pipes, log)
+
+    def get(self, name):
+        for name, pipes, config in Pipeline.pipelines:
+            if name == name:
+                return pipes, config
+        raise ValueError(f"Pipeline '{name}' not found")
 
     def open(self):
         start_time = time.time()
-        for pipes, pipe_config in Pipeline.pipelines:
-            self._open(pipes, pipe_config, self.log)
+        pipes, pipe_config = self.get(self.name)
+        self._open(pipes, pipe_config, self.log)
         end_time = time.time()
         elapsed_time = end_time - start_time
         human_readable_time = time.strftime("%H:%M:%S",

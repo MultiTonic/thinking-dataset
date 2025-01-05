@@ -30,7 +30,7 @@ def clean(ctx, **kwargs):
     config = Utils.load_config(config_path)
 
     files = Files(config)
-    path = files.get_path(config.ROOT_DIR, config.DATA_DIR)
+    path = files.get_path(config.root_path, config.data_path)
 
     if not os.path.exists(path):
         Log.info(log, f"Directory not found: {path}")

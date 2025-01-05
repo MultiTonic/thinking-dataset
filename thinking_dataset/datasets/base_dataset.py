@@ -1,9 +1,7 @@
-"""
-@file thinking_dataset/datasets/base_dataset.py
-@description A base class providing common dataset operations and logging.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/datasets/base_dataset.py
+# @description A base class providing common dataset operations and logging.
+# @version 1.0.0
+# @license MIT
 
 import os
 import pandas as pd

@@ -28,22 +28,22 @@ class Dataset(BaseDataset):
             config = Config(config_path)
             config.validate()
 
-            self.name = config.HF_DATASET
+            self.name = config.dataset_name
             self.id = None
 
             self.config = {
-                'DATASET_TYPE': config.DATASET_TYPE,
-                'DATABASE_URL': config.DATABASE_URL.format(name=self.name),
-                'DATA_DIR': os.getenv('DATA_DIR', 'data'),
-                'INCLUDE_FILES': config.INCLUDE_FILES,
-                'EXCLUDE_FILES': config.EXCLUDE_FILES
+                'dataset_type': config.dataset_type,
+                'database_url': config.database_url.format(name=self.name),
+                'data_dir': os.getenv('data_dir', 'data'),
+                'include_files': config.include_files,
+                'exclude_files': config.exclude_files
             }
 
             Log.info(self.log, f"Dataset configuration: {self.config}")
 
             super().__init__(data_tonic, self.config)
 
-            self.db_url = self.config['DATABASE_URL']
+            self.db_url = self.config['database_url']
 
             self.database = self.create(self.db_url, config_path)
             if not self.database:

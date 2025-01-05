@@ -24,7 +24,7 @@ def prepare(ctx, **kwargs):
     ctx.obj = log
     Log.info(log, "Starting the prepare command.")
 
-    pipeline = Pipeline(log)
+    pipeline = Pipeline(log=log, name="prepare")
     pipeline.open()
 
     Log.info(log, "Prepare command completed successfully.")

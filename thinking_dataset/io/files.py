@@ -1,9 +1,7 @@
-"""
-@file thinking_dataset/io/files.py
-@description Handles file I/O operations for the Thinking Dataset Project.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/io/files.py
+# @description Handles file I/O operations for the Thinking Dataset Project.
+# @version 1.0.0
+# @license MIT
 
 import os
 import shutil
@@ -23,18 +21,18 @@ class Files:
         return os.path.exists(path)
 
     def get_raw_path(self):
-        base_dir = os.path.join(self.config.ROOT_DIR, self.config.DATA_DIR)
-        return os.path.join(base_dir, self.config.RAW_DIR)
+        base_dir = os.path.join(self.config.root_path, self.config.data_path)
+        return os.path.join(base_dir, self.config.raw_path)
 
     def get_processed_path(self):
-        base_dir = os.path.join(self.config.ROOT_DIR, self.config.DATA_DIR)
-        return os.path.join(base_dir, self.config.PROCESSED_DIR)
+        base_dir = os.path.join(self.config.root_path, self.config.data_path)
+        return os.path.join(base_dir, self.config.processed_path)
 
     def make_dir(self, path, log):
         """
         Creates the directory if it doesn't exist.
         """
-        full_path = os.path.join(self.config.ROOT_DIR, path)
+        full_path = os.path.join(self.config.root_path, path)
         os.makedirs(full_path, exist_ok=True)
         Log.info(log, f"Ensured directory exists: {full_path}")
 

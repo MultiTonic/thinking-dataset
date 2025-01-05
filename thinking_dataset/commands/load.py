@@ -1,9 +1,7 @@
-"""
-@file thinking_dataset/commands/load.py
-@description CLI command to load datasets into the database.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/commands/load.py
+# @description CLI command to load datasets into the database.
+# @version 1.0.0
+# @license MIT
 
 import click
 from ..io.files import Files
@@ -22,9 +20,6 @@ from ..utilities.command_utils import CommandUtils as Utils
 @logger
 @dotenv(print=True)
 def load(ctx, **kwargs):
-    """
-    Load downloaded datasets into local sqlite database.
-    """
     log = kwargs['log']
     ctx.obj = log
     Log.info(log, "Starting the load command.")
@@ -39,7 +34,7 @@ def load(ctx, **kwargs):
     data_tonic = DataTonic(token=hf_token,
                            org=hf_org,
                            user=hf_user,
-                           dataset=config.HF_DATASET,
+                           dataset=config.dataset_name,
                            config=config)
     Log.info(log, "Initialized DataTonic instance.")
 
@@ -51,15 +46,15 @@ def load(ctx, **kwargs):
 
     load_files = [
         files.get_path(processed_path, files.format(file, pattern))
-        for file in config.INCLUDE_FILES for pattern in config.LOAD_PATTERNS
-        if file not in config.EXCLUDE_FILES
+        for file in config.include_files for pattern in config.load_patterns
+        if file not in config.exclude_files
     ]
 
     Log.info(log, f"Parquet files to be loaded: {load_files}")
 
     if load_files:
         database = dataset.create(
-            db_url=config.DATABASE_URL.format(name=config.HF_DATASET),
+            db_url=config.database_url.format(name=config.dataset_name),
             config=kwargs['dotenv']['CONFIG_PATH'])
 
         if not dataset.load(database=database, files_to_load=load_files):
