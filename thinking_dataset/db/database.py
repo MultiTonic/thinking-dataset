@@ -1,9 +1,7 @@
-"""
-@file thinking_dataset/db/database.py
-@description Implementation of the Database class.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/db/database.py
+# @description Implementation of the Database class.
+# @version 1.0.0
+# @license MIT
 
 import os
 import sys
@@ -13,7 +11,7 @@ from contextlib import contextmanager
 from ..utilities.execute import execute
 from .operations.query import Query
 from .operations.fetch import Fetch
-from ..config.database_config import DatabaseConfig
+from ..config.config import Config
 from .database_session import DatabaseSession as Session
 from ..utilities.log import Log
 
@@ -35,7 +33,7 @@ class Database:
 
     def _load_config(self, config_path: str):
         if config_path:
-            self.config = DatabaseConfig(config_path)
+            self.config = Config(config_path)
             self.config.validate()
             Log.info(self.log, "Database configuration loaded successfully.")
         else:

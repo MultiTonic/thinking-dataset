@@ -1,25 +1,23 @@
-"""
-@file project_root/thinking_dataset/pipeworks/pipelines/pipeline.py
-@description Defines the Pipeline class for managing data processing pipelines.
-@version 1.0.0
-@license MIT
-"""
+# @file project_root/thinking_dataset/pipeworks/pipelines/pipeline.py
+# @description Defines the Pipeline class for managing data processing.
+# @version 1.0.0
+# @license MIT
 
 import os
 import time
 from ...io.files import Files
 from ..pipes.pipe import Pipe
 from ...utilities.log import Log
-from ...config.dataset_config import DatasetConfig
+from ...config.config import Config
 from ...utilities.text_utils import TextUtils as Text
 from ...utilities.command_utils import CommandUtils as Utils
 
 
 class Pipeline:
-    pipelines = []  # Static attribute to hold pipeline configurations
+    pipelines = []
 
     def __init__(self, log):
-        self.config = DatasetConfig.get_config()
+        self.config = Config.get_config()
         self.log = log
         self.input_path, self.output_path = self._setup_paths()
         self._setup_pipelines()
@@ -32,15 +30,14 @@ class Pipeline:
         return input_path, output_path
 
     def _setup_pipelines(self):
-        pipeline_configs = self.config.PIPELINES
-        for pipeline_config in pipeline_configs:
+        configs = self.config.PIPELINES
+        for config in configs:
             pipes = []
-            for pipe in pipeline_config['pipeline']['pipes']:
+            for pipe in config['pipeline']['pipes']:
                 pipe_type = pipe['pipe']['type']
-                pipe_instance = Pipe.get_pipe(pipe_type)
-                pipes.append(pipe_instance(pipe['pipe'].get('config', {})))
-            Pipeline.pipelines.append(
-                (pipes, pipeline_config['pipeline']['config']))
+                instance = Pipe.get_pipe(pipe_type)
+                pipes.append(instance(pipe['pipe'].get('config', {})))
+            Pipeline.pipelines.append((pipes, config['pipeline']['config']))
 
     def _prepare_file_name(self, file, prepare_file):
         file_root, file_ext = os.path.splitext(file)
@@ -77,7 +74,7 @@ class Pipeline:
         df = self._process_pipes(df, pipes, file, log)
         self._save_data(df, file_path, log)
 
-    def _process_pipeline(self, pipes, config, log):
+    def _open(self, pipes, config, log):
         prepare_file = config["prepare_file"]
 
         for file in self.config.INCLUDE_FILES:
@@ -87,7 +84,7 @@ class Pipeline:
     def open(self):
         start_time = time.time()
         for pipes, pipe_config in Pipeline.pipelines:
-            self._process_pipeline(pipes, pipe_config, self.log)
+            self._open(pipes, pipe_config, self.log)
         end_time = time.time()
         elapsed_time = end_time - start_time
         human_readable_time = time.strftime("%H:%M:%S",

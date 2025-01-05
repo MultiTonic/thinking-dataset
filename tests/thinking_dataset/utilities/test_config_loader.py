@@ -10,7 +10,7 @@
 import pytest
 import yaml
 from unittest.mock import patch, mock_open
-from thinking_dataset.utilities.config_loader import ConfigLoader
+from thinking_dataset.config.config_loader import ConfigLoader
 
 
 @pytest.fixture

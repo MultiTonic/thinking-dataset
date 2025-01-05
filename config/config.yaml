@@ -1,9 +1,16 @@
-dataset:
+config:
   hfapi:
     name: "cablegate-pdf-dataset"
     type: "parquet"
   database:
     url: "sqlite:///data/db/{name}.db"
+    type: "sqlite"
+    pool_size: 5
+    max_overflow: 10
+    connect_timeout: 30
+    read_timeout: 30
+    log_queries: True
+    environment: "development"
   paths:
     root: "."
     database: "db"

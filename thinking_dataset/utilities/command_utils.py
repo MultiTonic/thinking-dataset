@@ -1,9 +1,7 @@
-"""
-@file thinking_dataset/utilities/command_utils.py
-@description Utility class for common command-related operations.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/utilities/command_utils.py
+# @description Utility class for common command-related operations.
+# @version 1.0.0
+# @license MIT
 
 import os
 import pandas as pd
@@ -17,20 +15,10 @@ class CommandUtils:
     def load_dotenv():
         dotenv()
         vars = {
-            "ROOT_DIR":
-            os.path.abspath(os.getenv("ROOT_DIR", ".")),
-            "DATA_DIR":
-            os.getenv("DATA_DIR", "data"),
-            "DATABASE_CONFIG_PATH":
-            os.getenv("DATABASE_CONFIG_PATH", "config/database_config.yaml"),
-            "DATASET_CONFIG_PATH":
-            os.getenv("DATASET_CONFIG_PATH", "config/dataset_config.yaml"),
-            "HF_TOKEN":
-            os.getenv("HF_TOKEN"),
-            "HF_ORGANIZATION":
-            os.getenv("HF_ORGANIZATION"),
-            "HF_DATASET":
-            os.getenv("HF_DATASET"),
+            "CONFIG_PATH": os.getenv("CONFIG_PATH", "config/config.yaml"),
+            "HF_TOKEN": os.getenv("HF_TOKEN"),
+            "HF_ORGANIZATION": os.getenv("HF_ORGANIZATION"),
+            "HF_DATASET": os.getenv("HF_DATASET"),
         }
         return vars
 
@@ -51,20 +39,14 @@ class CommandUtils:
         return True
 
     @staticmethod
-    def load_dataset_config(config_path):
-        """
-        Load and validate the dataset configuration.
-        """
-        from ..config.dataset_config import DatasetConfig
-        config = DatasetConfig(config_path)
+    def load_config(config_path):
+        from ..config.config import Config
+        config = Config(config_path)
         config.validate()
         return config
 
     @staticmethod
     def read_data(file, type):
-        """
-        Load data from the specified file based on the dataset type.
-        """
         if type == "parquet":
             return pd.read_parquet(file)
         elif type == "csv":
@@ -74,9 +56,6 @@ class CommandUtils:
 
     @staticmethod
     def to(df, file, type):
-        """
-        Save data to the specified file based on the dataset type.
-        """
         if type == "parquet":
             df.to_parquet(file, index=False)
         elif type == "csv":
@@ -86,9 +65,6 @@ class CommandUtils:
 
     @staticmethod
     def camel_to_snake(name):
-        """
-        Convert CamelCase to snake_case.
-        """
         import re
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()

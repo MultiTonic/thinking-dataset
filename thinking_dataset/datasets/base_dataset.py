@@ -19,14 +19,10 @@ class BaseDataset:
     """
 
     def __init__(self, data_tonic, config):
-        """
-        Constructs all the necessary attributes for the BaseDataset object.
-        """
         self.log = Log.setup(self.__class__.__name__)
         self.data_tonic = data_tonic
         self.config = config
 
-        # Load environment variables
         load_dotenv()
         self.root_dir = os.path.abspath(
             self.config.get("paths", {}).get("root", "."))
@@ -38,9 +34,6 @@ class BaseDataset:
 
     def get_path(self,
                  dataset_id: Optional[str] = None) -> Union[str, dict, None]:
-        """
-        Constructs the path for the dataset within the organization.
-        """
         try:
             if dataset_id:
                 dataset_info = self.data_tonic.get_info.execute(dataset_id)
@@ -53,9 +46,6 @@ class BaseDataset:
             Log.error(self.log, f"Error constructing dataset path: {e}")
 
     def list_files(self, dir_path: str) -> Optional[List[str]]:
-        """
-        List dataset files in the given directory.
-        """
         try:
             dataset_files = [
                 f for f in os.listdir(dir_path)
@@ -68,12 +58,9 @@ class BaseDataset:
             Log.error(self.log,
                       f"Error listing files in directory {dir_path}: {e}")
 
-    def create(self, db_url: str, db_config: str) -> Optional[Database]:
-        """
-        Create a Database instance.
-        """
+    def create(self, db_url: str, config: str) -> Optional[Database]:
         try:
-            database = Database(url=db_url, config_path=db_config)
+            database = Database(url=db_url, config_path=config)
             Log.info(self.log, f"Created database instance with URL: {db_url}")
             return database
         except Exception as e:
@@ -82,21 +69,16 @@ class BaseDataset:
     def load(self,
              database: Database,
              files_to_load: Optional[List[str]] = None) -> bool:
-        """
-        Load dataset files into the database.
-        """
         if not files_to_load:
             Log.error(self.log, "No files to load provided.")
             return False
 
-        # Use processed_dir instead of raw_dir
         parquet_files = [
             os.path.join(self.processed_dir, os.path.basename(f))
             for f in files_to_load
         ]
         Log.info(self.log, f"Parquet files to be loaded: {parquet_files}")
 
-        # Log the contents of the processed directory to verify if exists
         try:
             files_in_directory = os.listdir(self.processed_dir)
             Log.info(
@@ -165,9 +147,6 @@ class BaseDataset:
                  data_dir: str,
                  include_files: List[str] = [],
                  exclude_files: List[str] = []) -> bool:
-        """
-        Downloads the dataset from Hugging Face with filtering options.
-        """
         try:
             dataset_info = self.data_tonic.get_info.execute(dataset_id)
             if dataset_info:

@@ -29,35 +29,33 @@ def load(ctx, **kwargs):
     ctx.obj = log
     Log.info(log, "Starting the load command.")
 
-    dataset_config_path = kwargs['dotenv']['DATASET_CONFIG_PATH']
-    dataset_config = Utils.load_dataset_config(dataset_config_path)
+    config_path = kwargs['dotenv']['CONFIG_PATH']
+    config = Utils.load_config(config_path)
 
     data_tonic = DataTonic(token=kwargs['dotenv']['HF_TOKEN'],
                            organization=kwargs['dotenv']['HF_ORGANIZATION'],
                            dataset=kwargs['dotenv']['HF_DATASET'],
-                           config=dataset_config)
+                           config=config)
     Log.info(log, "Initialized DataTonic instance.")
 
     dataset = Dataset(data_tonic=data_tonic)
     Log.info(log, "Initialized Dataset instance.")
 
-    files = Files(dataset_config)
-    processed_data_dir = files.get_processed_path()
+    files = Files(config)
+    processed_path = files.get_processed_path()
 
     load_files = [
-        files.get_path(processed_data_dir, files.format(file, pattern))
-        for file in dataset_config.INCLUDE_FILES
-        for pattern in dataset_config.LOAD_PATTERNS
-        if file not in dataset_config.EXCLUDE_FILES
+        files.get_path(processed_path, files.format(file, pattern))
+        for file in config.INCLUDE_FILES for pattern in config.LOAD_PATTERNS
+        if file not in config.EXCLUDE_FILES
     ]
 
     Log.info(log, f"Parquet files to be loaded: {load_files}")
 
     if load_files:
         database = dataset.create(
-            db_url=dataset_config.DATABASE_URL.format(
-                name=dataset_config.HF_DATASET),
-            db_config=kwargs['dotenv']['DATABASE_CONFIG_PATH'])
+            db_url=config.DATABASE_URL.format(name=config.HF_DATASET),
+            config=kwargs['dotenv']['CONFIG_PATH'])
 
         if not dataset.load(database=database, files_to_load=load_files):
             raise RuntimeError(

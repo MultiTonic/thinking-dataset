@@ -28,8 +28,8 @@ def clean(ctx, **kwargs):
     ctx.obj = log
     Log.info(log, "Starting the clean command.")
 
-    config_path = kwargs['dotenv']['DATASET_CONFIG_PATH']
-    config = Utils.load_dataset_config(config_path)
+    config_path = kwargs['dotenv']['CONFIG_PATH']
+    config = Utils.load_config(config_path)
 
     files = Files(config)
     path = files.get_path(config.ROOT_DIR, config.DATA_DIR)

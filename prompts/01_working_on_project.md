@@ -165,6 +165,8 @@ thinking-dataset/
 - Updated `DatasetConfig` class to parse new configuration structure.
 - Updated `BaseDataset` class to utilize paths from the new configuration structure.
 - Updated `download.py` command to correctly construct paths and apply filters.
+
+Co-authored-by: Microsoft Copilot <copilot@microsoft.com>
 ```
 
 ### 8. Personality and Response Style

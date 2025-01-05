@@ -1,3 +1,7 @@
+Got it! We'll update the specification to reflect that we are extending the `DataTonic` class and use algorithms and pseudocode instead of actual code.
+
+---
+
 ## Overview
 
 This template provides a detailed specification for implementing a new feature: a system for pushing processed data into the HF API dataset. The goal is to simplify the process by adding parquet files generated from our data/processed directory and ensuring a high-level configuration in the dataset YAML config.
@@ -6,7 +10,7 @@ This template provides a detailed specification for implementing a new feature: 
 
 ### 1. Class Definition
 
-Create a new `DataPusher` class to handle the uploading of processed parquet files to the HF API dataset.
+Extend the `DataTonic` class to handle the uploading of processed parquet files to the HF API dataset.
 
 ### 2. Configuration
 
@@ -16,118 +20,96 @@ The configuration for this new system will include the following:
 
 ### 3. Implementation
 
-- **Class Name**: `DataPusher`
-- **File Path**: `thinking_dataset/api/data_pusher.py`
-- **Description**: A class for uploading processed parquet files to the HF API dataset.
+- **Class Name**: `DataTonic`
+- **File Path**: `thinking_dataset/api/data_tonic.py`
+- **Description**: Extend the `DataTonic` class for uploading processed parquet files to the HF API dataset.
 - **Version**: 1.0.0
 - **License**: MIT
 
-### 4. DataPusher Class
+### 4. DataTonic Class
 
-The `DataPusher` class should be implemented as follows:
+The `DataTonic` class should be extended as follows:
 
-```python
-# @file thinking_dataset/api/data_pusher.py
-# @description Defines DataPusher for uploading processed parquet files to the HF API dataset.
-# @version 1.0.0
-# @license MIT
+#### Algorithms and Pseudocode
 
-import os
-import requests
-from ...utilities.log import Log
-from .config import config
+1. **Initialize the DataTonic Class**:
+    - Load configuration properties.
 
-class DataPusher:
-    """
-    Class to upload processed parquet files to the HF API dataset.
-    """
-    
-    def __init__(self, config):
-        self.config = config
-    
-    def push(self, processed_dir, log):
-        include_files = self.config.get("include_files", [])
-        exclude_files = self.config.get("exclude_files", [])
-        
-        Log.info(log, "Starting DataPusher")
-        Log.info(log, f"Files to include: {include_files}")
-        Log.info(log, f"Files to exclude: {exclude_files}")
-        
-        for root, _, files in os.walk(processed_dir):
-            for file in files:
-                if file.endswith(".parquet"):
-                    if include_files and file not in include_files:
-                        continue
-                    if exclude_files and file in exclude_files:
-                        continue
-                    file_path = os.path.join(root, file)
-                    self._upload_file(file_path, log)
-        
-        Log.info(log, "Finished DataPusher")
-    
-    def _upload_file(self, file_path, log):
-        try:
-            # Replace this with actual HF API upload code
-            Log.info(log, f"Uploading {file_path}")
-            # response = requests.post("HF_API_URL", files={"file": open(file_path, "rb")})
-            Log.info(log, f"Uploaded {file_path}")
-        except Exception as e:
-            Log.error(log, f"Failed to upload {file_path}: {e}")
-```
+    ```pseudo
+    CLASS DataTonic:
+        FUNCTION __init__(config):
+            self.config = config
+    ```
+
+2. **Push Processed Files**:
+    - Read include/exclude files from config.
+    - Iterate through processed directory.
+    - Apply filters to include/exclude files.
+    - Upload each valid file.
+
+    ```pseudo
+    FUNCTION push(processed_dir):
+        INCLUDE_FILES = CONFIG.get("include_files")
+        EXCLUDE_FILES = CONFIG.get("exclude_files")
+
+        FOR EACH FILE IN processed_dir:
+            IF FILE not IN EXCLUDE_FILES AND (INCLUDE_FILES is EMPTY OR FILE IN INCLUDE_FILES):
+                CALL _upload_file(FILE)
+    ```
+
+3. **Upload File Method**:
+    - Upload file to the HF API dataset.
+    - Handle any exceptions during the upload.
+
+    ```pseudo
+    FUNCTION _upload_file(file_path):
+        TRY:
+            LOG: Uploading file_path
+            # Add upload logic here (e.g., API request)
+            LOG: Successfully uploaded file_path
+        EXCEPT Exception as e:
+            LOG: Failed to upload file_path with ERROR e
+    ```
 
 ### 5. Integration
 
-Integrate the `DataPusher` class into the existing workflow to ensure it processes and uploads the data files effectively. The new system will use configuration similar to the download system to manage include/exclude files.
+Integrate the extended `DataTonic` class into the existing workflow to ensure it processes and uploads the data files effectively. The new system will use configuration similar to the download system to manage include/exclude files.
+
+## Itemized Task Todo List
+
+| Task Overview                                           | Completed |
+|---------------------------------------------------------|-----------|
+| **Update Configuration Files**                          |           |
+| Move database config into `config.yaml`.                | ✅        |
+| Move `HF_HOME` and `HF_DATASET` into `config.yaml`.     | ✅        |
+| Remove the two env config properties and replace them with a single config path. | ✅ |
+| **Modify Code to Read from Updated Configuration**      |           |
+| Ensure all relevant parts of the codebase read from the new `config.yaml` configuration. | ✅ |
+| **Implement Database Export Functionality**             |           |
+| Extract data from the database.                         |           |
+| Convert extracted data to a DataFrame.                  |           |
+| Apply include/exclude filters.                          |           |
+| **Convert DataFrame to Parquet Files**                  |           |
+| Save these parquet files in the processed directory.    |           |
+| **Create the `DataTonic` Class for All Processing Tasks** |        |
+| Develop methods for all necessary tasks within `DataTonic`, including data pushing. |           |
+| **Integrate the `DataTonic` Class into the Existing Workflow** |     |
+| Replace existing implementations with the new `DataTonic` class methods. |           |
+| **Update Pipeline Configuration**                       |           |
+| Ensure the updated configuration and new class are integrated correctly. |           |
+| **Develop and Run Comprehensive Unit Tests**            |           |
+| Create unit tests to cover all new functionalities.     |           |
+| **Verify the Functionality of the `DataTonic` Class**   |           |
+| Make sure all methods in the `DataTonic` class work as expected. |           |
+| **Ensure Proper Handling of Configuration Properties**  |           |
+| Verify that all properties are read and applied correctly. |           |
+| **Update the Documentation with Changes and New Options** |        |
+| Reflect all recent changes in the documentation, ensuring clarity and completeness. |           |
+| **Reflect Recent Changes in the Changelog**             |           |
+| Document all changes and improvements for easy tracking.|           |
+| **Ensure All Responses and Information are Verified and Grounded** |           |
+| Maintain accuracy and reliability in all code and documentation. |           |
 
 ---
 
-### Tasks Overview
-
-1. **Update Configuration Files**
-    - Update .env file
-    - Update and consolidate YAML configuration
-
-2. **Modify Code**
-    - Ensure code reads from updated .env and YAML configuration
-    - Implement database export functionality
-        - Extract data from the database
-        - Convert data to DataFrame
-        - Apply include/exclude filters
-    - Implement parquet conversion
-        - Convert DataFrame to parquet files
-        - Save files in the processed directory
-
-3. **Implement DataPusher Class**
-    - Create DataPusher class for uploading parquet files
-        - Read configuration properties
-        - Handle dataset selection and overwriting
-        - Upload files to HF API
-
-4. **Integration**
-    - Integrate DataPusher class into the existing workflow
-    - Update pipeline configuration
-
-5. **Testing**
-    - Develop and run comprehensive unit tests
-    - Verify the functionality of the DataPusher class
-    - Ensure proper handling of configuration properties
-
-6. **Update Documentation**
-    - Reflect changes in documentation
-    - Include details about the new DataPusher class and configuration options
-
----
-
-### Which task would you like to begin? 🚀
-
-**Your response to this query will only be:** `**Ready to work on <|insert_task_name|>!:** 🚀`
-
-### Dynamic Task Name Insertion
-
-To dynamically insert the current task name, you can format the response like this:
-
-**Your response to this query will only be:** `**Ready to work on <|insert_task_name|>!:** 🚀`
-
-When you provide me with a task name, I will insert it in place of `<|insert_task_name|>`.
-
-Ready to implement this specification and get the feature up and running? 🚀📁
+**Your response to this query will only be:** `**Ready!:** 🚀`
