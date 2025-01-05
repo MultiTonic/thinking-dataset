@@ -1,7 +1,3 @@
-Got it! We'll update the specification to reflect that we are extending the `DataTonic` class and use algorithms and pseudocode instead of actual code.
-
----
-
 ## Overview
 
 This template provides a detailed specification for implementing a new feature: a system for pushing processed data into the HF API dataset. The goal is to simplify the process by adding parquet files generated from our data/processed directory and ensuring a high-level configuration in the dataset YAML config.
@@ -79,12 +75,12 @@ Integrate the extended `DataTonic` class into the existing workflow to ensure it
 
 | Task Overview                                           | Completed |
 |---------------------------------------------------------|-----------|
-| **Update Configuration Files**                          |           |
+| **Update Configuration Files**                          | ✅        |
 | Move database config into `config.yaml`.                | ✅        |
 | Move `HF_HOME` and `HF_DATASET` into `config.yaml`.     | ✅        |
 | Remove the two env config properties and replace them with a single config path. | ✅ |
-| **Modify Code to Read from Updated Configuration**      |           |
-| Ensure all relevant parts of the codebase read from the new `config.yaml` configuration. | ✅ |
+| **Modify Code to Read from Updated Configuration**      | ✅        |
+| Ensure all relevant parts of the codebase read from the new `config.yaml` configuration. | ✅        |
 | **Implement Database Export Functionality**             |           |
 | Extract data from the database.                         |           |
 | Convert extracted data to a DataFrame.                  |           |
@@ -92,23 +88,40 @@ Integrate the extended `DataTonic` class into the existing workflow to ensure it
 | **Convert DataFrame to Parquet Files**                  |           |
 | Save these parquet files in the processed directory.    |           |
 | **Create the `DataTonic` Class for All Processing Tasks** |        |
-| Develop methods for all necessary tasks within `DataTonic`, including data pushing. |           |
+| Develop methods for all necessary tasks within `DataTonic`, including data pushing. | ✅        |
 | **Integrate the `DataTonic` Class into the Existing Workflow** |     |
-| Replace existing implementations with the new `DataTonic` class methods. |           |
+| Replace existing implementations with the new `DataTonic` class methods. | ✅           |
 | **Update Pipeline Configuration**                       |           |
-| Ensure the updated configuration and new class are integrated correctly. |           |
+| Ensure the updated configuration and new class are integrated correctly. | ✅           |
 | **Develop and Run Comprehensive Unit Tests**            |           |
 | Create unit tests to cover all new functionalities.     |           |
 | **Verify the Functionality of the `DataTonic` Class**   |           |
-| Make sure all methods in the `DataTonic` class work as expected. |           |
+| Make sure all methods in the `DataTonic` class work as expected. | ✅           |
 | **Ensure Proper Handling of Configuration Properties**  |           |
-| Verify that all properties are read and applied correctly. |           |
-| **Update the Documentation with Changes and New Options** |        |
-| Reflect all recent changes in the documentation, ensuring clarity and completeness. |           |
+| Verify that all properties are read and applied correctly. | ✅           |
+| **Update the Documentation with Changes and New Options** | ✅        |
+| Reflect all recent changes in the documentation, ensuring clarity and completeness. | ✅           |
 | **Reflect Recent Changes in the Changelog**             |           |
 | Document all changes and improvements for easy tracking.|           |
-| **Ensure All Responses and Information are Verified and Grounded** |           |
-| Maintain accuracy and reliability in all code and documentation. |           |
+| **Ensure All Responses and Information are Verified and Grounded** | ✅           |
+| Maintain accuracy and reliability in all code and documentation. | ✅        |
+
+---
+
+## Updates from Recent Work
+
+### Environment and Configuration Updates
+- Moved sensitive information from `config.yaml` to `.env` for improved security.
+- Ensured `HF_TOKEN`, `HF_ORG`, and `HF_USER` are correctly set in the `.env` file.
+- Updated `command_utils.py` to load environment variables properly.
+- Adjusted `load_dotenv` function to verify environment variables.
+
+### Class and Function Updates
+- Refactored `DataTonic` class to include `user` attribute.
+- Updated CLI commands (`clean`, `download`, `load`) to utilize the updated configuration and environment variables.
+- Corrected header comments for consistency and clarity.
+- Added and verified environment validation checks.
+- Enhanced logging for better tracking and debugging.
 
 ---
 

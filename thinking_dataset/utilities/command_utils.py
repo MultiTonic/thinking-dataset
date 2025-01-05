@@ -17,8 +17,8 @@ class CommandUtils:
         vars = {
             "CONFIG_PATH": os.getenv("CONFIG_PATH", "config/config.yaml"),
             "HF_TOKEN": os.getenv("HF_TOKEN"),
-            "HF_ORGANIZATION": os.getenv("HF_ORGANIZATION"),
-            "HF_DATASET": os.getenv("HF_DATASET"),
+            "HF_ORG": os.getenv("HF_ORG"),
+            "HF_USER": os.getenv("HF_USER"),
         }
         return vars
 

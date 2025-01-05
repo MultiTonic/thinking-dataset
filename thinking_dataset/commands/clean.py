@@ -1,9 +1,7 @@
-"""
-@file thinking_dataset/commands/clean.py
-@description Command to clean the data directory and other dynamic resources.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/commands/clean.py
+# @description Command to clean the data directory and other dynamic resources.
+# @version 1.0.0
+# @license MIT
 
 import os
 import click

@@ -1,9 +1,7 @@
-"""
-@file thinking_dataset/tonics/data_tonic.py
-@description DataTonic class for managing dataset operations.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/tonics/data_tonic.py
+# @description DataTonic class for managing dataset operations.
+# @version 1.0.0
+# @license MIT
 
 from thinking_dataset.utilities.log import Log
 from thinking_dataset.connectors.connector import Connector
@@ -11,22 +9,30 @@ from thinking_dataset.datasets.operations.get_download_urls \
     import GetDownloadUrls
 from thinking_dataset.datasets.operations.get_download_file \
     import GetDownloadFile
-from thinking_dataset.datasets.operations.get_metadata import GetMetadata
-from thinking_dataset.datasets.operations.get_info import GetInfo
+from thinking_dataset.datasets.operations.get_metadata \
+    import GetMetadata
+from thinking_dataset.datasets.operations.get_info \
+    import GetInfo
 from thinking_dataset.datasets.operations.get_card_content \
     import GetCardContent
 from thinking_dataset.datasets.operations.get_configuration \
     import GetConfiguration
-from thinking_dataset.datasets.operations.get_description import GetDescription
+from thinking_dataset.datasets.operations.get_description \
+    import GetDescription
 from thinking_dataset.datasets.operations.get_download_size \
     import GetDownloadSize
-from thinking_dataset.datasets.operations.get_file_list import GetFileList
-from thinking_dataset.datasets.operations.get_license import GetLicense
-from thinking_dataset.datasets.operations.get_permissions import GetPermissions
+from thinking_dataset.datasets.operations.get_file_list \
+    import GetFileList
+from thinking_dataset.datasets.operations.get_license \
+    import GetLicense
+from thinking_dataset.datasets.operations.get_permissions \
+    import GetPermissions
 from thinking_dataset.datasets.operations.get_split_information \
     import GetSplitInformation
-from thinking_dataset.datasets.operations.get_tags import GetTags
-from thinking_dataset.datasets.operations.list_datasets import ListDatasets
+from thinking_dataset.datasets.operations.get_tags \
+    import GetTags
+from thinking_dataset.datasets.operations.list_datasets \
+    import ListDatasets
 
 
 class DataTonic(Connector):
@@ -35,14 +41,15 @@ class DataTonic(Connector):
     specified organization and dataset.
     """
 
-    def __init__(self, token, organization, dataset, config):
+    def __init__(self, token, org, user, dataset, config):
         """
         Constructs all the necessary attributes for the DataTonic object.
         """
         try:
             super().__init__(token)
             self.log = Log.setup(self.__class__.__name__)
-            self.organization = organization
+            self.org = org
+            self.user = user
             self.dataset = dataset
             self.config = config
             self._initialize_operations()

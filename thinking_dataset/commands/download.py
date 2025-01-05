@@ -34,9 +34,14 @@ def download(ctx, **kwargs):
     config = Config(config_path)
     config.validate()
 
-    data_tonic = DataTonic(token=kwargs['dotenv']['HF_TOKEN'],
-                           organization=kwargs['dotenv']['HF_ORGANIZATION'],
-                           dataset=kwargs['dotenv']['HF_DATASET'],
+    hf_token = kwargs['dotenv']['HF_TOKEN']
+    hf_org = kwargs['dotenv']['HF_ORG']
+    hf_user = kwargs['dotenv']['HF_USER']
+
+    data_tonic = DataTonic(token=hf_token,
+                           org=hf_org,
+                           user=hf_user,
+                           dataset=config.HF_DATASET,
                            config=config)
     Log.info(log, "Initialized DataTonic instance.")
 
@@ -48,10 +53,8 @@ def download(ctx, **kwargs):
     raw_dir = files.get_raw_path()
     files.make_dir(raw_dir, log)
 
-    dataset.download(
-        kwargs['dotenv']['HF_TOKEN'], f"{kwargs['dotenv']['HF_ORGANIZATION']}/"
-        f"{kwargs['dotenv']['HF_DATASET']}", raw_dir,
-        dataset.config['INCLUDE_FILES'], dataset.config['EXCLUDE_FILES'])
+    dataset.download(hf_token, f"{hf_org}/{config.HF_DATASET}", raw_dir,
+                     config.INCLUDE_FILES, config.EXCLUDE_FILES)
     Log.info(log,
              f"Downloaded all dataset files to {os.path.normpath(raw_dir)}")
 

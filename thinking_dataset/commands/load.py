@@ -32,9 +32,14 @@ def load(ctx, **kwargs):
     config_path = kwargs['dotenv']['CONFIG_PATH']
     config = Utils.load_config(config_path)
 
-    data_tonic = DataTonic(token=kwargs['dotenv']['HF_TOKEN'],
-                           organization=kwargs['dotenv']['HF_ORGANIZATION'],
-                           dataset=kwargs['dotenv']['HF_DATASET'],
+    hf_token = kwargs['dotenv']['HF_TOKEN']
+    hf_org = kwargs['dotenv']['HF_ORG']
+    hf_user = kwargs['dotenv']['HF_USER']
+
+    data_tonic = DataTonic(token=hf_token,
+                           org=hf_org,
+                           user=hf_user,
+                           dataset=config.HF_DATASET,
                            config=config)
     Log.info(log, "Initialized DataTonic instance.")
 

@@ -15,17 +15,20 @@ class Config:
     def __init__(self, config_path: str):
         loader = Loader(config_path)
         config = loader.get('config')
-        self.HF_DATASET = config.get('hfapi', {}).get('name')
-        self.DATASET_TYPE = config.get('hfapi', {}).get('type', 'parquet')
+        self.HF_DATASET = config.get('huggingface', {}).get('name')
+        self.DATASET_TYPE = config.get('huggingface',
+                                       {}).get('type', 'parquet')
 
         self.DATABASE_URL = config.get('database', {}).get('url')
-        self.database_type = config.get('type', 'sqlite')
-        self.pool_size = config.get('pool_size', 5)
-        self.max_overflow = config.get('max_overflow', 10)
-        self.connect_timeout = config.get('connect_timeout', 30)
-        self.read_timeout = config.get('read_timeout', 30)
-        self.log_queries = config.get('log_queries', True)
-        self.environment = config.get('environment', 'development')
+        self.database_type = config.get('database', {}).get('type', 'sqlite')
+        self.pool_size = config.get('database', {}).get('pool_size', 5)
+        self.max_overflow = config.get('database', {}).get('max_overflow', 10)
+        self.connect_timeout = config.get('database',
+                                          {}).get('connect_timeout', 30)
+        self.read_timeout = config.get('database', {}).get('read_timeout', 30)
+        self.log_queries = config.get('database', {}).get('log_queries', True)
+        self.environment = config.get('database',
+                                      {}).get('environment', 'development')
 
         self.ROOT_DIR = config.get('paths', {}).get('root', '.')
         self.DATA_DIR = config.get('paths', {}).get('data', 'data')

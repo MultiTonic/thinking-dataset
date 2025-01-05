@@ -1,9 +1,7 @@
-"""
-@file project_root/thinking_dataset/commands/prepare.py
-@description Command to preprocess data by applying configured pipelines.
-@version 1.0.0
-@license MIT
-"""
+# @file project_root/thinking_dataset/commands/prepare.py
+# @description Command to preprocess data by applying configured pipelines.
+# @version 1.0.0
+# @license MIT
 
 import click
 from ..utilities.log import Log
