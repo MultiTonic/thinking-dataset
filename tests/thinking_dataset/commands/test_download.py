@@ -141,7 +141,7 @@ def test_download_dataset(monkeypatch):
 
     mock_urls = ["file1.parquet", "file2.parquet"]
 
-    datatonic = DataTonic(token=env_vars['HF_TOKEN'])
+    datatonic = DataTonic(read_token=env_vars['HF_TOKEN'])
 
     with patch.object(GetDownloadUrls, 'execute', return_value=mock_urls):
         with patch.object(GetDownloadFile, 'execute', return_value=True):

@@ -15,10 +15,11 @@ class CommandUtils:
     def load_dotenv():
         dotenv()
         vars = {
-            "CONFIG_PATH": os.getenv("CONFIG_PATH", "config/config.yaml"),
-            "HF_TOKEN": os.getenv("HF_TOKEN"),
+            "HF_READ_TOKEN": os.getenv("HF_READ_TOKEN"),
+            "HF_WRITE_TOKEN": os.getenv("HF_WRITE_TOKEN"),
             "HF_ORG": os.getenv("HF_ORG"),
             "HF_USER": os.getenv("HF_USER"),
+            "CONFIG_PATH": os.getenv("CONFIG_PATH", "config/config.yaml"),
         }
         return vars
 

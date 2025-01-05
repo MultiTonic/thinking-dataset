@@ -17,9 +17,6 @@ from ..utilities.load_dotenv import dotenv
 @logger
 @dotenv(print=True)
 def prepare(ctx, **kwargs):
-    """
-    Command to preprocess data by applying configured pipelines.
-    """
     log = kwargs['log']
     ctx.obj = log
     Log.info(log, "Starting the prepare command.")

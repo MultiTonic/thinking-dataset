@@ -84,11 +84,11 @@ config:
   - pipeline:
       name: "export"
       description: "Default export pipeline"
-      config:
-        export_file: "{table_name}_export{file_ext}"
+      config: {}
       pipes:
       - pipe:
           type: "ExportTablesPipe"
           config:
             output_dir: "processed"
             columns: [ "auto" ]
+            file_format: "parquet"

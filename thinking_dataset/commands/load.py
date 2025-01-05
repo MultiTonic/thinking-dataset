@@ -27,14 +27,15 @@ def load(ctx, **kwargs):
     config_path = kwargs['dotenv']['CONFIG_PATH']
     config = Utils.load_config(config_path)
 
-    hf_token = kwargs['dotenv']['HF_TOKEN']
+    hf_read_token = kwargs['dotenv']['HF_READ_TOKEN']
+    hf_write_token = kwargs['dotenv']['HF_WRITE_TOKEN']
     hf_org = kwargs['dotenv']['HF_ORG']
     hf_user = kwargs['dotenv']['HF_USER']
 
-    data_tonic = DataTonic(token=hf_token,
+    data_tonic = DataTonic(read_token=hf_read_token,
+                           write_token=hf_write_token,
                            org=hf_org,
                            user=hf_user,
-                           dataset=config.dataset_name,
                            config=config)
     Log.info(log, "Initialized DataTonic instance.")
 

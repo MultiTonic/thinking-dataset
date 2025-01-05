@@ -37,7 +37,9 @@ class MockDataset:
 
 
 def test_list_datasets():
-    client = DataTonic(token=HF_TOKEN, org=HF_ORGANIZATION, dataset=HF_DATASET)
+    client = DataTonic(read_token=HF_TOKEN,
+                       org=HF_ORGANIZATION,
+                       dataset=HF_DATASET)
     mock_datasets = [MockDataset()]
 
     with patch.object(client.api, 'list_datasets', return_value=mock_datasets):

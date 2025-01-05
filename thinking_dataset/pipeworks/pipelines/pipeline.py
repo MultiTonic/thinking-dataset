@@ -1,6 +1,6 @@
 # @file project_root/thinking_dataset/pipeworks/pipelines/pipeline.py
 # @description Defines the Pipeline class for managing data processing.
-# @version 1.0.0
+# @version 1.2.0
 # @license MIT
 
 import os
@@ -11,6 +11,7 @@ from ...utilities.log import Log
 from ...config.config import Config
 from ...utilities.text_utils import TextUtils as Text
 from ...utilities.command_utils import CommandUtils as Utils
+from ...db.database import Database
 
 
 class Pipeline:
@@ -25,10 +26,9 @@ class Pipeline:
 
     def _setup_paths(self):
         files = Files(self.config)
-        input_path = files.get_raw_path()
-        output_path = files.get_processed_path()
-        files.make_dir(output_path, self.log)
-        return input_path, output_path
+        self.output_path = files.get_processed_path()
+        files.make_dir(self.output_path, self.log)
+        return files.get_raw_path(), self.output_path
 
     def _setup_pipelines(self):
         configs = self.config.pipelines
@@ -44,16 +44,9 @@ class Pipeline:
                     (name, pipes, config['pipeline']['config']))
                 break
 
-    def _prepare_file_name(self, file, prepare_file):
-        file_root, file_ext = os.path.splitext(file)
-        return prepare_file.format(file_base=file_root, file_ext=file_ext)
-
-    def _read_data(self, input_file):
-        return Utils.read_data(input_file, self.config.dataset_type)
-
-    def _process_pipes(self, df, pipes, file, log):
+    def _process_pipes(self, df, pipes, log):
         for pipe in pipes:
-            Log.info(log, f"Open -- {pipe.__class__.__name__} on {file}")
+            Log.info(log, f"Open -- {pipe.__class__.__name__}")
             df = pipe.flow(df, log)
         return df
 
@@ -65,7 +58,7 @@ class Pipeline:
             log, f"Data processed and saved to {file_path} "
             f"(Size: {human_readable_file_size})")
 
-    def _process_file(self, file, prepare_file, pipes, log):
+    def _process_file(self, file, file_pattern, pipes, log):
         input_file = Files.get_path(self.input_path, file)
         Log.info(log, f"Processing file: {input_file}")
 
@@ -73,18 +66,22 @@ class Pipeline:
             Log.warn(log, f"File not found: {input_file}")
             return
 
-        file_name = self._prepare_file_name(file, prepare_file)
+        df = Utils.read_data(input_file, self.config.dataset_type)
+        df = self._process_pipes(df, pipes, log)
+        file_name = f"processed_{file}"
         file_path = Files.get_path(self.output_path, file_name)
-        df = self._read_data(input_file)
-        df = self._process_pipes(df, pipes, file, log)
         self._save_data(df, file_path, log)
 
-    def _open(self, pipes, config, log):
-        prepare_file = config["prepare_file"]
-
-        for file in self.config.include_files:
-            if not Files.is_excluded(file, self.config.exclude_files, log):
-                self._process_file(file, prepare_file, pipes, log)
+    def _open(self, pipes, config, log, skip_files=False):
+        if skip_files:
+            db_url = self.config.database_url
+            db = Database(url=db_url)
+            db.process(pipes, log, self.output_path, self.config.dataset_type)
+        else:
+            files_to_process = self.config.include_files or []
+            for file in files_to_process:
+                if not Files.is_excluded(file, self.config.exclude_files, log):
+                    self._process_file(file, config.get("file"), pipes, log)
 
     def get(self, name):
         for name, pipes, config in Pipeline.pipelines:
@@ -92,10 +89,10 @@ class Pipeline:
                 return pipes, config
         raise ValueError(f"Pipeline '{name}' not found")
 
-    def open(self):
+    def open(self, skip_files=False):
         start_time = time.time()
         pipes, pipe_config = self.get(self.name)
-        self._open(pipes, pipe_config, self.log)
+        self._open(pipes, pipe_config, self.log, skip_files=skip_files)
         end_time = time.time()
         elapsed_time = end_time - start_time
         human_readable_time = time.strftime("%H:%M:%S",

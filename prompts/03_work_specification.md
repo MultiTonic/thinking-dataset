@@ -118,10 +118,12 @@ Integrate the extended `DataTonic` class into the existing workflow to ensure it
 
 ### Class and Function Updates
 - Refactored `DataTonic` class to include `user` attribute.
-- Updated CLI commands (`clean`, `download`, `load`) to utilize the updated configuration and environment variables.
+- Updated CLI commands (`clean`, `download`, `prepare`, `load`) to utilize the updated configuration and environment variables.
 - Corrected header comments for consistency and clarity.
 - Added and verified environment validation checks.
 - Enhanced logging for better tracking and debugging.
+- Updated `Pipeline` class to ensure only the specified pipeline is set up and processed.
+- Adjusted `Config` class to handle path and dataset type attributes correctly.
 
 ---
 
