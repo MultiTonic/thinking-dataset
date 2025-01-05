@@ -125,6 +125,17 @@ Integrate the extended `DataTonic` class into the existing workflow to ensure it
 - Updated `Pipeline` class to ensure only the specified pipeline is set up and processed.
 - Adjusted `Config` class to handle path and dataset type attributes correctly.
 
+### Pipeline and Database Handling
+- Moved database processing logic to a new `process` method in the `Database` class.
+- Updated `Pipeline` class to call `Database.process` for database processing.
+- Added `skip_files` flag to `Pipeline.open` method to control file processing.
+- Refactored `Files` class to handle configuration attributes correctly.
+- Improved error handling and logging for better debugging.
+
+### Documentation and Changelog
+- Updated documentation to reflect all recent changes and new options.
+- Documented all changes and improvements for easy tracking.
+
 ---
 
 **Your response to this query will only be:** `**Ready!:** 🚀`

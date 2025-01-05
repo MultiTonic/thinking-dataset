@@ -7,6 +7,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased] - 2025-1-3
 
 ### Added
+- **Pipeline and Database Handling**:
+  - Moved database processing logic to a new `process` method in the `Database` class.
+  - Updated `Pipeline` class to call `Database.process` for database processing.
+  - Added `skip_files` flag to `Pipeline.open` method to control file processing.
+  - Refactored `Files` class to handle configuration attributes correctly.
+  - Improved error handling and logging for better debugging.
+- **Files Worked On**:
+  - `thinking_dataset/commands/clean.py`
+  - `thinking_dataset/commands/download.py`
+  - `thinking_dataset/commands/load.py`
+  - `thinking_dataset/commands/prepare.py`
+  - `thinking_dataset/io/files.py`
+  - `thinking_dataset/utilities/command_utils.py`
+  - `thinking_dataset/pipeworks/pipes/normalize_text_pipe.py`
+  - `thinking_dataset/config/dataset_config.yaml`
+  - `thinking_dataset/utilities/text_utils.py`
+  - `thinking_dataset/pipelines/pipeline.py`
+
+### Fixed
+- **Enhanced Error Handling**:
+  - Updated the `clean` command to check if the data directory exists before attempting to remove it.
+  - Added a check to log a message and exit gracefully if the directory does not exist, avoiding FileNotFoundError.
+  - Improved logging and error handling to provide clear feedback on the cleanup process.
+  - Added handling for PermissionError to skip files in use by other processes, with appropriate logging.
+- **Attribute Errors**:
+  - Addressed `AttributeError: 'dict' object has no attribute 'root_path'` issue in `Files` class.
+  - Addressed `AttributeError: 'Config' object has no attribute 'get'` issue by accessing attributes directly.
+
+### Changed
+- **Documentation**:
+  - Created a specification for implementing multi-threaded processing in the Pipe class.
+  - Updated the "Prompt Template for Recent Work" to improve structure and readability:
+    - Replaced all mentions of `preprocess` command with `prepare` command.
+    - Adjusted the order of sections to ensure optimal memory usage.
+    - Updated "Files Worked On" to include relevant files for `pipeworks` pipeline, dataset configuration, and command enhancements.
+    - Enhanced the "Notes for Next Session" section to provide clear and actionable tasks.
+    - Refined the "Overview" section to ensure clear documentation of recent changes and improvements.
+
+## [Unreleased] - 2025-1-3
+
+### Added
 - **Files Worked On**:
   - `thinking_dataset/commands/clean.py`
   - `thinking_dataset/commands/download.py`
