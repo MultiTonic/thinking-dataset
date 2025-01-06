@@ -1,6 +1,6 @@
 # @file thinking_dataset/io/files.py
 # @description Handles file I/O operations for the Thinking Dataset Project.
-# @version 1.0.1
+# @version 1.0.0
 # @license MIT
 
 import os
@@ -27,8 +27,14 @@ class Files:
     def get_processed_path(self):
         base_dir = os.path.join(Config.get_value(self.config, 'root_path'),
                                 Config.get_value(self.config, 'data_path'))
-        return os.path.join(base_dir,
-                            Config.get_value(self.config, 'processed_path'))
+        processed_path = os.path.join(
+            base_dir, Config.get_value(self.config, 'processed_path'))
+
+        if not os.path.exists(processed_path):
+            os.makedirs(processed_path)
+            Log.info(f"Created processed directory: {processed_path}")
+
+        return processed_path
 
     def make_dir(self, path):
         root_path = Config.get_value(self.config, 'root_path')

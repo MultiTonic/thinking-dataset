@@ -1,6 +1,6 @@
 # @file thinking_dataset/commands/load.py
 # @description CLI command to load datasets into the database.
-# @version 1.2.1
+# @version 1.0.0
 # @license MIT
 
 import click
@@ -44,7 +44,6 @@ def load(**kwargs):
 
     Log.info(f"Processed path: {processed_path}")
 
-    # Log the content of the processed directory
     processed_files = files.list(processed_path)
     Log.info(f"Files in processed directory: {processed_files}")
 
@@ -57,10 +56,7 @@ def load(**kwargs):
     Log.info(f"Parquet files to be loaded: {load_files}")
 
     if load_files:
-        # Create the Database instance
         database = Database(config=config)
-
-        # Check if the files exist before loading
         for load_file in load_files:
             if not Files.exists(load_file):
                 Log.error(f"File not found: {load_file}")

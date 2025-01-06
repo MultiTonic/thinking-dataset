@@ -1,6 +1,6 @@
 # @file thinking_dataset/datasets/dataset.py
 # @description Implementation of the Dataset class.
-# @version 1.0.3
+# @version 1.0.0
 # @license MIT
 
 import os
