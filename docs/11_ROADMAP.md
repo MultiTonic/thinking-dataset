@@ -1,10 +1,8 @@
-Got it! Let's adjust our roadmap for 1-week sprints and expand Phase 3 to make it more manageable.
-
 # Roadmap
 
 ## Project Roadmap
 
-This document outlines the future plans, features, and milestones for the "Dark Thoughts" thinking-dataset project. The roadmap is designed to guide the project's development and ensure continuous improvement.
+This document outlines the future plans, features, and milestones for the Thinking Dataset Project. The roadmap is designed to guide the project's development and ensure continuous improvement.
 
 ## Milestones
 

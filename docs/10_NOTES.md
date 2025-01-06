@@ -1,7 +1,7 @@
 ### Development Notes
 
 #### General Overview
-- **Project Name**: Dark Thoughts
+- **Project Name**: Thinking Dataset Project
 - **Purpose**: Create a dataset of hypothetical scenarios involving strategic dilemmas, cognitive biases, and complex decision-making to train AI models in reasoning, strategy, and decision-making.
 
 ### Project Phases
@@ -9,7 +9,7 @@
 #### Phase 1: Setup and Configuration
 - **Project Initialization**: Set up the `ThinkingDatasetProject` directory.
 - **Dependencies Installed**: Installed necessary Python packages and Semantic Kernel.
-- **README**: Created README.md to outline project goals, objectives, and setup instructions.
+- **README**: Created `README.md` to outline project goals, objectives, and setup instructions.
 
 #### Phase 2: Data Pipeline Development
 - **Raw Data Ingestion**: Collected and stored initial raw data sources.

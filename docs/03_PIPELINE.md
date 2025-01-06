@@ -2,14 +2,14 @@
 
 ## Overview
 
-This document provides an overview of the data pipeline for the "Dark Thoughts" project, covering all stages from data ingestion to model training and evaluation. The pipeline handles complex tasks involving ethical dilemmas, cognitive biases, and decision-making processes by leveraging various serverless inference endpoints to ensure flexibility, scalability, and efficiency.
+This document provides an overview of the data pipeline for the Thinking Dataset Project, covering all stages from data ingestion to model training and evaluation. The pipeline handles complex tasks involving ethical dilemmas, cognitive biases, and decision-making processes by leveraging various serverless inference endpoints to ensure flexibility, scalability, and efficiency.
 
 ## Pipeline Phases
 
 ### Phase 1: Setup and Configuration
 
 - **Project Initialization**: Create and configure the project directory. Set up version control using Git.
-- **Environment Setup**: Create a virtual environment and install necessary dependencies using `venv` and `pip`.
+- **Environment Setup**: Create a virtual environment and install necessary dependencies using `uv` and `pip`.
 - **Configuration Management**: Use `python-dotenv` to manage configuration files and environment variables securely.
 
 ### Phase 2: Data Pipeline Development

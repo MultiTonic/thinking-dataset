@@ -2,14 +2,15 @@
 
 ## Overview
 
-This document provides step-by-step instructions for setting up the development environment for the "Dark Thoughts" thinking-dataset project. Follow these steps to get the project up and running on your local machine.
+This document provides step-by-step instructions for setting up the development environment for the Thinking Dataset Project. Follow these steps to get the project up and running on your local machine.
 
 ## Prerequisites
 
 Before you begin, ensure you have the following installed on your system:
 
-- **Python 3.7 or higher**: Download it from the [official Python website](https://www.python.org/downloads/).
+- **Python 3.10 or higher**: Download it from the [official Python website](https://www.python.org/downloads/).
 - **Git**: Download it from the [official Git website](https://git-scm.com/downloads).
+- **A cloud-based account (e.g., OpenAI) or a GPU (RTX 3090 or greater) for processing, or both**
 
 ## Setup Steps
 
@@ -22,63 +23,49 @@ git clone https://github.com/MultiTonic/thinking-dataset.git
 cd thinking-dataset
 ```
 
-### 2. Create a Virtual Environment
+### 2. Install `uv` Package Management Tool
 
-Create a virtual environment to manage the project's dependencies:
+Install the `uv` package management tool using `pip`:
 
 ```bash
-python -m venv .venv
+pip install uv
 ```
 
-### 3. Activate the Virtual Environment
+### 3. Install Dependencies
 
-Activate the virtual environment:
-
-- On **Windows**:
-  ```bash
-  .\.venv\Scripts\activate
-  ```
-
-- On **macOS/Linux**:
-  ```bash
-  source .venv/bin/activate
-  ```
-
-### 4. Install Dependencies
-
-With the virtual environment activated, install the project and its dependencies in editable mode:
+Install the required packages using `uv` and `thinking-dataset.toml`:
 
 ```bash
-pip install -e .
+uv install -f thinking-dataset.toml
 ```
 
-### 5. Set Up Environment Variables
+### 4. Set Up Environment Variables
 
-Create a `.env` file in the project root directory and add the necessary environment variables. You can copy the provided `.env.example` file and edit it as needed:
+Copy the `.env.sample` file to `.env` and change the values as needed:
 
 ```bash
-cp .env.example .env
+cp .env.sample .env
 ```
 
 Edit the `.env` file to include your specific configuration settings. Here is an example of what you might include:
 
 ```plaintext
-HF_HOME="~/.cache/huggingface"
-HF_TOKEN="my_huggingface_access_token"
-HF_DATASET="cablegate-pdf-dataset"
-HF_ORGANIZATION="DataTonic"
-HF_USER="my_huggingface_username"
+HF_TOKEN=your_huggingface_token
+HF_DATASET=your_dataset_name
+HF_ORGANIZATION=your_organization_name
+ROOT_DIR=your_root_directory
+DATA_DIR=your_data_directory
 ```
 
-### 6. Initialize the CLI Tool
+### 5. Initialize the CLI Tool
 
-Initialize the CLI tool to set it up for use:
+Initialize the CLI tool to set it up for use. The `init` command will prompt you to enter various configurations such as the dataset name and organization, similar to how `npm init` works:
 
 ```bash
 thinking-dataset init
 ```
 
-### 7. Download the Dataset
+### 6. Download the Dataset
 
 Download the required dataset using the CLI command:
 
@@ -86,7 +73,7 @@ Download the required dataset using the CLI command:
 thinking-dataset download
 ```
 
-### 8. Load the Dataset
+### 7. Load the Dataset
 
 Load the dataset into the SQLite database:
 
@@ -94,7 +81,7 @@ Load the dataset into the SQLite database:
 thinking-dataset load
 ```
 
-### 9. Clean the Data Directory (Optional)
+### 8. Clean the Data Directory (Optional)
 
 If needed, clean the data directory and remove any leftovers:
 

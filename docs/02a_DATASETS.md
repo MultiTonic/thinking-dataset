@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides detailed information on the various datasets utilized in the "Dark Thoughts" thinking-dataset project. These datasets are crucial for generating accurate and complex chains of thought reasoning for real-world Situational Reports (SitReps) and creating useful case studies based on socio-economic conditions and stakeholders.
+This document provides detailed information on the various datasets utilized in the Thinking Dataset Project. These datasets are crucial for generating accurate and complex chains of thought reasoning for real-world Situational Reports (SitReps) and creating useful case studies based on socio-economic conditions and stakeholders.
 
 ## Table of Contents
 

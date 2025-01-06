@@ -2,7 +2,7 @@
 
 ## Introduction
 
-In the "Dark Thoughts" thinking-dataset project, the database is essential for managing structured data. SQLite is chosen for its speed, lightweight nature, and efficiency in handling complex queries and high-volume data access. It ensures efficient data ingestion, preprocessing, and retrieval, maintaining consistency, traceability, and accessibility. SQLite enables quick performance of complex operations, crucial for the project's time-sensitive and data-intensive processes.
+In the Thinking Dataset Project, the database is essential for managing structured data. SQLite is chosen for its speed, lightweight nature, and efficiency in handling complex queries and high-volume data access. It ensures efficient data ingestion, preprocessing, and retrieval, maintaining consistency, traceability, and accessibility. SQLite enables quick performance of complex operations, crucial for the project's time-sensitive and data-intensive processes.
 
 ## Database Design
 
@@ -13,8 +13,6 @@ SQLite is our primary database for storing structured data due to its lightweigh
 ### Key Components
 
 The database schema is structured with several key components to ensure efficient data management and integrity. It includes tables such as **Raw Data**, which stores unprocessed data ingested from various sources; **Processed Data**, containing cleaned and transformed data ready for analysis; **Metadata**, holding information about data sources, processing steps, and other relevant details; and **Logs**, which track all operations performed on the data, ensuring traceability and accountability. Additionally, the schema uses **Indexes** to optimize query performance by indexing frequently accessed columns. **Relationships** are defined between tables to ensure data integrity and enforce constraints, maintaining a coherent and reliable database structure.
-
-The database schema includes several key components that ensure efficient data management and integrity. **Raw Data** stores unprocessed data ingested from various sources. **Processed Data** contains cleaned and transformed data ready for analysis. **Metadata** holds information about data sources, processing steps, and other relevant details. **Logs** track all operations performed on the data, ensuring traceability and accountability. To optimize query performance, **Indexes** are used, and **Relationships** between tables are defined to enforce data integrity and constraints.
 
 ### Schema Diagram
 
@@ -27,7 +25,7 @@ Below is a high-level schema diagram illustrating the relationships between tabl
           |
           v
 +------------------+       +------------------+
-|  Processed Data  |----->| Processing Steps |
+|  Processed Data  |----->| Processing Steps  |
 +------------------+       +------------------+
           |
           v
@@ -60,7 +58,7 @@ This diagram visually represents how the tables are interconnected, ensuring a r
 
 ## Benefits of Using a Database
 
-Using a database like SQLite offers numerous advantages for the "Dark Thoughts" thinking-dataset project:
+Using a database like SQLite offers numerous advantages for the Thinking Dataset Project:
 
 1. **Efficient Data Management**:
     - Centralized storage and retrieval of data.
@@ -122,4 +120,4 @@ Using parquet files directly can limit the efficiency and scalability of data op
 
 ## Conclusion
 
-Using a database in the "Dark Thoughts" thinking-dataset project provides significant benefits in terms of data management, integrity, and performance. It enables efficient handling of large data volumes, ensuring quick and accurate storage, retrieval, and manipulation. The database enforces data integrity and consistency, preventing duplication and anomalies. It supports scalability, managing increasing data volumes without performance degradation. Detailed logs enhance traceability and accountability, while optimized query performance ensures faster data retrieval for time-sensitive analyses and model training. Despite some complexity and maintenance requirements, the advantages of using a database far outweigh the drawbacks, making it essential for the project's architecture.
+Using a database in the Thinking Dataset Project provides significant benefits in terms of data management, integrity, and performance. It enables efficient handling of large data volumes, ensuring quick and accurate storage, retrieval, and manipulation. The database enforces data integrity and consistency, preventing duplication and anomalies. It supports scalability, managing increasing data volumes without performance degradation. Detailed logs enhance traceability and accountability, while optimized query performance ensures faster data retrieval for time-sensitive analyses and model training. Despite some complexity and maintenance requirements, the advantages of using a database far outweigh the drawbacks, making it essential for the project's architecture.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides a list of key references and resources used in the "Dark Thoughts" thinking-dataset project. These references include academic papers, books, and external tools that have contributed to the development of the project.
+This document provides a list of key references and resources used in the Thinking Dataset Project. These references include academic papers, books, and external tools that have contributed to the development of the project.
 
 ### Academic Papers
 

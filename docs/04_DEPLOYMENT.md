@@ -2,13 +2,13 @@
 
 ## Overview
 
-This document provides step-by-step instructions for deploying the "Dark Thoughts" thinking-dataset project. Follow these steps to ensure a smooth deployment process, including setting up the server environment, initializing the application, and configuring nodes for distributed processing.
+This document provides step-by-step instructions for deploying the Thinking Dataset Project. Follow these steps to ensure a smooth deployment process, including setting up the server environment, initializing the application, and configuring nodes for distributed processing.
 
 ## Prerequisites
 
 Before you begin, ensure you have the following:
 
-- **Server/Hosting Environment**: A server or hosting environment with Python 3.7 or higher installed.
+- **Server/Hosting Environment**: A server or hosting environment with Python 3.10 or higher installed.
 - **Database**: SQLite or any other compatible database.
 - **Environment Variables**: Necessary environment variables configured for the deployment environment.
 
@@ -32,24 +32,26 @@ Before you begin, ensure you have the following:
 
 ### 2. Install Dependencies
 
-With the virtual environment activated, install the project and its dependencies:
+With the virtual environment activated, install the project and its dependencies using `uv`:
 ```bash
-pip install -e .
+pip install uv
+uv install -f thinking-dataset.toml
 ```
 
 ### 3. Set Up Environment Variables
 
-Create a `.env` file in the project root directory and configure the necessary environment variables. You can use the provided `.env.example` file as a template:
+Create a `.env` file in the project root directory and configure the necessary environment variables. You can use the provided `.env.sample` file as a template:
 ```bash
-cp .env.example .env
+cp .env.sample .env
 ```
 Edit the `.env` file to include your specific configuration settings:
 ```plaintext
 HF_HOME="~/.cache/huggingface"
-HF_TOKEN="my_huggingface_access_token"
-HF_DATASET="cablegate-pdf-dataset"
-HF_ORGANIZATION="DataTonic"
-HF_USER="my_huggingface_username"
+HF_TOKEN="your_huggingface_token"
+HF_DATASET="your_dataset_name"
+HF_ORGANIZATION="your_organization_name"
+ROOT_DIR="your_root_directory"
+DATA_DIR="your_data_directory"
 ```
 
 ### 4. Initialize the Database
@@ -117,7 +119,8 @@ Regularly update the project dependencies and environment to ensure the applicat
 
 - **Update Dependencies**:
   ```bash
-  pip install --upgrade -r requirements.txt
+  pip install --upgrade uv
+  uv upgrade
   ```
 
 - **Pull Latest Changes**:
