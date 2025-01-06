@@ -6,7 +6,7 @@ This template provides a detailed specification for implementing a new feature: 
 
 ### 1. Class Definition
 
-Extend the `DataTonic` class to handle the uploading of processed parquet files to the HF API dataset.
+Add features to the `DataTonic` class to handle the uploading of processed parquet files to the HF API dataset.
 
 ### 2. Configuration
 
@@ -17,8 +17,8 @@ The configuration for this new system will include the following:
 ### 3. Implementation
 
 - **Class Name**: `DataTonic`
-- **File Path**: `thinking_dataset/api/data_tonic.py`
-- **Description**: Extend the `DataTonic` class for uploading processed parquet files to the HF API dataset.
+- **File Path**: `thinking_dataset/tonics/data_tonic.py`
+- **Description**: Add features to `DataTonic` class for uploading processed parquet files to the HF API dataset.
 - **Version**: 1.0.0
 - **License**: MIT
 
@@ -138,4 +138,7 @@ Integrate the extended `DataTonic` class into the existing workflow to ensure it
 
 ---
 
-**Your response to this query will only be:** `**Ready!:** 🚀`
+**Your response is only this following order:**
+- ***display table of current tasks and status***
+- ***display list of suggested subtasks to work***
+- ***display the text `Ready!🚀`***
