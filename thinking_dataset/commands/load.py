@@ -1,6 +1,6 @@
 # @file thinking_dataset/commands/load.py
 # @description CLI command to load datasets into the database.
-# @version 1.0.0
+# @version 1.0.2
 # @license MIT
 
 import click

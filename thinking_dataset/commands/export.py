@@ -19,7 +19,7 @@ def export(**args):
     Log.info("Starting the export command.")
 
     pipeline = Pipeline("export")
-    pipeline.open()
+    pipeline.open(skip_files=True)
 
     Log.info("Export command completed successfully.")
 

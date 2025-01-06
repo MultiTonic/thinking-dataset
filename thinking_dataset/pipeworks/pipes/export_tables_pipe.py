@@ -1,6 +1,6 @@
 # @file project_root/thinking_dataset/pipeworks/pipes/export_tables_pipe.py
 # @description Pipe for exporting tables.
-# @version 1.2.9
+# @version 1.2.13
 # @license MIT
 
 import pandas as pd
@@ -44,7 +44,13 @@ class ExportTablesPipe(Pipe):
         return df[self.columns]
 
     def _generate_output_path(self, table: str) -> str:
-        file_name = f"{table}_export.{self.file_format}"
+        database_name = self.config.database_name
+        export_file_template = Config.get_value(
+            self.config.pipelines[1]['pipeline']['config'], 'export_file')
+        file_name = export_file_template.format(
+            database_name=database_name,
+            table_name=table,
+            file_ext=f".{self.file_format}")
         return self.files.get_path(self.output_dir, file_name)
 
     def _export_data(self, df: pd.DataFrame, output_path: str):
@@ -88,8 +94,7 @@ class ExportTablesPipe(Pipe):
         for table in self.tables:
             df = self._fetch_data_from_database(table)
             if "auto" in self.columns:
-                self.columns = self._fetch_table_columns(
-                    table)  # Fetch column names from the table
+                self.columns = self._fetch_table_columns(table)
             df = self._select_columns(df)
             output_path = self._generate_output_path(table)
             self._export_data(df, output_path)

@@ -14,8 +14,6 @@ from .operations.fetch import Fetch
 from ..config.config import Config
 from .database_session import DatabaseSession as Session
 from ..utilities.log import Log
-from ..utilities.command_utils import CommandUtils as Utils
-from ..utilities.text_utils import TextUtils as Text
 
 
 class Database:
@@ -89,28 +87,5 @@ class Database:
             return df
         except exc.SQLAlchemyError as e:
             Log.error(f"Error fetching data from table {table_name}: {e}",
-                      exc_info=True)
-            raise
-
-    def process(self, pipes, output_path, dataset_type):
-        """
-        Fetch data from the database, process it through pipes, "
-        "and save the result.
-        """
-        try:
-            table_name = self.config.table_name
-            df = self.fetch_data(table_name)
-            for pipe in pipes:
-                Log.info(f"Open -- {pipe.__class__.__name__} from database")
-                df = pipe.flow(df, Log.get())
-            output_file = os.path.join(output_path,
-                                       f"exported_data.{dataset_type}")
-            Utils.to(df, output_file, dataset_type)
-            file_size = os.path.getsize(output_file)
-            human_readable_file_size = Text.human_readable_size(file_size)
-            Log.info(f"Data processed and saved to {output_file} "
-                     f"(Size: {human_readable_file_size})")
-        except Exception as e:
-            Log.error(f"Error processing pipes from database: {e}",
                       exc_info=True)
             raise

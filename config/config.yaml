@@ -85,7 +85,8 @@ config:
   - pipeline:
       name: "export"
       description: "Default export pipeline"
-      config: {}
+      config:
+        export_file: "{database_name}-{table_name}{file_ext}"
       pipes:
       - pipe:
           type: "ExportTablesPipe"

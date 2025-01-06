@@ -18,6 +18,12 @@ class Files:
     def exists(path):
         return os.path.exists(path)
 
+    def get_root_path(self):
+        return Config.get_value(self.config, 'root_path')
+
+    def get_data_path(self):
+        return Config.get_value(self.config, 'data_path')
+
     def get_raw_path(self):
         base_dir = os.path.join(Config.get_value(self.config, 'root_path'),
                                 Config.get_value(self.config, 'data_path'))

@@ -1,10 +1,11 @@
 # @file thinking_dataset/main.py
 # @description Main entry point for the Thinking Dataset Project.
-# @version 1.1.0
+# @version 1.1.1
 # @license MIT
 
 import click
 from thinking_dataset.commands import download, clean, load, prepare, export
+from thinking_dataset.utilities.log import Log
 
 
 @click.group()
@@ -19,4 +20,5 @@ cli.add_command(clean)
 cli.add_command(export)
 
 if __name__ == "__main__":
+    Log.get()
     cli()

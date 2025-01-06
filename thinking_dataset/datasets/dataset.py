@@ -1,6 +1,6 @@
 # @file thinking_dataset/datasets/dataset.py
 # @description Implementation of the Dataset class.
-# @version 1.0.0
+# @version 1.0.4
 # @license MIT
 
 import os
@@ -9,6 +9,7 @@ import pandas as pd
 from ..utilities.log import Log
 from ..db.database import Database
 from ..config.config import Config
+from ..io.files import Files
 from typing import List, Union, Optional
 from ..tonics.data_tonic import DataTonic
 
@@ -22,16 +23,10 @@ class Dataset:
         try:
             self.data_tonic = data_tonic
             self.config = Config.get()
+            self.database = Database(config=self.config)
+            self.files = Files(self.config)
             self.name = self.config.dataset_name
             self.id = None
-
-            self.root_path = self.config.root_path
-            self.data_path = self.config.data_path
-            self.raw_dir = self.config.raw_path
-            self.processed_dir = os.path.join(self.root_path,
-                                              self.config.processed_path)
-
-            self.database = Database(config=self.config)
 
             if not self.database:
                 raise ValueError("Error creating database instance.")
@@ -56,10 +51,7 @@ class Dataset:
 
     def list_files(self, dir_path: str) -> Optional[List[str]]:
         try:
-            dataset_files = [
-                f for f in os.listdir(dir_path)
-                if os.path.isfile(os.path.join(dir_path, f))
-            ]
+            dataset_files = self.files.list(dir_path)
             Log.info(f"Listed files in directory {dir_path}: {dataset_files}")
             return dataset_files
         except Exception as e:
@@ -75,18 +67,19 @@ class Dataset:
         Log.info(f"Parquet files to be loaded: {files_to_load}")
 
         try:
-            files_in_directory = os.listdir(self.processed_dir)
+            processed_path = self.files.get_processed_path()
+            files_in_directory = self.files.list(processed_path)
             Log.info("Files in directory "
-                     f"{self.processed_dir}: {files_in_directory}")
+                     f"{processed_path}: {files_in_directory}")
         except Exception as e:
-            Log.error(f"Error listing directory {self.processed_dir}: {e}")
+            Log.error(f"Error listing directory {self.processed_path}: {e}")
             return False
 
         with database.get_session() as session:
             for file_path in files_to_load:
                 try:
                     Log.info(f"Attempting to load file: {file_path}")
-                    if not os.path.exists(file_path):
+                    if not self.files.exists(file_path):
                         raise FileNotFoundError(f"File not found: {file_path}")
                     df = pd.read_parquet(file_path)
                     Log.info(f"DataFrame columns: {df.columns}")

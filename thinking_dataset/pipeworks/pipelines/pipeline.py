@@ -1,6 +1,6 @@
 # @file project_root/thinking_dataset/pipeworks/pipelines/pipeline.py
 # @description Manages the flow of data through the pipeline.
-# @version 1.2.6
+# @version 1.2.7
 # @license MIT
 
 import os
@@ -11,7 +11,6 @@ from ...utilities.log import Log
 from ...config.config import Config
 from ...utilities.text_utils import TextUtils as Text
 from ...utilities.command_utils import CommandUtils as Utils
-from ...db.database import Database
 
 
 class Pipeline:
@@ -56,30 +55,29 @@ class Pipeline:
         Log.info(f"Data processed and saved to {file_path} "
                  f"(Size: {human_readable_file_size})")
 
-    def _process_file(self, file, pipes):
+    def _process_file(self, file, pipes, skip_files=False):
         input_file = Files.get_path(self.input_path, file)
         Log.info(f"Processing file: {input_file}")
 
-        if not Files.exists(input_file):
-            Log.warn(f"File not found: {input_file}")
-            return
+        if not skip_files:
+            if not Files.exists(input_file):
+                Log.warn(f"File not found: {input_file}")
+                return
 
         df = Utils.read_data(input_file, self.config.dataset_type)
         df = self._process_pipes(df, pipes)
-        base_name, ext = os.path.splitext(file)
-        file_name = f"{base_name}_prepare{ext}"
-        file_path = Files.get_path(self.output_path, file_name)
-        self._save_data(df, file_path)
+
+        if not skip_files:
+            base_name, ext = os.path.splitext(file)
+            file_name = f"{base_name}_prepare{ext}"
+            file_path = Files.get_path(self.output_path, file_name)
+            self._save_data(df, file_path)
 
     def _open(self, pipes, skip_files=False):
-        if skip_files:
-            db = Database(self.config)
-            db.process(pipes, self.output_path, self.config.dataset_type)
-        else:
-            files = self.config.include_files or []
-            for file in files:
-                if not Files.is_excluded(file, self.config.exclude_files):
-                    self._process_file(file, pipes)
+        files = self.config.include_files or []
+        for file in files:
+            if not Files.is_excluded(file, self.config.exclude_files):
+                self._process_file(file, pipes, skip_files)
 
     def get(self, name):
         for name, pipes, config in Pipeline.pipelines:
