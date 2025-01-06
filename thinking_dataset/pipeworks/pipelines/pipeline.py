@@ -1,6 +1,6 @@
 # @file project_root/thinking_dataset/pipeworks/pipelines/pipeline.py
-# @description Defines the Pipeline class for managing data processing.
-# @version 1.2.3
+# @description Manages the flow of data through the pipeline.
+# @version 1.2.6
 # @license MIT
 
 import os
