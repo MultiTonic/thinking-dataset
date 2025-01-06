@@ -4,6 +4,60 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.4.25] - 2025-01-04
+
+### Added
+- **Configuration Update**:
+  - Added `database.name` to the configuration to ensure proper database naming.
+  - Updated `config.py` to include `database_name`.
+- **Extended DataTonic Class**:
+  - Developed methods for all necessary tasks, including data pushing to the HF API.
+  - Implemented pseudocode for reading configuration properties, handling dataset selection, and uploading files.
+- **Database Export Functionality**:
+  - Extracted data from the database.
+  - Converted extracted data to DataFrame.
+  - Applied include/exclude filters.
+- **Parquet Conversion**:
+  - Converted DataFrame to parquet files.
+  - Saved parquet files in the processed directory.
+- **Integration**:
+  - Integrated the extended DataTonic class into the existing workflow.
+  - Updated pipeline configuration to align with new setup.
+- **Unit Testing**:
+  - Planned for comprehensive unit tests to cover all new functionalities.
+  - Ensured proper handling and validation of configuration properties.
+- **Documentation and Changelog**:
+  - Updated documentation to reflect all recent changes and new options.
+  - Documented all changes and improvements for easy tracking.
+- **Accuracy and Reliability**:
+  - Ensured all responses and information are verified and grounded.
+
+### Changed
+- **Updated `SessionStateMachine` Class**:
+  - Removed `self.log` assignment and switched to using `Log.info` directly.
+- **Fixed Logging Issue in `Pipeline` and `Pipe` Classes**:
+  - Removed `self.log` assignment in `Pipe` class and updated to use `Log.get()`.
+  - Corrected `_open` method in `Pipeline` class.
+- **Updated File Handling in `Files` Class**:
+  - Ensured proper handling of directories and consistent logging using `Log` class.
+- **Corrected Argument Mismatch in `Pipeline` Class**:
+  - Removed incorrect call to `self.config.get("file")` in `_open` method.
+- **Updated `load.py` Command**:
+  - Removed explicit database creation in `dataset.load`.
+  - Ensured `Dataset` class is used correctly with the new API.
+  - Added checks to ensure files exist before loading.
+- **Corrected File Path Handling in `Dataset` Class**:
+  - Ensured absolute paths are used for loading files.
+- **Logged Database URL in `Database` Class**:
+  - Added logging for the database URL during initialization to ensure it's using the correct format.
+
+### Fixed
+- **Corrected Database Name Handling**:
+  - Added `database.name` to the configuration and ensured `database_url` is formatted with the dataset name before initializing the `Database` instance.
+- **Removed Comments and Updated Header in `SessionStateMachine` Class**.
+
 ## [Unreleased] - 2025-1-3
 
 ### Added
