@@ -66,7 +66,7 @@ class Pipe(ABC):
             }
 
             for future in as_completed(futures):
-                results.append(future.result())
+                results.append(future)
                 completed += 1
 
         pbar.n = completed
@@ -75,5 +75,6 @@ class Pipe(ABC):
         updater_thread.join()
 
         results.sort(key=lambda x: futures[x])
+
         return pd.Series([future.result() for future in results],
                          index=series.index)

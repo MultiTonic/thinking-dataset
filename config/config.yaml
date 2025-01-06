@@ -35,7 +35,7 @@ config:
       - pipe:
           type: "SubsetPipe"
           config:
-            rows: [ "all" ]
+            rows: [ 0, 100 ]
             columns: [ "all" ]
       - pipe:
           type: "AddIdPipe"
