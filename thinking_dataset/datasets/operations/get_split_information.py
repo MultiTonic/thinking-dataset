@@ -5,10 +5,10 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .base_operation import Operation
 
 
-class GetSplitInformation(BaseOperation):
+class GetSplitInformation(Operation):
     """
     Operation class to retrieve dataset split information.
     """

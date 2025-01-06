@@ -19,21 +19,14 @@ class Pipe(ABC):
 
     def __init__(self, config: dict):
         self.config = config
-        self.log = Log.setup(self.__class__.__name__)
 
     @abstractmethod
-    def flow(self, df, log, **args):
-        """
-        Flow the DataFrame through the pipe. To be implemented by subclasses.
-        """
-        self.log.info(f"Flow -- {self.__class__.__name__}")
+    def flow(self, df, **args):
+        Log.info(f"Flow -- {self.__class__.__name__}")
         pass
 
     @staticmethod
     def get_pipe(pipe_type):
-        """
-        Dynamically import and return the pipe class based on the pipe type.
-        """
         module_name = "thinking_dataset.pipeworks.pipes." + \
             Utils.camel_to_snake(pipe_type)
 
@@ -45,17 +38,10 @@ class Pipe(ABC):
                               f"from module {module_name}")
 
     def progress_apply(self, series, func, desc):
-        """
-        Apply a function to a pandas series with a progress bar.
-        """
         tqdm.pandas(desc=desc)
         return series.progress_apply(func)
 
-    def multi_thread_apply(self, series, func, desc, max_workers=4):
-        """
-        Apply a function to a pandas series using multiple threads with a
-        progress bar.
-        """
+    def multi_thread_apply(self, series, func, desc, max_workers=16):
         tqdm.pandas(desc=desc)
         total = len(series)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:

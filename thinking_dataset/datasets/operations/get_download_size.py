@@ -5,11 +5,11 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .base_operation import Operation
 from ...utilities.log import Log
 
 
-class GetDownloadSize(BaseOperation):
+class GetDownloadSize(Operation):
     """
     A class to retrieve the download size of the dataset.
     """
@@ -20,5 +20,5 @@ class GetDownloadSize(BaseOperation):
         """
         dataset_info = self.data_tonic.get_dataset_info()
         download_size = dataset_info.card_data.get('download_size', 0)
-        Log.info(self.log, f"Dataset download size: {download_size}")
+        Log.info(f"Dataset download size: {download_size}")
         return download_size

@@ -5,10 +5,10 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .base_operation import Operation
 
 
-class GetDescription(BaseOperation):
+class GetDescription(Operation):
     """
     Operation class to retrieve dataset description.
     """

@@ -5,11 +5,11 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .base_operation import Operation
 from ...utilities.log import Log
 
 
-class GetDownloadUrls(BaseOperation):
+class GetDownloadUrls(Operation):
     """
     Operation class to retrieve dataset download URLs.
     """
@@ -23,5 +23,5 @@ class GetDownloadUrls(BaseOperation):
             file.rfilename for file in dataset_info.siblings
             if file.rfilename.endswith(f'.{self.config.dataset_type}')
         ]
-        Log.info(self.log, f"Dataset download URLs: {download_urls}")
+        Log.info(f"Dataset download URLs: {download_urls}")
         return download_urls

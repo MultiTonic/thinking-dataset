@@ -5,10 +5,10 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .base_operation import Operation
 
 
-class GetLicense(BaseOperation):
+class GetLicense(Operation):
     """
     Operation class to retrieve dataset license information.
     """

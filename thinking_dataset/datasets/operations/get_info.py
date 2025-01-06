@@ -5,12 +5,12 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .base_operation import Operation
 from huggingface_hub.utils import RepositoryNotFoundError
 from ...utilities.log import Log
 
 
-class GetInfo(BaseOperation):
+class GetInfo(Operation):
     """
     A class to retrieve dataset information.
     """
@@ -23,7 +23,7 @@ class GetInfo(BaseOperation):
             dataset_info = self.data_tonic.api.dataset_info(dataset_id)
             description = dataset_info.card_data.get(
                 'description', 'No description available')
-            Log.info(self.log, f"Retrieved dataset info: {description}")
+            Log.info(f"Retrieved dataset info: {description}")
             return dataset_info
         except RepositoryNotFoundError as e:
             Log.error(self.log,

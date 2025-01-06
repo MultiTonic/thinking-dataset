@@ -1,31 +1,28 @@
 # @file thinking_dataset/commands/load.py
 # @description CLI command to load datasets into the database.
-# @version 1.0.0
+# @version 1.2.1
 # @license MIT
 
 import click
 from ..io.files import Files
 from ..utilities.log import Log
+from ..db.database import Database
+from ..config.config import Config
 from ..utilities.logger import logger
 from ..datasets.dataset import Dataset
 from ..tonics.data_tonic import DataTonic
 from ..utilities.load_dotenv import dotenv
 from ..utilities.exceptions import exceptions
-from ..utilities.command_utils import CommandUtils as Utils
 
 
 @click.command()
-@click.pass_context
 @exceptions
 @logger
 @dotenv(print=True)
-def load(ctx, **kwargs):
-    log = kwargs['log']
-    ctx.obj = log
-    Log.info(log, "Starting the load command.")
+def load(**kwargs):
+    Log.info("Starting the load command.")
 
-    config_path = kwargs['dotenv']['CONFIG_PATH']
-    config = Utils.load_config(config_path)
+    config = Config.get()
 
     hf_read_token = kwargs['dotenv']['HF_READ_TOKEN']
     hf_write_token = kwargs['dotenv']['HF_WRITE_TOKEN']
@@ -37,13 +34,19 @@ def load(ctx, **kwargs):
                            org=hf_org,
                            user=hf_user,
                            config=config)
-    Log.info(log, "Initialized DataTonic instance.")
+    Log.info("Initialized DataTonic instance.")
 
     dataset = Dataset(data_tonic=data_tonic)
-    Log.info(log, "Initialized Dataset instance.")
+    Log.info("Initialized Dataset instance.")
 
     files = Files(config)
     processed_path = files.get_processed_path()
+
+    Log.info(f"Processed path: {processed_path}")
+
+    # Log the content of the processed directory
+    processed_files = files.list(processed_path)
+    Log.info(f"Files in processed directory: {processed_files}")
 
     load_files = [
         files.get_path(processed_path, files.format(file, pattern))
@@ -51,18 +54,23 @@ def load(ctx, **kwargs):
         if file not in config.exclude_files
     ]
 
-    Log.info(log, f"Parquet files to be loaded: {load_files}")
+    Log.info(f"Parquet files to be loaded: {load_files}")
 
     if load_files:
-        database = dataset.create(
-            db_url=config.database_url.format(name=config.dataset_name),
-            config=kwargs['dotenv']['CONFIG_PATH'])
+        # Create the Database instance
+        database = Database(config=config)
+
+        # Check if the files exist before loading
+        for load_file in load_files:
+            if not Files.exists(load_file):
+                Log.error(f"File not found: {load_file}")
+                raise RuntimeError(f"File not found: {load_file}")
 
         if not dataset.load(database=database, files_to_load=load_files):
             raise RuntimeError(
                 "Failed to load dataset files into the database.")
 
-        Log.info(log, "Loaded dataset files into the database successfully.")
+        Log.info("Loaded dataset files into the database successfully.")
     else:
         raise RuntimeError(
             "No files matched the filters to be loaded into the database.")

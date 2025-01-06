@@ -16,18 +16,13 @@ from ..utilities.exceptions import exceptions
 
 
 @click.command()
-@click.pass_context
 @exceptions
 @logger
 @dotenv(print=True)
-def download(ctx, **args):
-    log = args['log']
-    ctx.obj = log
-    Log.info(log, "Starting the download command.")
+def download(**args):
+    Log.info("Starting the download command.")
 
-    path = args['dotenv']['CONFIG_PATH']
-    config = Config(path)
-    config.validate()
+    config = Config.get()
 
     hf_read_token = args['dotenv']['HF_READ_TOKEN']
     hf_write_token = args['dotenv']['HF_WRITE_TOKEN']
@@ -39,20 +34,19 @@ def download(ctx, **args):
                            org=hf_org,
                            user=hf_user,
                            config=config)
-    Log.info(log, "Initialized DataTonic instance.")
+    Log.info("Initialized DataTonic instance.")
 
-    dataset = Dataset(data_tonic=data_tonic)
-    Log.info(log, "Initialized Dataset instance.")
+    dataset = Dataset(data_tonic)
+    Log.info("Initialized Dataset instance.")
 
     files = Files(config)
 
     raw_dir = files.get_raw_path()
-    files.make_dir(raw_dir, log)
+    files.make_dir(raw_dir)
 
     dataset.download(hf_read_token, f"{hf_org}/{config.dataset_name}", raw_dir,
                      config.include_files, config.exclude_files)
-    Log.info(log,
-             f"Downloaded all dataset files to {os.path.normpath(raw_dir)}")
+    Log.info(f"Downloaded all dataset files to {os.path.normpath(raw_dir)}")
 
 
 if __name__ == "__main__":

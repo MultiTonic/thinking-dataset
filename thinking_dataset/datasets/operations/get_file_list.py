@@ -6,12 +6,12 @@
 """
 
 import sys
-from .base_operation import BaseOperation
+from .base_operation import Operation
 from ...config.config import Config
 from ...utilities.log import Log
 
 
-class GetFileList(BaseOperation):
+class GetFileList(Operation):
     """
     A class to retrieve the list of files in the dataset.
     """
@@ -28,7 +28,7 @@ class GetFileList(BaseOperation):
                 file.rfilename for file in dataset_info.siblings
                 if file.rfilename.endswith(f'.{self.config.dataset_type}')
             ]
-            Log.info(self.log, f"Dataset files: {file_list}")
+            Log.info(f"Dataset files: {file_list}")
             return file_list
         except Exception as e:
             Log.error(self.log,

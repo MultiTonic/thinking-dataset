@@ -11,6 +11,7 @@ config:
     read_timeout: 30
     log_queries: True
     environment: "development"
+    name: "thinking-dataset"
   paths:
     root: "."
     database: "db"

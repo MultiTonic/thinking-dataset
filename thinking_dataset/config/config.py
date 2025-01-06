@@ -1,10 +1,10 @@
 # @file project_root/thinking_dataset/config/config.py
 # @description Defines DatasetConfig class for storing dataset configuration.
-# @version 1.0.0
+# @version 1.0.2
 # @license MIT
 
 from ..utilities.command_utils import CommandUtils as Utils
-from .config_loader import ConfigLoader as Loader
+from .config_loader import Loader
 
 
 class Config:
@@ -12,13 +12,12 @@ class Config:
     Class for storing dataset configuration.
     """
 
-    def __init__(self, config_path: str):
-        loader = Loader(config_path)
+    def __init__(self, path: str):
+        loader = Loader(path)
         config = loader.get('config')
         self.dataset_name = config.get('huggingface', {}).get('name')
         self.dataset_type = config.get('huggingface',
                                        {}).get('type', 'parquet')
-
         self.database_url = config.get('database', {}).get('url')
         self.database_type = config.get('database', {}).get('type', 'sqlite')
         self.pool_size = config.get('database', {}).get('pool_size', 5)
@@ -29,14 +28,13 @@ class Config:
         self.log_queries = config.get('database', {}).get('log_queries', True)
         self.environment = config.get('database',
                                       {}).get('environment', 'development')
-
+        self.database_name = config.get('database', {}).get('name')
         self.root_path = config.get('paths', {}).get('root', '.')
         self.data_path = config.get('paths', {}).get('data', 'data')
         self.raw_path = config.get('paths', {}).get('raw', 'raw')
         self.processed_path = config.get('paths',
                                          {}).get('processed', 'processed')
         self.database_path = config.get('paths', {}).get('database', 'db')
-
         self.include_files = config.get('files', {}).get('include', [])
         self.exclude_files = config.get('files', {}).get('exclude', [])
         self.load_patterns = config.get('files', {}).get(
@@ -93,9 +91,15 @@ class Config:
                              "'development', 'testing', or 'production'.")
 
     @staticmethod
-    def get_config():
+    def get():
         dotenv = Utils.load_dotenv()
         config_path = dotenv.get("CONFIG_PATH")
         config = Config(config_path)
         config.validate()
         return config
+
+    @staticmethod
+    def get_value(config, key):
+        if isinstance(config, dict):
+            return config.get(key)
+        return getattr(config, key, None)

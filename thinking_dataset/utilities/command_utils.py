@@ -25,9 +25,9 @@ class CommandUtils:
 
     @staticmethod
     def print_dotenv(env_vars, log):
-        Log.info(log, "Environment Configuration:")
+        Log.info("Environment Configuration:")
         for key, value in env_vars.items():
-            Log.info(log, f"{key}: {value}")
+            Log.info(f"{key}: {value}")
 
     @staticmethod
     def verify_dotenv(dotenv, log):
@@ -36,15 +36,8 @@ class CommandUtils:
                 log,
                 "Environment validation failed. Some variables are not set.")
             return False
-        Log.info(log, "Environment variables validated successfully.")
+        Log.info("Environment variables validated successfully.")
         return True
-
-    @staticmethod
-    def load_config(config_path):
-        from ..config.config import Config
-        config = Config(config_path)
-        config.validate()
-        return config
 
     @staticmethod
     def read_data(file, type):

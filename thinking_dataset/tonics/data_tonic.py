@@ -4,7 +4,6 @@
 # @license MIT
 
 import os
-import logging
 from huggingface_hub import HfApi
 from thinking_dataset.utilities.log import Log
 from thinking_dataset.datasets.operations import (
@@ -21,7 +20,6 @@ class DataTonic:
 
     def __init__(self, read_token, write_token, org, user, config):
         try:
-            self.log = Log.setup(self.__class__.__name__)
             self.read_token = read_token
             self.write_token = write_token
             self.org = org
@@ -29,11 +27,9 @@ class DataTonic:
             self.config = config
             self.api = HfApi(token=read_token)
             self._initialize()
-            Log.info(self.log, "DataTonic initialized successfully.")
+            Log.info("DataTonic initialized successfully.")
         except Exception as e:
-            Log.error(self.log,
-                      f"Error initializing DataTonic: {e}",
-                      exc_info=True)
+            Log.error(f"Error initializing DataTonic: {e}", exc_info=True)
 
     def _initialize(self):
         self.get_download_urls = GetDownloadUrls(self, self.config)
@@ -50,15 +46,17 @@ class DataTonic:
         self.get_split_information = GetSplitInformation(self, self.config)
         self.get_tags = GetTags(self, self.config)
         self.list_datasets = ListDatasets(self, self.config)
-        Log.info(self.log, "Operations initialized successfully.")
+        Log.info("DataTonic initialized successfully!")
 
     def _upload_file(self, file_path):
         try:
-            logging.info(f"Uploading {file_path}")
+            Log.info(f"Uploading {file_path}")
             self.api.upload_file(file_path, self.org)
-            logging.info(f"Successfully uploaded {file_path}")
+            Log.info(f"Successfully uploaded {file_path}")
         except Exception as e:
-            logging.error(f"Failed to upload {file_path} with error: {e}")
+            Log.error(f"Failed to upload {file_path} with error: {e}")
+            Log.error(f"Failed to upload {file_path} with error: {e}",
+                      exc_info=True)
 
     def push(self, processed_dir):
         include_files = self.config.include_files

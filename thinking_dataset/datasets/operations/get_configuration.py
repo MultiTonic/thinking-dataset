@@ -5,10 +5,10 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .base_operation import Operation
 
 
-class GetConfiguration(BaseOperation):
+class GetConfiguration(Operation):
     """
     Operation class to retrieve dataset configurations.
     """

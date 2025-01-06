@@ -14,8 +14,8 @@ class AddIdPipe(Pipe):
     Pipe to add unique identifiers to rows in the DataFrame.
     """
 
-    def flow(self, df: pd.DataFrame, log, **args) -> pd.DataFrame:
-        Log.info(log, "Starting AddIdPipe")
+    def flow(self, df: pd.DataFrame, **args) -> pd.DataFrame:
+        Log.info("Starting AddIdPipe")
 
         id_type = self.config.get("id_type", "int")
 
@@ -26,8 +26,7 @@ class AddIdPipe(Pipe):
 
         df.insert(0, 'id', ids)
 
-        Log.info(log,
-                 f"Added unique {id_type} identifiers as the first column.")
-        Log.info(log, "Finished AddIdPipe")
+        Log.info(f"Added unique {id_type} identifiers as the first column.")
+        Log.info("Finished AddIdPipe")
 
         return df

@@ -5,10 +5,10 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .base_operation import Operation
 
 
-class GetPermissions(BaseOperation):
+class GetPermissions(Operation):
     """
     Operation class to check dataset permissions.
     """

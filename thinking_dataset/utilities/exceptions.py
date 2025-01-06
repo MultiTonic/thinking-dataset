@@ -1,7 +1,7 @@
 """
 @file thinking_dataset/utilities/exceptions.py
-@description Defines a decorator for handling exceptions and logging.
-@version 1.0.0
+@desc Decorator for handling exceptions and logging using the Log Singleton.
+@version 1.0.1
 @license MIT
 """
 
@@ -17,25 +17,24 @@ def exceptions(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        log = kwargs.get('log', Log.setup(func.__name__))
         error_occurred = False
         try:
             return func(*args, **kwargs)
         except ValueError as e:
-            Log.error(log, f"Validation error: {e}", exc_info=True)
+            Log.error(f"Validation error: {e}", exc_info=True)
             error_occurred = True
         except FileNotFoundError as e:
-            Log.error(log, f"File not found error: {e}", exc_info=True)
+            Log.error(f"File not found error: {e}", exc_info=True)
             error_occurred = True
         except RuntimeError as e:
-            Log.error(log, f"Runtime error: {e}", exc_info=True)
+            Log.error(f"Runtime error: {e}", exc_info=True)
             error_occurred = True
         except Exception as e:
-            Log.error(log, f"An unexpected error occurred: {e}", exc_info=True)
+            Log.error(f"An unexpected error occurred: {e}", exc_info=True)
             error_occurred = True
         finally:
             if error_occurred:
-                Log.error(log, f"{func.__name__} command did not complete.")
+                Log.error(f"{func.__name__} command did not complete.")
                 sys.exit(1)
 
     return wrapper

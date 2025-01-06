@@ -16,13 +16,13 @@ class NormalizeTextPipe(Pipe):
     and removing unnecessary whitespace.
     """
 
-    def flow(self, df: pd.DataFrame, log, **args) -> pd.DataFrame:
+    def flow(self, df: pd.DataFrame, **args) -> pd.DataFrame:
         columns = self.config.get("columns", [])
         contractions = self.config.get("contractions", {})
         terms = self.config.get("terms", {})
 
-        Log.info(log, "Starting NormalizeTextPipe")
-        Log.info(log, f"Columns to normalize: {columns}")
+        Log.info("Starting NormalizeTextPipe")
+        Log.info(f"Columns to normalize: {columns}")
 
         def normalize_text(text):
             text = text.lower()
@@ -48,5 +48,6 @@ class NormalizeTextPipe(Pipe):
             df[col] = self.multi_thread_apply(df[col], normalize_text,
                                               f"Normalizing {col}")
 
-        Log.info(log, "Finished NormalizeTextPipe")
+        Log.info("Finished NormalizeTextPipe")
+
         return df

@@ -12,19 +12,16 @@ from ..pipeworks.pipelines.pipeline import Pipeline
 
 
 @click.command()
-@click.pass_context
 @exceptions
 @logger
 @dotenv(print=True)
-def export(ctx, **args):
-    log = args['log']
-    ctx.obj = log
-    Log.info(log, "Starting the export command.")
+def export(**args):
+    Log.info("Starting the export command.")
 
-    pipeline = Pipeline(log=log, name="export")
+    pipeline = Pipeline("export")
     pipeline.open()
 
-    Log.info(log, "Export command completed successfully.")
+    Log.info("Export command completed successfully.")
 
 
 if __name__ == "__main__":

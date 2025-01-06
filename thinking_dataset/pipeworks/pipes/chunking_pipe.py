@@ -13,15 +13,15 @@ class ChunkingPipe(Pipe):
     Pipe to chunk input records while avoiding orphan chunks.
     """
 
-    def flow(self, df: pd.DataFrame, log, **args) -> pd.DataFrame:
+    def flow(self, df: pd.DataFrame, **args) -> pd.DataFrame:
         columns = self.config.get("columns", [])
         max_chunk_size = self.config.get("max_chunk_size", 0)
         min_chunk_size = self.config.get("min_chunk_size", 0)
 
-        Log.info(log, "Starting ChunkingPipe")
-        Log.info(log, f"Columns to chunk: {columns}")
-        Log.info(log, f"Max chunk size: {max_chunk_size}")
-        Log.info(log, f"Min chunk size: {min_chunk_size}")
+        Log.info("Starting ChunkingPipe")
+        Log.info(f"Columns to chunk: {columns}")
+        Log.info(f"Max chunk size: {max_chunk_size}")
+        Log.info(f"Min chunk size: {min_chunk_size}")
 
         def chunk_text(text):
             chunks = []
@@ -63,8 +63,8 @@ class ChunkingPipe(Pipe):
         new_chunks = total_chunks - original_rows
         chunked_df = pd.DataFrame(chunked_data)
 
-        Log.info(log, f"Average chunk size: {avg_chunk_size} characters.")
-        Log.info(log, f"Added {new_chunks} chunks ({total_chunks} total).")
-        Log.info(log, "Finished ChunkingPipe")
+        Log.info(f"Average chunk size: {avg_chunk_size} characters.")
+        Log.info(f"Added {new_chunks} chunks ({total_chunks} total).")
+        Log.info("Finished ChunkingPipe")
 
         return chunked_df

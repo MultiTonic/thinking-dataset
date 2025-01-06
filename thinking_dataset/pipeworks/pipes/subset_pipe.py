@@ -13,38 +13,37 @@ class SubsetPipe(Pipe):
     Pipe to create a subset of data based on specified row and column ranges.
     """
 
-    def flow(self, df: pd.DataFrame, log, **args) -> pd.DataFrame:
+    def flow(self, df: pd.DataFrame, **args) -> pd.DataFrame:
         rows = self.config.get("rows")
         columns = self.config.get("columns")
 
         if not rows and not columns:
             Log.error(
-                log,
                 "Both rows and columns configurations are missing. One of "
                 "each or both must be configured.")
             return df
 
-        Log.info(log, "Starting SubsetPipe")
+        Log.info("Starting SubsetPipe")
 
         if rows and rows != ["all"]:
-            Log.info(log, f"Applying row range: {rows}")
+            Log.info(f"Applying row range: {rows}")
             df = df.iloc[rows[0]:rows[1], :]
         else:
-            Log.info(log, "Including all rows")
+            Log.info("Including all rows")
 
         if columns and columns != ["all"]:
-            Log.info(log, f"Applying column range: {columns}")
+            Log.info(f"Applying column range: {columns}")
             df = df.iloc[:, columns[0]:columns[1]]
         else:
-            Log.info(log, "Including all columns")
+            Log.info("Including all columns")
 
         if 'id' in df.columns:
             df = df[['id'] + [col for col in df.columns if col != 'id']]
 
         total_rows = df.shape[0]
         total_columns = df.shape[1]
-        Log.info(log, f"Total rows in subset: {total_rows}")
-        Log.info(log, f"Total columns in subset: {total_columns}")
+        Log.info(f"Total rows in subset: {total_rows}")
+        Log.info(f"Total columns in subset: {total_columns}")
+        Log.info("Finished SubsetPipe")
 
-        Log.info(log, "Finished SubsetPipe")
         return df
