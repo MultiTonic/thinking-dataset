@@ -1,4 +1,4 @@
-# @file project_root/thinking_dataset/pipeworks/pipes/pipe.py
+# @file thinking_dataset/pipeworks/pipes/pipe.py
 # @description Defines BasePipe class for preprocessing tasks with logging.
 # @version 1.1.1
 # @license MIT
@@ -7,9 +7,11 @@ import importlib
 import pandas as pd
 from tqdm import tqdm
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from thinking_dataset.utilities.log import Log
-from concurrent.futures import ThreadPoolExecutor
 from thinking_dataset.utilities.command_utils import CommandUtils as Utils
+import time
+import threading
 
 
 class Pipe(ABC):
@@ -41,12 +43,37 @@ class Pipe(ABC):
         tqdm.pandas(desc=desc)
         return series.progress_apply(func)
 
-    def multi_thread_apply(self, series, func, desc, max_workers=16):
-        tqdm.pandas(desc=desc)
+    def multi_thread_apply(self, series, func, desc, max_workers=5):
         total = len(series)
+        pbar = tqdm(total=total, desc=desc)
+
+        results = []
+        completed = 0
+
+        def progress_updater():
+            while completed < total:
+                pbar.n = completed
+                pbar.refresh()
+                time.sleep(0.1)
+
+        updater_thread = threading.Thread(target=progress_updater)
+        updater_thread.start()
+
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(func, value) for value in series]
-            results = []
-            for future in tqdm(futures, total=total, desc=desc):
+            futures = {
+                executor.submit(func, value): i
+                for i, value in enumerate(series)
+            }
+
+            for future in as_completed(futures):
                 results.append(future.result())
-        return pd.Series(results, index=series.index)
+                completed += 1
+
+        pbar.n = completed
+        pbar.refresh()
+        pbar.close()
+        updater_thread.join()
+
+        results.sort(key=lambda x: futures[x])
+        return pd.Series([future.result() for future in results],
+                         index=series.index)
