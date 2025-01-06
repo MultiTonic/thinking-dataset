@@ -1,6 +1,3 @@
-Here’s your updated prompt template, now including the new rule about comments:
-
-```
 # Prompt Template for Project
 
 ## Overview
