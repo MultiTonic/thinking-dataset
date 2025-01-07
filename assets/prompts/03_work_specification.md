@@ -2,7 +2,7 @@
 
 ## Overview
 
-This template provides a detailed specification for implementing a new feature: a system for uploading processed data to the HF API dataset. The goal is to create a new command and pipeline that will handle the uploading of parquet files from our data/processed directory.
+This template provides a detailed specification for implementing a new feature: a system for uploading processed data to the HF API dataset. The goal is to create a new command and pipeline that will handle the uploading of parquet files from our `data/processed` directory.
 
 ## Specification Details
 
@@ -13,7 +13,7 @@ Add a new command to handle the uploading of processed parquet files to the HF A
 ### 2. Configuration
 
 The configuration for this new system will include the following:
-- **api_token**: Token for authenticating with the HF API.
+- **write_token**: Token for authenticating with the HF API.
 - **dataset_name**: Name of the dataset to which the files will be uploaded.
 - **upload_path**: Path where the processed files are located.
 
@@ -42,12 +42,12 @@ The `upload` command should be implemented as follows:
 
 2. **Execute the Upload Command**:
     - Read configuration properties.
-    - Iterate through processed directory.
+    - Iterate through the processed directory.
     - Upload each file to the HF API dataset.
 
     ```pseudo
     FUNCTION execute():
-        API_TOKEN = CONFIG.get("api_token")
+        WRITE_TOKEN = CONFIG.get("write_token")
         DATASET_NAME = CONFIG.get("dataset_name")
         UPLOAD_PATH = CONFIG.get("upload_path")
 
@@ -73,22 +73,55 @@ The `upload` command should be implemented as follows:
 
 Integrate the `upload` command into the existing workflow to ensure it processes and uploads the data files effectively. The new system will use configuration similar to the download system to manage include/exclude files.
 
+### 6. Focus on Current Work
+
+Currently, we are focusing on:
+- Creating a new pipeline called `upload` for uploading processed data.
+- Adding a `FileExtractorPipe` to handle directory access and file extraction.
+- Adding a `FilterByNamePipe` to filter files by name.
+- Adding an `UploadPipe` to handle the file upload process.
+- Ensuring the configuration is updated to support dynamic variable resolution.
+- Adding detailed objectives for logging, performance optimization, error handling, validation, feedback, documentation, and security.
+
+### 7. Future Conversation
+
+In our next conversation, please provide:
+- Feedback on the implementation and any issues encountered.
+- Additional requirements or enhancements for the upload pipeline.
+- Any new features or changes to be incorporated based on current progress.
+
 ## Itemized Task Todo List
 
 | Task Overview                                           | Completed |
 |---------------------------------------------------------|-----------|
-| **Update Configuration Files**                          |           |
-| Add `api_token` to `config.yaml`.                       |           |
-| Add `dataset_name` to `config.yaml`.                    |           |
-| Add `upload_path` to `config.yaml`.                     |           |
+| **Support Dynamic Variables in Configuration**          |           |
+| Implement dynamic variable resolution in `config.py`.   |           |
+| **Implement Configurations for Each Pipe**              |           |
+| Configure `FileExtractorPipe` for directory access.     |           |
+| Configure `FilterByNamePipe` for file filtering.        |           |
+| Configure `UploadPipe` for file uploads.                |           |
 | **Implement Upload Command**                            |           |
 | Create `UploadCommand` class in `upload.py`.            |           |
 | Implement the `execute` method for the `UploadCommand` class. |           |
 | Implement the `_upload_file` method for the `UploadCommand` class. |           |
 | **Integrate Upload Command into Pipeline**              |           |
 | Ensure the `upload` command is integrated into the pipeline configuration. |           |
-| **Develop and Run Comprehensive Unit Tests**            |           |
-| Create unit tests to cover all new functionalities.     |           |
+| **Update `run_cli_command.py` Script**                  |           |
+| Update the script to include export and upload functionalities. |           |
+| **Set Up Logging and Monitoring**                       |           |
+| Implement logging for all pipelines and commands.       |           |
+| **Optimize Pipeline Performance**                       |           |
+| Evaluate and optimize pipeline performance.             |           |
+| **Enhance Error Handling and Reporting**                |           |
+| Implement detailed error handling in all pipes and commands. |           |
+| **Implement Configuration Validation**                  |           |
+| Add validation logic for dynamic variable resolutions.  |           |
+| **User Feedback Mechanism**                             |           |
+| Create a system to collect and manage feedback.         |           |
+| **Comprehensive Documentation**                         |           |
+| Develop detailed user guides and API documentation.     |           |
+| **Security Enhancements**                               |           |
+| Review and secure API tokens and sensitive data handling. |           |
 | **Update Documentation**                                |           |
 | Reflect all recent changes in the documentation, ensuring clarity and completeness. |           |
 | **Reflect Recent Changes in the Changelog**             |           |
@@ -102,7 +135,7 @@ Integrate the `upload` command into the existing workflow to ensure it processes
 
 ### Environment and Configuration Updates
 - Moved sensitive information from `config.yaml` to `.env` for improved security.
-- Ensured `HF_TOKEN`, `HF_ORG`, and `HF_USER` are correctly set in the `.env` file.
+- Ensured `HF_WRITE_TOKEN`, `HF_ORG`, and `HF_USER` are correctly set in the `.env` file.
 - Updated `command_utils.py` to load environment variables properly.
 - Adjusted `load_dotenv` function to verify environment variables.
 

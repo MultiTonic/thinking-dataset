@@ -1,6 +1,6 @@
-# @file project_root/thinking_dataset/config/config.py
+# @file thinking_dataset/config/config.py
 # @description Defines DatasetConfig class for storing dataset configuration.
-# @version 1.0.2
+# @version 1.0.0
 # @license MIT
 
 from ..utilities.command_utils import CommandUtils as Utils
@@ -87,8 +87,8 @@ class Config:
         if not isinstance(self.log_queries, bool):
             raise ValueError("Log queries must be a boolean.")
         if self.environment not in ['development', 'testing', 'production']:
-            raise ValueError("Environment must be "
-                             "'development', 'testing', or 'production'.")
+            raise ValueError("Environment must be 'development', "
+                             "'testing', or 'production'.")
 
     @staticmethod
     def get():
