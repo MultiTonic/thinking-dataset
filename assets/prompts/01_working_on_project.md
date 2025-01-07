@@ -115,12 +115,14 @@ This template provides guidelines and best practices for working on the project.
 thinking-dataset/
 ├── config/                 # Configuration files
 ├── assets/                 # Assets directory for external resources
+│   ├── prompts/            # Prompts templates for development
+│   ├── scripts/            # Utility scripts
+│   ├── resources/          # External project data
 ├── config/                 # Configuration directory for local settings
 ├── data/                   # Data directory
 ├── docs/                   # Project documentation
 ├── prompts/                # Prompt templates
 ├── reports/                # Generated reports
-├── scripts/                # Utility scripts
 ├── tests/                  # Test files
 ├── thinking_dataset/       # Core project code
 │   ├── commands/           # CLI command implementations

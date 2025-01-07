@@ -20,18 +20,32 @@ This template documents the recent changes and improvements made to the project 
    - `thinking_dataset/utilities/text_utils.py`
    - `thinking_dataset/pipelines/pipeline.py`
 
-2. **Implemented Comprehensive Text Normalization**:
-   - Added `NormalizeTextPipe` class to handle text normalization tasks:
-     - Convert text to lowercase
-     - Expand contractions
-     - Remove separators and special characters
-     - Normalize numbers and space-separated characters
-     - Remove partial extract intros, section headers, and sign-offs
-     - Remove initial patterns and period patterns
-     - Remove headers before the first occurrence of `subject:`
-     - Clean unnecessary whitespace
+2. **Documentation Updates**:
+   - Revised `README.md` with new subheading, streamlined usage section, and citation format.
+   - Enhanced `INSTALLATION.md` with detailed setup steps and package management.
+   - Improved `OVERVIEW.md` with updated project goals and key features.
+   - Refined `ARCHITECTURE.md` with a clear structure and updated schema diagram.
+   - Expanded `DATASETS.md` with detailed dataset descriptions and comparison table.
+   - Updated `DATABASE.md` to highlight schema design and benefits.
+   - Enhanced `PIPELINE.md` with a comprehensive overview of pipeline phases and tools.
+   - Revised `DEPLOYMENT.md` with detailed deployment steps and process manager setup.
+   - Added `REFERENCES.md` with key academic papers, books, and external tools.
+   - Updated `ROADMAP.md` with detailed milestones and timeline for 2025.
+   - Refined `CONTRIBUTING.md` with clear guidelines for reporting bugs, suggesting enhancements, and submitting pull requests.
+   - Added CITATIONS section to `README.md` with proper citation format.
 
-3. **Enhanced `TextUtils` Class**:
+3. **Text Normalization Enhancements**:
+   - Added `NormalizeTextPipe` class to handle text normalization tasks:
+     - Convert text to lowercase.
+     - Expand contractions.
+     - Remove separators and special characters.
+     - Normalize numbers and space-separated characters.
+     - Remove partial extract intros, section headers, and sign-offs.
+     - Remove initial patterns and period patterns.
+     - Remove headers before the first occurrence of `subject:`.
+     - Clean unnecessary whitespace.
+
+4. **Enhanced `TextUtils` Class**:
    - Added new methods:
      - `expand_contractions`
      - `remove_special_characters`
@@ -46,7 +60,7 @@ This template documents the recent changes and improvements made to the project 
      - `remove_period_patterns`
      - `remove_header`
 
-4. **Updated Pipeline Configuration**:
+5. **Updated Pipeline Configuration**:
    - Included the following pipes:
      - AddIdPipe
      - DropColumnsPipe
@@ -56,30 +70,59 @@ This template documents the recent changes and improvements made to the project 
      - CleanWhitespacePipe
      - NormalizeTextPipe
      - FilterBySizePipe
-   - Ensured normalization before filtering by size
-   - Added contraction mappings for text normalization
+   - Ensured normalization before filtering by size.
+   - Added contraction mappings for text normalization.
 
-5. **Implemented Logging and Testing**:
-   - Implemented logging for tracking the total running time of the pipeline
-   - Conducted comprehensive testing to ensure proper text normalization and data cleaning
-   - Verified that normalized text fits within LLaMA's 128k context window
-   - Ensured all changes align with defined goals and maintain code readability and efficiency
+6. **Logging and Testing Enhancements**:
+   - Implemented logging for tracking the total running time of the pipeline.
+   - Conducted comprehensive testing to ensure proper text normalization and data cleaning.
+   - Verified that normalized text fits within LLaMA's 128k context window.
+   - Ensured all changes align with defined goals and maintain code readability and efficiency.
+   - Added logging to confirm the creation of the processed directory in `Files` class.
 
 ### Fixed
 
-1. **Comprehensive Testing and Logging**:
-   - Implemented logging for tracking the total running time of the pipeline
-   - Conducted comprehensive testing to ensure proper text normalization and data cleaning
-   - Verified that normalized text fits within LLaMA's 128k context window
-   - Ensured all changes align with defined goals and maintain code readability and efficiency
+1. **Enhanced Error Handling**:
+   - Updated the `clean` command to check if the data directory exists before attempting to remove it.
+   - Added a check to log a message and exit gracefully if the directory does not exist, avoiding FileNotFoundError.
+   - Improved logging and error handling to provide clear feedback on the cleanup process.
+   - Added handling for `PermissionError` to skip files in use by other processes, with appropriate logging.
+   - Addressed `AttributeError: 'dict' object has no attribute 'root_path'` issue in `Files` class.
+   - Addressed `AttributeError: 'Config' object has no attribute 'get'` issue by accessing attributes directly.
 
-1. **Revised and Optimized Prompt Template**:
-   - Updated the "Prompt Template for Recent Work" to improve structure and readability:
-     - Replaced all mentions of `preprocess` command with `prepare` command
-     - Adjusted the order of sections to ensure optimal memory usage
-     - Updated "Files Worked On" to include relevant files for `pipeworks` pipeline, dataset configuration, and command enhancements
-     - Enhanced the "Notes for Next Session" section to provide clear and actionable tasks
-     - Refined the "Overview" section to ensure clear documentation of recent changes and improvements
+2. **Sorting and Progress Bar Fixes**:
+   - Fixed sorting issue in the `multi_thread_apply` method within the `Pipe` class.
+   - Added debugging statements to inspect the contents of the `futures` dictionary and `results` list in `Pipe` class.
+   - Ensured the `results` list is properly sorted based on the `futures` keys in `Pipe` class.
+   - Verified the functionality of the `multi_thread_apply` method to confirm the fix resolves the issue.
+   - Initialized and displayed the progress bar immediately with 0% progress in `tqdm`.
+   - Updated progress bar at 0.1-second intervals using a background thread.
+   - Ensured smoother and more frequent updates during multi-threaded operations in `tqdm`.
+
+### Changed
+
+1. **Configuration and Logging Changes**:
+   - Removed `self.log` assignment and switched to using `Log.info` directly in `SessionStateMachine` class.
+   - Removed comments and updated the header in `SessionStateMachine` class.
+   - Removed `self.log` assignment in `Pipe` class and updated to use `Log.get()`.
+   - Corrected `_open` method in `Pipeline` class.
+   - Ensured proper handling of directories and consistent logging using `Log` class in `Files` class.
+   - Removed incorrect call to `self.config.get("file")` in `_open` method of `Pipeline` class.
+   - Removed explicit database creation in `dataset.load` and ensured `Dataset` class is used correctly with the new API.
+   - Added checks to ensure files exist before loading in `load.py` command.
+   - Ensured absolute paths are used for loading files in `Dataset` class.
+   - Added `database.name` to the configuration and ensured `database_url` is formatted with the dataset name before initializing the `Database` instance.
+   - Added logging for the database URL during initialization in `Database` class.
+   - Updated `config.py` to include `database_name` and ensured the configuration is correctly used throughout the codebase.
+
+2. **Pipeline Enhancements**:
+   - Created a specification for implementing multi-threaded processing in the Pipe class.
+   - Updated the "Prompt Template for Recent Work" to improve structure and readability.
+   - Replaced all mentions of `preprocess` command with `prepare` command.
+   - Adjusted the order of sections to ensure optimal memory usage.
+   - Updated "Files Worked On" to include relevant files for the `pipeworks` pipeline, dataset configuration, and command enhancements.
+   - Enhanced the "Notes for Next Session" section to provide clear and actionable tasks.
+   - Refined the "Overview" section to ensure clear documentation of recent changes and improvements.
 
 ## Next Steps
 

@@ -173,4 +173,4 @@ cython_debug/
 
 # Dataset Data
 [Dd]ata/*
-assets/DB.Browser.for.SQLite-v3.13.1-win64/*
+assets/resources/DB.Browser.for.SQLite-v3.13.1-win64/*

@@ -1,56 +1,58 @@
+# Work Specification Template
+
 ## Overview
 
-This template provides a detailed specification for implementing a new feature: a system for pushing processed data into the HF API dataset. The goal is to simplify the process by adding parquet files generated from our data/processed directory and ensuring a high-level configuration in the dataset YAML config.
+This template provides a detailed specification for implementing a new feature: a system for uploading processed data to the HF API dataset. The goal is to create a new command and pipeline that will handle the uploading of parquet files from our data/processed directory.
 
 ## Specification Details
 
-### 1. Class Definition
+### 1. Command Definition
 
-Add features to the `DataTonic` class to handle the uploading of processed parquet files to the HF API dataset.
+Add a new command to handle the uploading of processed parquet files to the HF API dataset.
 
 ### 2. Configuration
 
 The configuration for this new system will include the following:
-- **include_files**: Specific data to be included in the upload.
-- **exclude_files**: Specific data to be excluded from the upload.
+- **api_token**: Token for authenticating with the HF API.
+- **dataset_name**: Name of the dataset to which the files will be uploaded.
+- **upload_path**: Path where the processed files are located.
 
 ### 3. Implementation
 
-- **Class Name**: `DataTonic`
-- **File Path**: `thinking_dataset/tonics/data_tonic.py`
-- **Description**: Add features to `DataTonic` class for uploading processed parquet files to the HF API dataset.
+- **Command Name**: `upload`
+- **File Path**: `thinking_dataset/commands/upload.py`
+- **Description**: Add a new command for uploading processed parquet files to the HF API dataset.
 - **Version**: 1.0.0
 - **License**: MIT
 
-### 4. DataTonic Class
+### 4. Upload Command
 
-The `DataTonic` class should be extended as follows:
+The `upload` command should be implemented as follows:
 
 #### Algorithms and Pseudocode
 
-1. **Initialize the DataTonic Class**:
+1. **Initialize the Upload Command**:
     - Load configuration properties.
 
     ```pseudo
-    CLASS DataTonic:
+    CLASS UploadCommand:
         FUNCTION __init__(config):
             self.config = config
     ```
 
-2. **Push Processed Files**:
-    - Read include/exclude files from config.
+2. **Execute the Upload Command**:
+    - Read configuration properties.
     - Iterate through processed directory.
-    - Apply filters to include/exclude files.
-    - Upload each valid file.
+    - Upload each file to the HF API dataset.
 
     ```pseudo
-    FUNCTION push(processed_dir):
-        INCLUDE_FILES = CONFIG.get("include_files")
-        EXCLUDE_FILES = CONFIG.get("exclude_files")
+    FUNCTION execute():
+        API_TOKEN = CONFIG.get("api_token")
+        DATASET_NAME = CONFIG.get("dataset_name")
+        UPLOAD_PATH = CONFIG.get("upload_path")
 
-        FOR EACH FILE IN processed_dir:
-            IF FILE not IN EXCLUDE_FILES AND (INCLUDE_FILES is EMPTY OR FILE IN INCLUDE_FILES):
-                CALL _upload_file(FILE)
+        FOR EACH FILE IN UPLOAD_PATH:
+            CALL _upload_file(FILE)
     ```
 
 3. **Upload File Method**:
@@ -69,42 +71,30 @@ The `DataTonic` class should be extended as follows:
 
 ### 5. Integration
 
-Integrate the extended `DataTonic` class into the existing workflow to ensure it processes and uploads the data files effectively. The new system will use configuration similar to the download system to manage include/exclude files.
+Integrate the `upload` command into the existing workflow to ensure it processes and uploads the data files effectively. The new system will use configuration similar to the download system to manage include/exclude files.
 
 ## Itemized Task Todo List
 
 | Task Overview                                           | Completed |
 |---------------------------------------------------------|-----------|
-| **Update Configuration Files**                          | ✅        |
-| Move database config into `config.yaml`.                | ✅        |
-| Move `HF_HOME` and `HF_DATASET` into `config.yaml`.     | ✅        |
-| Remove the two env config properties and replace them with a single config path. | ✅ |
-| **Modify Code to Read from Updated Configuration**      | ✅        |
-| Ensure all relevant parts of the codebase read from the new `config.yaml` configuration. | ✅        |
-| **Implement Database Export Functionality**             |           |
-| Extract data from the database.                         |           |
-| Convert extracted data to a DataFrame.                  |           |
-| Apply include/exclude filters.                          |           |
-| **Convert DataFrame to Parquet Files**                  |           |
-| Save these parquet files in the processed directory.    |           |
-| **Create the `DataTonic` Class for All Processing Tasks** |        |
-| Develop methods for all necessary tasks within `DataTonic`, including data pushing. | ✅        |
-| **Integrate the `DataTonic` Class into the Existing Workflow** |     |
-| Replace existing implementations with the new `DataTonic` class methods. | ✅           |
-| **Update Pipeline Configuration**                       |           |
-| Ensure the updated configuration and new class are integrated correctly. | ✅           |
+| **Update Configuration Files**                          |           |
+| Add `api_token` to `config.yaml`.                       |           |
+| Add `dataset_name` to `config.yaml`.                    |           |
+| Add `upload_path` to `config.yaml`.                     |           |
+| **Implement Upload Command**                            |           |
+| Create `UploadCommand` class in `upload.py`.            |           |
+| Implement the `execute` method for the `UploadCommand` class. |           |
+| Implement the `_upload_file` method for the `UploadCommand` class. |           |
+| **Integrate Upload Command into Pipeline**              |           |
+| Ensure the `upload` command is integrated into the pipeline configuration. |           |
 | **Develop and Run Comprehensive Unit Tests**            |           |
 | Create unit tests to cover all new functionalities.     |           |
-| **Verify the Functionality of the `DataTonic` Class**   |           |
-| Make sure all methods in the `DataTonic` class work as expected. | ✅           |
-| **Ensure Proper Handling of Configuration Properties**  |           |
-| Verify that all properties are read and applied correctly. | ✅           |
-| **Update the Documentation with Changes and New Options** | ✅        |
-| Reflect all recent changes in the documentation, ensuring clarity and completeness. | ✅           |
+| **Update Documentation**                                |           |
+| Reflect all recent changes in the documentation, ensuring clarity and completeness. |           |
 | **Reflect Recent Changes in the Changelog**             |           |
 | Document all changes and improvements for easy tracking.|           |
-| **Ensure All Responses and Information are Verified and Grounded** | ✅           |
-| Maintain accuracy and reliability in all code and documentation. | ✅        |
+| **Ensure All Responses and Information are Verified and Grounded** |           |
+| Maintain accuracy and reliability in all code and documentation. |           |
 
 ---
 
@@ -142,3 +132,5 @@ Integrate the extended `DataTonic` class into the existing workflow to ensure it
 - ***display table of current tasks and status***
 - ***display list of suggested subtasks to work***
 - ***display the text `Ready!🚀`***
+
+Ready!🚀

@@ -1,31 +1,37 @@
-# Thinking Dataset Project
+# 
 
-**Leveraging Real-World Data for Strategic Business Insights for STaR Case Study Generation**
+> # **Thinking Dataset:** Leveraging Real-World Data for Strategic Business Insights and STaR Case Study Generation
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Project Directory Structure](#project-directory-structure)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-- [Citations](#citations)
+- [**Overview**](#overview)
+- [**Features**](#features)
+- [**Installation**](#installation)
+- [**Usage**](#usage)
+- [**Project Structure**](#project-structure)
+- [**Contributing**](#contributing)
+- [**License**](#license)
+- [**Acknowledgements**](#acknowledgements)
+- [**Citations**](#citations)
 
 ## Overview
 
-The Thinking Dataset Project is designed to build a comprehensive dataset focused on facilitating various data-driven tasks and analyses. This project aims to utilize cutting-edge technologies and frameworks to manage, process, and analyze a wide range of data efficiently.
+The Thinking Dataset Project creates a dataset to help with various data tasks and analyses. The project uses advanced technologies and tools to manage, process, and analyze data efficiently. Our Thinking Dataset technology utilizes two key components: **STAR self-teaching** and **STaR Case Studies**.
+
+**STAR self-teaching** is a method where the dataset acts as a model and uses other models (**Mixture of Models, MOM**) to generate new datasets. This process helps the model improve its evaluation scores and create synthetic datasets that are more accurate and effective than those created by humans. 
+
+**STaR Case Studies** (Situation, Task, Action, and Result) are structured narratives used to illustrate how specific business challenges were addressed and the outcomes achieved. These case studies apply to our various datasets like **Cablegate**, which provide real-world seed data for generating comprehensive business insights.
+
+For more details, see the [**OVERVIEW**](docs/00_OVERVIEW.md).
 
 ## Features
 
 - **Structured Data Management**: Centralized data storage using SQLite.
 - **Enhanced Logging**: Integrated `rich` for robust console outputs and error handling.
-- **Automated Downloads**: Fetch and download datasets using Hugging Face CLI.
+- **Automated Download/Upload**: Fetch, download, upload, and create datasets using Hugging Face CLI.
 - **Modular Codebase**: Organized scripts and modules for better readability and maintenance.
 - **Environment Configuration**: Flexible management of directories and environment variables.
-- **Database Operations**: Modularized database operations with finite state machine for session management.
+- **Database Operations**: Modularized SQL database operations with a finite state machine for session management.
 - **Parquet File Processing**: Tooling for working with parquet files and ingesting them into database tables.
 
 ## Installation
@@ -45,7 +51,7 @@ The Thinking Dataset Project is designed to build a comprehensive dataset focuse
     cd thinking-dataset
     ```
 
-2. **Install `uv` package management tool using `pip`:**
+2. **Install the `uv` package management tool using `pip`:**
 
     ```bash
     pip install uv
@@ -89,7 +95,7 @@ To execute all CLI commands for the project:
 python assets/scripts/run_cli_commands.py
 ```
 
-For detailed usage instructions, please refer to the [05_USAGE.md](docs/05_USAGE.md) in the `docs` directory.
+For detailed usage instructions, please refer to the [**USAGE**](docs/05_USAGE.md) in the `docs` directory.
 
 ## Project Directory Structure
 
@@ -101,6 +107,7 @@ thinking-dataset/
 ├── assets/                 # Assets directory for external resources
 │   ├── prompts/            # Prompt templates
 │   ├── scripts/            # Utility scripts
+│   ├── resources/          # External project data
 ├── data/                   # Data directory
 ├── docs/                   # Project documentation
 ├── reports/                # Generated reports
@@ -121,21 +128,21 @@ thinking-dataset/
 │   ├── utilities/          # General-purpose utility helpers
 │   ├── main.py             # Main execution file
 └── setup.py                # Project setup
-└── .env                    # Private Environment variables file
+└── .env                    # Private environment variables file
 ```
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure your code adheres to the project's coding standards and includes appropriate tests. See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure your code adheres to the project's coding standards and includes appropriate tests. See [**CONTRIBUTING**](CONTRIBUTING.md) for detailed guidelines.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [**LICENSE**](LICENSE) file for details.
 
 ## Acknowledgements
 
-- **Kara Rawson** - Lead Developer
-- **Joseph Pollack** - Creator
+- **Kara Rawson** - Lead Engineer
+- **Joseph Pollack** - Business Leader
 - **MultiTonic Team** - Support and Collaboration
 - **Hugging Face** - Providing robust tools and infrastructure for dataset management
 
@@ -145,8 +152,8 @@ Please use the following citation format for referencing this project:
 
 ```plaintext
 @misc{thinking-dataset,
-  author = {Kara Rawson and Joseph Pollack and the MultiTonic Team},
-  title = {Thinking Dataset Project: Leveraging Real-World Data for Strategic Business Insights and STaR Case Study Generation},
+  author = {Kara Rawson, Joseph Pollack, and et al.},
+  title = {Thinking-Dataset: Leveraging Real-World Data for Strategic Business Insights and STaR Case Study Generation},
   year = {2025},
   howpublished = {\url{https://github.com/MultiTonic/thinking-dataset}},
   note = {Accessed: 2025-01-05}
