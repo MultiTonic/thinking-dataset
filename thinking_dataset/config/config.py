@@ -34,6 +34,7 @@ class Config:
         self.raw_path = config.get('paths', {}).get('raw', 'raw')
         self.processed_path = config.get('paths',
                                          {}).get('processed', 'processed')
+        self.export_path = config.get('paths', {}).get('export', 'export')
         self.database_path = config.get('paths', {}).get('database', 'db')
         self.include_files = config.get('files', {}).get('include', [])
         self.exclude_files = config.get('files', {}).get('exclude', [])
@@ -57,6 +58,8 @@ class Config:
             missing.append("raw_path")
         if not self.processed_path:
             missing.append("processed_path")
+        if not self.export_path:
+            missing.append("export_path")
         if not self.database_path:
             missing.append("database_path")
         if not self.include_files:
@@ -77,7 +80,7 @@ class Config:
                 "Database type must be 'sqlite', 'postgresql', or 'mysql'.")
         if not isinstance(self.pool_size, int) or self.pool_size < 0:
             raise ValueError("Pool size must be a non-negative integer.")
-        if not isinstance(self.max_overflow, int) or self.max_overflow < 0:
+        if not isinstance(self.max_overflow, int) or self.read_timeout < 0:
             raise ValueError("Max overflow must be a non-negative integer.")
         if not isinstance(self.connect_timeout,
                           int) or self.connect_timeout < 0:
@@ -87,8 +90,9 @@ class Config:
         if not isinstance(self.log_queries, bool):
             raise ValueError("Log queries must be a boolean.")
         if self.environment not in ['development', 'testing', 'production']:
-            raise ValueError("Environment must be 'development', "
-                             "'testing', or 'production'.")
+            raise ValueError(
+                "Environment must be 'development', 'testing', or 'production'"
+            )
 
     @staticmethod
     def get():

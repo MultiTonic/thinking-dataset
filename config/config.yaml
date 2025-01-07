@@ -3,7 +3,7 @@ config:
     name: "cablegate-pdf-dataset"
     type: "parquet"
   database:
-    url: "sqlite:///data/db/{database.name}.db"
+    url: "sqlite:///data/db/{name}.db"
     type: "sqlite"
     pool_size: 5
     max_overflow: 10
@@ -18,6 +18,7 @@ config:
     data: "data"
     raw: "raw"
     processed: "processed"
+    export: "export"
   files:
     include:
     - "train-00000-of-00001.parquet"
@@ -85,16 +86,15 @@ config:
   - pipeline:
       name: "export"
       description: "Default export pipeline"
-      config:
-        export_file: "{database.name}-{tables.name}{file_ext}"
+      config: {}
       pipes:
       - pipe:
           type: "ExportTablesPipe"
           config:
-            output_dir: "processed"
             tables: [ "auto" ]
             columns: [ "auto" ]
-            file_format: "parquet"
+            format: "parquet"
+            template: "{database_name}-{table_name}{file_ext}"
   - pipeline:
       name: "upload"
       description: "Pipeline for uploading processed data to HF API"
@@ -103,13 +103,8 @@ config:
       - pipe:
           type: "FileExtractorPipe"
           config:
-            directory: "{paths.data}/{paths.processed}"
-      - pipe:
-          type: "FilterByNamePipe"
-          config:
-            include: "train-00000-of-00001_prepare_export.parquet"
-            exclude: "train-00000-of-00001_prepare.parquet"
-            filter: "*.parquet"
+            directory: "{export_path}"
+            filter: "{dataset_type}"
       - pipe:
           type: "UploadPipe"
           config:

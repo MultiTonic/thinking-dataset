@@ -2,7 +2,7 @@
 
 ## Overview
 
-This template provides a detailed specification for implementing a new feature: a system for uploading processed data to the HF API dataset. The goal is to create a new command and pipeline that will handle the uploading of parquet files from our `data/processed` directory.
+This template outlines the implementation of a new feature: a system for uploading processed data to the HF API dataset. The objective is to develop a command and pipeline that will manage the uploading of parquet files from the `data/processed` directory.
 
 ## Specification Details
 
@@ -13,11 +13,14 @@ Add a new command to handle the uploading of processed parquet files to the HF A
 ### 2. Configuration
 
 The configuration for this new system will include the following:
+
 - **write_token**: Token for authenticating with the HF API.
 - **dataset_name**: Name of the dataset to which the files will be uploaded.
 - **upload_path**: Path where the processed files are located.
 
 ### 3. Implementation
+
+Implement the `upload` command to handle the uploading of processed parquet files to the HF API dataset.
 
 - **Command Name**: `upload`
 - **File Path**: `thinking_dataset/commands/upload.py`
@@ -164,6 +167,7 @@ In our next conversation, please provide:
 **Your response is only this following order:**
 - ***display table of current tasks and status***
 - ***display list of suggested subtasks to work***
+- ***display one short sentence what task we worked on last***
 - ***display the text `Ready!🚀`***
 
 Ready!🚀
