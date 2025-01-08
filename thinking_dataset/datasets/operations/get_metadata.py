@@ -5,7 +5,7 @@
 @license MIT
 """
 
-from .base_operation import Operation
+from .operation import Operation
 
 
 class GetMetadata(Operation):

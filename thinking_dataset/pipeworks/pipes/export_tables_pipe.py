@@ -1,6 +1,6 @@
 # @file thinking_dataset/pipeworks/pipes/export_tables_pipe.py
 # @description Pipe for exporting tables.
-# @version 1.2.27
+# @version 1.2.29
 # @license MIT
 
 import pandas as pd
@@ -10,6 +10,7 @@ from ...io.files import Files
 from ...utilities.log import Log
 from ...db.database import Database
 from ...config.config import Config
+from ...config.config_keys import ConfigKeys as Keys
 
 
 class ExportTablesPipe(Pipe):
@@ -27,11 +28,11 @@ class ExportTablesPipe(Pipe):
 
     def _generate_output_path(self, table: str, file_template: str,
                               file_format: str, output_dir: str) -> str:
-        database_name = Config.get().database_name
+        database_name = Config.get_value(Keys.DATABASE_NAME)
         file_name = file_template.format(database_name=database_name,
                                          table_name=table,
                                          file_ext=f".{file_format}")
-        return Files.get_path(output_dir, file_name)
+        return Files.get_file_path(output_dir, file_name)
 
     def _export_data(self, df: pd.DataFrame, output_path: str,
                      file_format: str):
@@ -47,13 +48,11 @@ class ExportTablesPipe(Pipe):
         return db.fetch_data(table)
 
     def flow(self, df: pd.DataFrame, **args) -> pd.DataFrame:
-        config = Config.get()
-        db = Database(config)
-        files = Files(config)
+        db = Database()
         columns = self.config.get("columns", ["auto"])
         tables = self.config.get("tables", ["auto"])
         file_format = self.config.get("format", "parquet")
-        output_dir = self.config.get("paths", {}).get("processed", "processed")
+        output_dir = Config.get_value(Keys.EXPORT_PATH)
         file_template = self.config.get("template")
 
         if not file_template:
@@ -68,7 +67,7 @@ class ExportTablesPipe(Pipe):
         Log.info(f"File format: {file_format}")
         Log.info(f"Exporting tables: {tables}")
 
-        files.make_dir(path=output_dir)
+        Files.make_dir(path=output_dir)
 
         for table in tables:
             df = self._fetch_data_from_database(table, db)

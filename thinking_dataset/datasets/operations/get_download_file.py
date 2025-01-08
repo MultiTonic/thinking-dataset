@@ -6,7 +6,7 @@
 """
 import os
 import stat
-from .base_operation import Operation
+from .operation import Operation
 from huggingface_hub import hf_hub_download
 from ...utilities.log import Log
 

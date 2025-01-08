@@ -9,7 +9,7 @@ import yaml
 from typing import Any, Dict
 
 
-class Loader:
+class ConfigLoader:
     """
     A class to load configuration from a YAML file.
     """

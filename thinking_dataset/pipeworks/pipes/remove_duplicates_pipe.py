@@ -1,4 +1,4 @@
-# @file project_root/thinkingLog.info(log_dataset/pipes/remove_duplicates_pipe.py
+# @file thinkingLog.info(log_dataset/pipes/remove_duplicates_pipe.py
 # @description Defines RemoveDuplicatesPipe for removing duplicates.
 # @version 1.0.0
 # @license MIT

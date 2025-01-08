@@ -10,7 +10,7 @@
 import pytest
 import yaml
 from unittest.mock import patch, mock_open
-from thinking_dataset.config.config_loader import Loader
+from thinking_dataset.config.config_loader import ConfigLoader
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ def test_load_valid_config(sample_yaml_content):
     Test loading a valid YAML configuration file.
     """
     with patch("builtins.open", mock_open(read_data=sample_yaml_content)):
-        config_loader = Loader("fake_path.yaml")
+        config_loader = ConfigLoader("fake_path.yaml")
         config = config_loader.get("database")
 
         assert config["host"] == "localhost"
@@ -43,7 +43,7 @@ def test_file_not_found_error():
     Test handling FileNotFoundError when the configuration file is not found.
     """
     with pytest.raises(FileNotFoundError):
-        Loader("non_existent_file.yaml")
+        ConfigLoader("non_existent_file.yaml")
 
 
 def test_yaml_parsing_error():
@@ -52,7 +52,7 @@ def test_yaml_parsing_error():
     """
     with patch("builtins.open", mock_open(read_data=":")):  # Invalid YAML
         with pytest.raises(yaml.YAMLError):
-            Loader("fake_path.yaml")
+            ConfigLoader("fake_path.yaml")
 
 
 def test_get_non_existent_section(sample_yaml_content):
@@ -60,7 +60,7 @@ def test_get_non_existent_section(sample_yaml_content):
     Test retrieving a non-existent section from the configuration.
     """
     with patch("builtins.open", mock_open(read_data=sample_yaml_content)):
-        config_loader = Loader("fake_path.yaml")
+        config_loader = ConfigLoader("fake_path.yaml")
         config = config_loader.get("non_existent_section")
 
         assert config == {}

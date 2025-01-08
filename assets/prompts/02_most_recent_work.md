@@ -78,7 +78,7 @@ This template documents the recent changes and improvements made to the project 
    - Conducted comprehensive testing to ensure proper text normalization and data cleaning.
    - Verified that normalized text fits within LLaMA's 128k context window.
    - Ensured all changes align with defined goals and maintain code readability and efficiency.
-   - Added logging to confirm the creation of the processed directory in `Files` class.
+   - Added logging to confirm the creation of the process directory in `Files` class.
 
 ### Fixed
 

@@ -1,53 +1,59 @@
 # @file thinking_dataset/io/files.py
 # @description Handles file I/O operations for the Thinking Dataset Project.
-# @version 1.0.0
+# @version 1.0.5
 # @license MIT
 
 import os
 import shutil
 from ..utilities.log import Log
 from ..config.config import Config
+from ..config.config_keys import ConfigKeys as Keys
 
 
 class Files:
-
-    def __init__(self, config):
-        self.config = config
 
     @staticmethod
     def exists(path):
         return os.path.exists(path)
 
-    def get_root_path(self):
-        return Config.get_value(self.config, 'root_path')
+    @staticmethod
+    def get_path(key: Keys):
+        path = Config.get_value(key)
+        Log.info(f"Retrieved directory for key {key}: {path}")
+        if path is None:
+            raise ValueError(
+                f"Configuration key '{key.value}' is missing or None.")
+        Files.make_dir(path)
+        return path
 
-    def get_data_path(self):
-        return Config.get_value(self.config, 'data_path')
+    @staticmethod
+    def get_root_path():
+        return Files.get_path(Keys.ROOT_PATH)
 
-    def get_raw_path(self):
-        base_dir = os.path.join(Config.get_value(self.config, 'root_path'),
-                                Config.get_value(self.config, 'data_path'))
-        return os.path.join(base_dir, Config.get_value(self.config,
-                                                       'raw_path'))
+    @staticmethod
+    def get_data_path():
+        return Files.get_path(Keys.DATA_PATH)
 
-    def get_processed_path(self):
-        base_dir = os.path.join(Config.get_value(self.config, 'root_path'),
-                                Config.get_value(self.config, 'data_path'))
-        processed_path = os.path.join(
-            base_dir, Config.get_value(self.config, 'processed_path'))
+    @staticmethod
+    def get_raw_path():
+        return Files.get_path(Keys.RAW_PATH)
 
-        if not os.path.exists(processed_path):
-            os.makedirs(processed_path)
-            Log.info(f"Created processed directory: {processed_path}")
+    @staticmethod
+    def get_process_path():
+        return Files.get_path(Keys.PROCESS_PATH)
 
-        return processed_path
+    @staticmethod
+    def get_export_path():
+        return Files.get_path(Keys.EXPORT_PATH)
 
-    def make_dir(self, path):
-        root_path = Config.get_value(self.config, 'root_path')
-        Log.info(f"root_path: {root_path}")
-        full_path = os.path.join(root_path, path)
-        os.makedirs(full_path, exist_ok=True)
-        Log.info(f"Ensured directory exists: {full_path}")
+    @staticmethod
+    def get_database_path():
+        return Files.get_path(Keys.DATABASE_PATH)
+
+    @staticmethod
+    def make_dir(path):
+        os.makedirs(path, exist_ok=True)
+        Log.info(f"Made directory: {path}")
 
     @staticmethod
     def remove_dir(path):
@@ -55,6 +61,12 @@ class Files:
         if Files.exists(abs_path):
             shutil.rmtree(abs_path)
             Log.info(f"Removed directory: {abs_path}")
+
+    @staticmethod
+    def remove_file(path):
+        if Files.exists(path):
+            os.remove(path)
+            Log.info(f"Removed file: {path}")
 
     @staticmethod
     def list(dir_path, file_extension=None):
@@ -65,8 +77,8 @@ class Files:
         return os.listdir(dir_path)
 
     @staticmethod
-    def get_path(directory, filename):
-        return os.path.join(directory, filename)
+    def get_file_path(path, file_name):
+        return os.path.join(path, file_name)
 
     @staticmethod
     def is_excluded(file, excluded_files):

@@ -1,17 +1,17 @@
 # @file thinking_dataset/datasets/dataset.py
 # @description Implementation of the Dataset class.
-# @version 1.0.4
+# @version 1.0.6
 # @license MIT
 
 import os
-import sys
 import pandas as pd
 from ..utilities.log import Log
 from ..db.database import Database
 from ..config.config import Config
 from ..io.files import Files
-from typing import List, Union, Optional
+from typing import List, Optional
 from ..tonics.data_tonic import DataTonic
+from ..config.config_keys import ConfigKeys as Keys
 
 
 class Dataset:
@@ -20,66 +20,64 @@ class Dataset:
     """
 
     def __init__(self, data_tonic: DataTonic):
-        try:
-            self.data_tonic = data_tonic
-            self.config = Config.get()
-            self.database = Database(config=self.config)
-            self.files = Files(self.config)
-            self.name = self.config.dataset_name
-            self.id = None
+        if not data_tonic:
+            raise ValueError("Data tonic is required.")
 
+        try:
+            self.api = data_tonic
+            self.database = Database()
+            self.org = Config.get_env_value(Keys.HF_ORG)
+            self.name = Config.get_value(Keys.DATASET_NAME)
+            self.type = Config.get_value(Keys.DATASET_TYPE)
+            self.include = Config.get_value(Keys.INCLUDE_FILES)
+            self.exclude = Config.get_value(Keys.EXCLUDE_FILES)
+
+            if not self.name:
+                raise ValueError("Dataset name is not configured.")
+            if not self.org:
+                raise ValueError("Organization is not configured.")
             if not self.database:
                 raise ValueError("Error creating database instance.")
 
             Log.info("Dataset initialized successfully!")
         except Exception as e:
-            Log.error(f"Error initializing Dataset: {e}", exc_info=True)
-            sys.exit(1)
+            raise RuntimeError(f"Error initializing Dataset: {e}")
 
-    def get_path(self,
-                 dataset_id: Optional[str] = None) -> Union[str, dict, None]:
+    def get_repo_id(self) -> str:
         try:
-            if dataset_id:
-                dataset_info = self.data_tonic.get_info.execute(dataset_id)
-                Log.info(f"Retrieved dataset info: {dataset_info}")
-                return dataset_info
-            path = f"{self.data_tonic.organization}/{self.data_tonic.dataset}"
-            Log.info(f"Constructed dataset path: {path}")
+            path = f"{self.org}/{self.name}"
             return path
         except Exception as e:
-            Log.error(f"Error constructing dataset path: {e}")
+            raise RuntimeError(f"Error constructing dataset path: {e}")
 
-    def list_files(self, dir_path: str) -> Optional[List[str]]:
+    def list_files(self, path: str) -> Optional[List[str]]:
         try:
-            dataset_files = self.files.list(dir_path)
-            Log.info(f"Listed files in directory {dir_path}: {dataset_files}")
-            return dataset_files
+            files = Files.list(path)
+            Log.info(f"Listed files in directory {path}: {files}")
+            return files
         except Exception as e:
-            Log.error(f"Error listing files in directory {dir_path}: {e}")
+            raise RuntimeError(f"Error listing files in directory {path}: {e}")
 
     def load(self,
              database: Database,
              files_to_load: Optional[List[str]] = None) -> bool:
         if not files_to_load:
-            Log.error("No files to load provided.")
-            return False
+            raise ValueError("No files to load provided.")
 
         Log.info(f"Parquet files to be loaded: {files_to_load}")
 
         try:
-            processed_path = self.files.get_processed_path()
-            files_in_directory = self.files.list(processed_path)
-            Log.info("Files in directory "
-                     f"{processed_path}: {files_in_directory}")
+            path = Files.get_process_path()
+            files = Files.list(path)
+            Log.info(f"Files in directory {path}: {files}")
         except Exception as e:
-            Log.error(f"Error listing directory {self.processed_path}: {e}")
-            return False
+            raise RuntimeError(f"Error listing directory {path}: {e}")
 
         with database.get_session() as session:
             for file_path in files_to_load:
                 try:
                     Log.info(f"Attempting to load file: {file_path}")
-                    if not self.files.exists(file_path):
+                    if not Files.exists(file_path):
                         raise FileNotFoundError(f"File not found: {file_path}")
                     df = pd.read_parquet(file_path)
                     Log.info(f"DataFrame columns: {df.columns}")
@@ -90,14 +88,11 @@ class Dataset:
                               if_exists='append',
                               index=False)
                 except FileNotFoundError as e:
-                    Log.error(f"{e}")
                     session.rollback()
-                    return False
+                    raise FileNotFoundError(f"{e}")
                 except Exception as e:
-                    Log.error(f"Error loading file {file_path}: {e}",
-                              exc_info=True)
                     session.rollback()
-                    return False
+                    raise RuntimeError(f"Error loading file {file_path}: {e}")
             try:
                 session.commit()
                 Log.info(
@@ -105,8 +100,7 @@ class Dataset:
                 return True
             except Exception as e:
                 session.rollback()
-                Log.error(f"Error committing the session: {e}")
-                return False
+                raise RuntimeError(f"Error committing the session: {e}")
 
     def filter_files(self, all_files: List[str], include_files: List[str],
                      exclude_files: List[str]) -> List[str]:
@@ -122,31 +116,26 @@ class Dataset:
         Log.info(f"Filtered files: {all_files}")
         return all_files
 
-    def download(self,
-                 token: str,
-                 dataset_id: str,
-                 data_dir: str,
-                 include_files: List[str] = [],
-                 exclude_files: List[str] = []) -> bool:
+    def download(self) -> bool:
         try:
-            dataset_info = self.data_tonic.get_info.execute(dataset_id)
+            token = Config.get_env_value(Keys.HF_READ_TOKEN)
+            repo_id = self.get_repo_id()
+            dataset_info = self.api.get_info.execute(repo_id)
             if dataset_info:
-                Log.info(f"Downloading dataset {dataset_id}...")
+                Log.info(f"Downloading dataset {repo_id}...")
 
-                download_urls = self.data_tonic.get_download_urls.execute(
-                    dataset_id)
-                filtered_urls = self.filter_files(download_urls, include_files,
-                                                  exclude_files)
+                download_urls = self.api.get_download_urls.execute(repo_id)
+                filtered_urls = self.filter_files(download_urls, self.include,
+                                                  self.exclude)
 
+                path = Files.get_raw_path()
                 for url in filtered_urls:
-                    self.data_tonic.get_download_file.execute(
-                        dataset_id, url, data_dir, token)
+                    self.api.get_download_file.execute(repo_id, url, path,
+                                                       token)
 
-                Log.info(f"Dataset {dataset_id} downloaded successfully.")
+                Log.info(f"Dataset {repo_id} downloaded successfully.")
                 return True
             else:
-                Log.error(f"Dataset {dataset_id} not found.")
-                return False
+                raise ValueError(f"Dataset {repo_id} not found.")
         except Exception as e:
-            Log.error(f"Error downloading dataset {dataset_id}: {e}")
-            return False
+            raise RuntimeError(f"Error downloading dataset {repo_id}: {e}")

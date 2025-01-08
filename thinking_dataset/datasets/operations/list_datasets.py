@@ -3,7 +3,7 @@
 # @version 1.0.0
 # @license MIT
 
-from .base_operation import Operation
+from .operation import Operation
 from ...utilities.log import Log
 
 

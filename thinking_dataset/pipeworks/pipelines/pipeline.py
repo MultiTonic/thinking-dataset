@@ -1,6 +1,6 @@
-# @file project_root/thinking_dataset/pipeworks/pipelines/pipeline.py
+# @file thinking_dataset/pipeworks/pipelines/pipeline.py
 # @description Manages the flow of data through the pipeline.
-# @version 1.2.7
+# @version 1.2.10
 # @license MIT
 
 import os
@@ -9,6 +9,7 @@ from ...io.files import Files
 from ..pipes.pipe import Pipe
 from ...utilities.log import Log
 from ...config.config import Config
+from ...config.config_keys import ConfigKeys as Keys
 from ...utilities.text_utils import TextUtils as Text
 from ...utilities.command_utils import CommandUtils as Utils
 
@@ -23,10 +24,9 @@ class Pipeline:
         self._setup_pipelines()
 
     def _setup_paths(self):
-        files = Files(self.config)
-        self.output_path = files.get_processed_path()
-        files.make_dir(self.output_path)
-        return files.get_raw_path(), self.output_path
+        self.output_path = Config.get_value(Keys.PROCESS_PATH)
+        Files.make_dir(self.output_path)
+        return Config.get_value(Keys.RAW_PATH), self.output_path
 
     def _setup_pipelines(self):
         configs = self.config.pipelines
@@ -52,17 +52,16 @@ class Pipeline:
         Utils.to(df, file_path, self.config.dataset_type)
         file_size = os.path.getsize(file_path)
         human_readable_file_size = Text.human_readable_size(file_size)
-        Log.info(f"Data processed and saved to {file_path} "
+        Log.info(f"Data process and saved to {file_path} "
                  f"(Size: {human_readable_file_size})")
 
     def _process_file(self, file, pipes, skip_files=False):
-        input_file = Files.get_path(self.input_path, file)
+        input_file = Files.get_file_path(self.input_path, file)
         Log.info(f"Processing file: {input_file}")
 
         if not skip_files:
             if not Files.exists(input_file):
-                Log.warn(f"File not found: {input_file}")
-                return
+                raise FileNotFoundError(f"File not found: {input_file}")
 
         df = Utils.read_data(input_file, self.config.dataset_type)
         df = self._process_pipes(df, pipes)
@@ -70,7 +69,7 @@ class Pipeline:
         if not skip_files:
             base_name, ext = os.path.splitext(file)
             file_name = f"{base_name}_prepare{ext}"
-            file_path = Files.get_path(self.output_path, file_name)
+            file_path = Files.get_file_path(self.output_path, file_name)
             self._save_data(df, file_path)
 
     def _open(self, pipes, skip_files=False):
@@ -80,8 +79,8 @@ class Pipeline:
                 self._process_file(file, pipes, skip_files)
 
     def get(self, name):
-        for name, pipes, config in Pipeline.pipelines:
-            if name == name:
+        for pname, pipes, config in Pipeline.pipelines:
+            if pname == name:
                 return pipes, config
         raise ValueError(f"Pipeline '{name}' not found")
 

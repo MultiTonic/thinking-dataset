@@ -14,11 +14,11 @@ config:
     name: "thinking-dataset"
   paths:
     root: "."
-    database: "db"
-    data: "data"
-    raw: "raw"
-    processed: "processed"
-    export: "export"
+    data: "./data"
+    raw: "./data/raw"
+    process: "./data/process"
+    database: "./data/db"
+    export: "./data/export"
   files:
     include:
     - "train-00000-of-00001.parquet"
@@ -93,11 +93,11 @@ config:
           config:
             tables: [ "auto" ]
             columns: [ "auto" ]
-            format: "parquet"
+            type: "parquet"
             template: "{database_name}-{table_name}{file_ext}"
   - pipeline:
       name: "upload"
-      description: "Pipeline for uploading processed data to HF API"
+      description: "Pipeline for uploading exported data to HF API"
       config: {}
       pipes:
       - pipe:

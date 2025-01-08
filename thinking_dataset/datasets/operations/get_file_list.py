@@ -6,7 +6,7 @@
 """
 
 import sys
-from .base_operation import Operation
+from .operation import Operation
 from ...config.config import Config
 from ...utilities.log import Log
 

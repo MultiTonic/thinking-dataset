@@ -65,7 +65,7 @@ This template provides guidelines and best practices for working on the project.
 
 - **Directory Structure**:
   - **Commands Directory**: Organizes CLI commands within the `thinking_dataset/commands/` directory.
-  - **Modular Code**: Follows a modular approach with specific paths for raw and processed data.
+  - **Modular Code**: Follows a modular approach with specific paths for raw and process data.
 
 - **File Operations**:
   - **Files Class**: Handles file input/output operations efficiently.

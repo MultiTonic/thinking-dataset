@@ -18,12 +18,11 @@ from ..utilities.log import Log
 
 class Database:
 
-    def __init__(self, config: Config):
-        self.config = config
+    def __init__(self):
+        self.config = Config.get()
         try:
-            # Ensure the database URL is formatted with the name
-            database_url = config.database_url.format(
-                name=config.database_name)
+            database_url = self.config.database_url.format(
+                name=self.config.database_name)
             self._set_database_url(database_url)
             Log.info(f"Database URL: {self.url}")
 

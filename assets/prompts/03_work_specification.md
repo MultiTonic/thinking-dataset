@@ -2,13 +2,13 @@
 
 ## Overview
 
-This template outlines the implementation of a new feature: a system for uploading processed data to the HF API dataset. The objective is to develop a command and pipeline that will manage the uploading of parquet files from the `data/processed` directory.
+This template outlines the implementation of a new feature: a system for uploading process data to the HF API dataset. The objective is to develop a command and pipeline that will manage the uploading of parquet files from the `./data/process` directory.
 
 ## Specification Details
 
 ### 1. Command Definition
 
-Add a new command to handle the uploading of processed parquet files to the HF API dataset.
+Add a new command to handle the uploading of process parquet files to the HF API dataset.
 
 ### 2. Configuration
 
@@ -16,15 +16,15 @@ The configuration for this new system will include the following:
 
 - **write_token**: Token for authenticating with the HF API.
 - **dataset_name**: Name of the dataset to which the files will be uploaded.
-- **upload_path**: Path where the processed files are located.
+- **upload_path**: Path where the process files are located.
 
 ### 3. Implementation
 
-Implement the `upload` command to handle the uploading of processed parquet files to the HF API dataset.
+Implement the `upload` command to handle the uploading of process parquet files to the HF API dataset.
 
 - **Command Name**: `upload`
 - **File Path**: `thinking_dataset/commands/upload.py`
-- **Description**: Add a new command for uploading processed parquet files to the HF API dataset.
+- **Description**: Add a new command for uploading process parquet files to the HF API dataset.
 - **Version**: 1.0.0
 - **License**: MIT
 
@@ -79,7 +79,7 @@ Integrate the `upload` command into the existing workflow to ensure it processes
 ### 6. Focus on Current Work
 
 Currently, we are focusing on:
-- Creating a new pipeline called `upload` for uploading processed data.
+- Creating a new pipeline called `upload` for uploading process data.
 - Adding a `FileExtractorPipe` to handle directory access and file extraction.
 - Adding a `FilterByNamePipe` to filter files by name.
 - Adding an `UploadPipe` to handle the file upload process.
