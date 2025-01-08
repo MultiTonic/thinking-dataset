@@ -1,15 +1,17 @@
-"""
-@file project_root/thinking_dataset/pipeworks/pipes/pipe.py
-@description Defines BasePipe class for preprocessing tasks with logging.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/pipeworks/pipes/pipe.py
+# @description Defines BasePipe class for preprocessing tasks with logging.
+# @version 1.1.1
+# @license MIT
 
 import importlib
-from abc import ABC, abstractmethod
+import pandas as pd
 from tqdm import tqdm
+from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from thinking_dataset.utilities.log import Log
 from thinking_dataset.utilities.command_utils import CommandUtils as Utils
+import time
+import threading
 
 
 class Pipe(ABC):
@@ -19,21 +21,14 @@ class Pipe(ABC):
 
     def __init__(self, config: dict):
         self.config = config
-        self.log = Log.setup(self.__class__.__name__)
 
     @abstractmethod
-    def flow(self, df, log, **args):
-        """
-        Flow the DataFrame through the pipe. To be implemented by subclasses.
-        """
-        self.log.info(f"Flow -- {self.__class__.__name__}")
+    def flow(self, df, **args):
+        Log.info(f"Flow -- {self.__class__.__name__}")
         pass
 
     @staticmethod
     def get_pipe(pipe_type):
-        """
-        Dynamically import and return the pipe class based on the pipe type.
-        """
         module_name = "thinking_dataset.pipeworks.pipes." + \
             Utils.camel_to_snake(pipe_type)
 
@@ -45,8 +40,41 @@ class Pipe(ABC):
                               f"from module {module_name}")
 
     def progress_apply(self, series, func, desc):
-        """
-        Apply a function to a pandas series with a progress bar.
-        """
         tqdm.pandas(desc=desc)
         return series.progress_apply(func)
+
+    def multi_thread_apply(self, series, func, desc, max_workers=5):
+        total = len(series)
+        pbar = tqdm(total=total, desc=desc)
+
+        results = []
+        completed = 0
+
+        def progress_updater():
+            while completed < total:
+                pbar.n = completed
+                pbar.refresh()
+                time.sleep(0.1)
+
+        updater_thread = threading.Thread(target=progress_updater)
+        updater_thread.start()
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(func, value): i
+                for i, value in enumerate(series)
+            }
+
+            for future in as_completed(futures):
+                results.append(future)
+                completed += 1
+
+        pbar.n = completed
+        pbar.refresh()
+        pbar.close()
+        updater_thread.join()
+
+        results.sort(key=lambda x: futures[x])
+
+        return pd.Series([future.result() for future in results],
+                         index=series.index)

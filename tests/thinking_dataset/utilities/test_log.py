@@ -15,7 +15,7 @@ from thinking_dataset.utilities.log import Log
 
 @pytest.fixture
 def test_logger():
-    return Log.setup("test_logger")
+    return Log._setup("test_logger")
 
 
 def test_setup_logger(test_logger):

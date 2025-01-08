@@ -10,10 +10,10 @@
 
 import unittest
 import logging
-from thinking_dataset.datasets.operations.base_operation import BaseOperation
+from thinking_dataset.datasets.operations.operation import Operation
 
 
-class MockOperation(BaseOperation):
+class MockOperation(Operation):
     """
     A mock class to test BaseOperation functionality.
     """

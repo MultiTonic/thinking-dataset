@@ -1,9 +1,7 @@
-"""
-@file project_root/thinking_dataset/commands/prepare.py
-@description Command to preprocess data by applying configured pipelines.
-@version 1.0.0
-@license MIT
-"""
+# @file project_root/thinking_dataset/commands/prepare.py
+# @description Command to preprocess data by applying configured pipelines.
+# @version 1.0.0
+# @license MIT
 
 import click
 from ..utilities.log import Log
@@ -14,22 +12,16 @@ from ..utilities.load_dotenv import dotenv
 
 
 @click.command()
-@click.pass_context
 @exceptions
 @logger
 @dotenv(print=True)
-def prepare(ctx, **kwargs):
-    """
-    Command to preprocess data by applying configured pipelines.
-    """
-    log = kwargs['log']
-    ctx.obj = log
-    Log.info(log, "Starting the prepare command.")
+def prepare(**kwargs):
+    Log.info("Starting the prepare command.")
 
-    pipeline = Pipeline(log)
+    pipeline = Pipeline("prepare")
     pipeline.open()
 
-    Log.info(log, "Prepare command completed successfully.")
+    Log.info("Prepare command completed successfully.")
 
 
 if __name__ == "__main__":

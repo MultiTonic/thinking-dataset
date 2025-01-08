@@ -1,9 +1,7 @@
-"""
-@file thinking_dataset/db/session_statemachine.py
-@description Defines the state machine for session management.
-@version 1.0.0
-@license MIT
-"""
+# @file session_statemachine.py
+# @description Session management state machine.
+# @version 1.0.1
+# @license MIT
 
 from statemachine import StateMachine, State
 from .database_states import DatabaseStates as States
@@ -11,9 +9,6 @@ from ..utilities.log import Log
 
 
 class SessionStateMachine(StateMachine):
-    """
-    A state machine for managing session states.
-    """
     idle = State(States.IDLE.value, initial=True)
     active = State(States.ACTIVE.value)
     commit = State(States.COMMIT.value)
@@ -26,28 +21,24 @@ class SessionStateMachine(StateMachine):
 
     def __init__(self):
         super().__init__()
-        self.log = Log.setup(self.__class__.__name__)
+        Log.info("State machine initialized successfully.")
 
     @property
     def is_idle(self):
-        """Check if the state is idle."""
         return self.current_state == self.idle
 
     @property
     def is_active(self):
-        """Check if the state is active."""
         return self.current_state == self.active
 
     def on_enter_commit(self):
-        """Define actions to take when entering the commit state."""
         try:
-            Log.info(self.log, "Entering commit state.")
+            Log.info("Entering commit state.")
         except Exception as e:
-            Log.error(self.log, f"Error entering commit state: {e}")
+            Log.error(f"Error entering commit state: {e}")
 
     def on_enter_rollback(self):
-        """Define actions to take when entering the rollback state."""
         try:
-            Log.info(self.log, "Entering rollback state.")
+            Log.info("Entering rollback state.")
         except Exception as e:
-            Log.error(self.log, f"Error entering rollback state: {e}")
+            Log.error(f"Error entering rollback state: {e}")

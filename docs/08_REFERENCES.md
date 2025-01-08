@@ -2,14 +2,14 @@
 
 ## Overview
 
-This document provides a list of key references and resources used in the "Dark Thoughts" thinking-dataset project. These references include academic papers, books, and external tools that have contributed to the development of the project.
+This document provides a list of key references and resources used in the Thinking Dataset Project. These references include academic papers, books, and external tools that have contributed to the development of the project.
 
 ### Academic Papers
 
-1. **Moral Decision Making in Autonomous Systems**
-   - Authors: John Doe, Jane Smith
-   - Journal: Journal of AI Ethics, 2022
-   - Summary: Explores the integration of moral decision-making frameworks in autonomous systems and their implications for AI ethics.
+1. **Moral Decision Making Frameworks in Autonomous Systems**
+   - Authors: Simon Gaiger, Mark Hatfield
+   - Journal: Journal of AI and Ethics, 2022
+   - Summary: Examines moral decision-making frameworks in autonomous systems and their implications for AI ethics.
 
 2. **Cognitive Biases in Human Decision Making**
    - Authors: Emily Johnson, Michael Brown
@@ -80,7 +80,7 @@ This document provides a list of key references and resources used in the "Dark 
    - Description: An extensive visual guide to cognitive biases, helping to understand and mitigate these biases in decision-making processes.
 
 3. **AI and Society Resource Center**
-   - Website: [AI and Society Resource Center](https://aiandsociety.org/resource-center)
+   - Website: [AI and Society Resource Center](https://www.springer.com/journal/00146)
    - Description: A resource center offering articles, research papers, and discussions on the intersection of AI and societal issues.
 
 4. **MIT AI Ethics and Governance Resources**

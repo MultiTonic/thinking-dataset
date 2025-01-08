@@ -5,10 +5,10 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .operation import Operation
 
 
-class GetTags(BaseOperation):
+class GetTags(Operation):
     """
     Operation class to retrieve tags associated with the dataset.
     """

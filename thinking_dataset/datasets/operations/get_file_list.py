@@ -6,35 +6,29 @@
 """
 
 import sys
-from .base_operation import BaseOperation
-from ...config.dataset_config import DatasetConfig
+from .operation import Operation
+from ...config.config import Config
 from ...utilities.log import Log
 
 
-class GetFileList(BaseOperation):
+class GetFileList(Operation):
     """
     A class to retrieve the list of files in the dataset.
     """
 
-    def execute(self, data_dir: str):
-        """
-        Retrieves the list of files in the dataset.
-        """
+    def execute(self):
         try:
-            # Get dataset information
             dataset_info = self.data_tonic.get_info.execute(
                 f"{self.data_tonic.organization}/{self.data_tonic.dataset}")
 
-            # Check if config is properly set
             if isinstance(self.config, str):
-                self.config = DatasetConfig(self.config)
+                self.config = Config(self.config)
 
-            # Retrieve file list
             file_list = [
                 file.rfilename for file in dataset_info.siblings
-                if file.rfilename.endswith(f'.{self.config.DATASET_TYPE}')
+                if file.rfilename.endswith(f'.{self.config.dataset_type}')
             ]
-            Log.info(self.log, f"Dataset files: {file_list}")
+            Log.info(f"Dataset files: {file_list}")
             return file_list
         except Exception as e:
             Log.error(self.log,

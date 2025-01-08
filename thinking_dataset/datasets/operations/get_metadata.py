@@ -5,10 +5,10 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .operation import Operation
 
 
-class GetMetadata(BaseOperation):
+class GetMetadata(Operation):
     """
     Operation class to retrieve dataset metadata.
     """

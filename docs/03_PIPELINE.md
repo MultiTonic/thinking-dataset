@@ -2,38 +2,77 @@
 
 ## Overview
 
-This document provides a comprehensive overview of the data pipeline for the "Dark Thoughts" project. The pipeline covers all stages from data ingestion to model training and evaluation, tailored to handle complex tasks involving ethical dilemmas, cognitive biases, and decision-making processes. By leveraging various serverless inference endpoints, the pipeline ensures flexibility, scalability, and efficiency. This guide details each phase of the pipeline, the key components involved, and the tools and technologies used to build and maintain the system.
+This document provides an overview of the data pipeline for the Thinking Dataset Project, covering all stages from data ingestion to model training and evaluation. The pipeline handles complex tasks involving ethical dilemmas, cognitive biases, and decision-making processes by leveraging various serverless inference endpoints to ensure flexibility, scalability, and efficiency.
 
 ## Pipeline Phases
 
 ### Phase 1: Setup and Configuration
 
-The first phase involves project initialization, which includes creating and configuring the project directory and setting up version control using Git. Following that, the environment setup is established by creating a virtual environment and installing necessary dependencies using `venv` and `pip`. Configuration management is handled using `python-dotenv` to securely manage configuration files and environment variables, ensuring that sensitive information is protected.
+- **Project Initialization**: Create and configure the project directory. Set up version control using Git.
+- **Environment Setup**: Create a virtual environment and install necessary dependencies using `uv` and `pip`.
+- **Configuration Management**: Use `python-dotenv` to manage configuration files and environment variables securely.
 
 ### Phase 2: Data Pipeline Development
 
-In the data pipeline development phase, raw data ingestion is carried out by gathering data from multiple sources such as historical records, literature, user-generated content, and the WikiLeaks Cablegate dataset. This raw data is stored in a structured format using SQLite. The data cleaning and preprocessing steps involve implementing methods to remove duplicates, handle missing values, and normalize data, with `pandas` being used for efficient data manipulation. Seed generation is the final step in this phase, where seed objects are defined and generated using predefined keywords, and then stored in the SQLite database.
+- **Raw Data Ingestion**: Gather data from sources such as historical records, literature, user-generated content, and the WikiLeaks Cablegate dataset. Store data in SQLite.
+- **Data Cleaning and Preprocessing**: Remove duplicates, handle missing values, and normalize data using `pandas` for data manipulation.
+- **Seed Generation**: Define and generate seed objects using predefined keywords and store them in SQLite.
 
 ### Phase 3: Data Enrichment and Case Study Creation
 
-During the data enrichment and case study creation phase, multiple seed objects are combined to generate detailed scenarios known as cables. These cables are then used to create detailed case studies with injected data points. The case studies are standardized into a consistent format for model training. This phase ensures that all case studies are refined into a format that is suitable for training the models, maintaining consistency and quality throughout the process.
+- **Cable Creation**: Combine multiple seed objects to generate detailed scenarios known as cables.
+- **Persona Database**: Generate and store stakeholder personas using the personas dataset on Hugging Face.
+- **Synthetic SitRep Generation**: Generate synthetic Situation Reports (SitReps) inspired by random seed objects.
+- **Case Study Generation**: Distribute SitReps to imaginary stakeholders, generate detailed case studies, and enrich them with a chain of thoughts for use in Self-Teaching with Reinforcement (STaR).
 
 ### Phase 4: Model Training and Evaluation
 
-The model training and evaluation phase starts with final dataset preparation, where the integrity of the data is validated, class distributions are balanced, and the data is split into training and testing sets. Model training involves training both baseline and fine-tuned models using the prepared dataset, with `scikit-learn` being used for implementing machine learning algorithms. An evaluation system is developed to score the models and compare the performance of fine-tuned models against baseline models, ensuring that the best models are selected based on their performance.
+- **Dataset Preparation**: Validate data integrity, balance classes, and split data into training and testing sets.
+- **Model Training**: Train baseline models using the prepared dataset, followed by fine-tuning models for improved performance using `scikit-learn`.
+- **Evaluation System Development**: Implement an evaluation system to score models and compare fine-tuned models against baseline models.
 
 ### Phase 5: Continuous Improvement
 
-In the continuous improvement phase, user and system feedback is gathered and analyzed to iteratively refine and update the dataset and models. Comprehensive documentation of methods, changes, and updates is maintained to ensure transparency and reproducibility. The project engages with the community for contributions and collaboration, opening issues and pull requests for enhancements. This phase ensures that the project remains up-to-date and benefits from community input and feedback.
+- **Feedback Loop**: Gather user and system feedback to iteratively refine the dataset and models.
+- **Documentation**: Maintain comprehensive documentation of methods, changes, and updates.
+- **Community Engagement**: Engage with the community for contributions and collaboration.
 
 ## Inference Endpoint Adapters/Bridges
 
-The inference endpoint adapters/bridges section focuses on establishing a unified interface or abstract class to ensure consistency across all adapters. Concrete implementations for various endpoints such as Hugging Face, Ollama, testcontainers, and Runpod are developed. Seamless integration of these adapters into the main application is ensured to facilitate smooth operation and data flow.
+- **Unified Interface**: Establish a unified interface or abstract class for all adapters.
+- **Adapter Implementations**: Develop concrete implementations for various endpoints (e.g., Hugging Face, Ollama, testcontainers, Runpod).
+- **Integration**: Seamlessly integrate adapters into the main application.
 
 ## Tools and Technologies
 
-The project leverages a robust technology stack including Python as the core programming language, SQLite for structured data storage, and libraries like pandas for data manipulation and preprocessing. scikit-learn is used for model training and evaluation, and rich enhances console output and error handling. python-dotenv manages configuration and environment variables, while Hugging Face Transformers provide advanced NLP models. Testcontainers and Runpod are used for integration testing and serverless computing, respectively, and LLama.cpp is employed for text-generation and NLP tasks.
+- **Python**: Core programming language.
+- **SQLite**: Structured data storage.
+- **pandas**: Data manipulation and preprocessing.
+- **scikit-learn**: Model training and evaluation.
+- **rich**: Console output and error handling.
+- **python-dotenv**: Configuration management.
+- **Hugging Face Transformers**: NLP models.
+- **Testcontainers**: Integration testing with containers.
+- **Runpod**: Serverless computing.
+- **LLama.cpp**: Text-generation and NLP tasks.
+- **SQLAlchemy**: Database interactions.
+- **DB Browser for SQLite**: Database administration.
+- **datasets**: Accessing and sharing datasets.
+- **PyPDF2**: PDF toolkit.
+- **click**: Command line interface creation tool.
+- **requests**: HTTP requests.
+- **sqlite-utils**: Working with SQLite databases.
+- **pytest**: Testing framework.
+- **pytest-html**: HTML report generation for pytest.
+- **pytest-cov**: Coverage reporting for pytest.
+- **loguru**: Logging library.
+- **numpy**: Scientific computing.
+- **tqdm**: Progress bar library.
+- **pydantic**: Data validation and settings management.
 
 ## Next Steps
 
-The next steps involve implementing and testing various inference endpoint adapters/bridges, developing unit tests to prototype basic LLama.cpp functionality, verifying chat completion and text generation using LLama.cpp, and documenting and refining the case study generation pipeline.
+- Implement and test various inference endpoint adapters/bridges.
+- Develop unit tests to prototype basic LLama.cpp functionality.
+- Verify chat completion and text generation using LLama.cpp.
+- Document and refine the case study generation pipeline.

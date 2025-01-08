@@ -1,14 +1,12 @@
-"""
-@file thinking_dataset/datasets/operations/get_card_content.py
-@description Operation to retrieve dataset card content.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/datasets/operations/get_card_content.py
+# @description Operation to retrieve dataset card content.
+# @version 1.0.0
+# @license MIT
 
-from .base_operation import BaseOperation
+from .operation import Operation
 
 
-class GetCardContent(BaseOperation):
+class GetCardContent(Operation):
     """
     Operation class to retrieve dataset card content.
     """

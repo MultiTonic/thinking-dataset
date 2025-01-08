@@ -40,8 +40,8 @@ class MockResponse:
 
 
 def test_get_info():
-    client = DataTonic(token=HF_TOKEN,
-                       organization=HF_ORGANIZATION,
+    client = DataTonic(read_token=HF_TOKEN,
+                       org=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     dataset_id = f"{HF_ORGANIZATION}/{HF_DATASET}"
     mock_response = MockResponse(dataset_id)
@@ -57,8 +57,8 @@ def test_get_info():
 
 
 def test_get_info_repository_not_found():
-    client = DataTonic(token=HF_TOKEN,
-                       organization=HF_ORGANIZATION,
+    client = DataTonic(read_token=HF_TOKEN,
+                       org=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     dataset_id = f"{HF_ORGANIZATION}/non_existent_dataset"
 
@@ -72,8 +72,8 @@ def test_get_info_repository_not_found():
 
 
 def test_logging_for_get_info():
-    client = DataTonic(token=HF_TOKEN,
-                       organization=HF_ORGANIZATION,
+    client = DataTonic(read_token=HF_TOKEN,
+                       org=HF_ORGANIZATION,
                        dataset=HF_DATASET)
     dataset_id = f"{HF_ORGANIZATION}/{HF_DATASET}"
     mock_response = MockResponse(dataset_id)

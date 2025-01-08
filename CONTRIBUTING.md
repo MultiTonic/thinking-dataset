@@ -1,6 +1,6 @@
-# Contributing to Tau LLM Unity ML Agents Project
+# Contributing to the Thinking Dataset Project
 
-Thank you for considering contributing to the Thinking-Dataset Project! We welcome contributions from the community to help improve and expand this project. Please take a moment to review this document to understand how you can contribute effectively.
+Thank you for considering contributing to the Thinking Dataset Project! We welcome contributions from the community to help improve and expand this project. Please take a moment to review this document to understand how you can contribute effectively.
 
 ## Table of Contents
 
@@ -31,7 +31,7 @@ If you find a bug in the project, please open an issue on GitHub. Include as muc
 - **Expected Behavior**: What you expected to happen.
 - **Actual Behavior**: What actually happened.
 - **Screenshots**: If applicable, add screenshots to help explain your problem.
-- **Environment**: Information about your environment (e.g., OS, Unity version, etc.).
+- **Environment**: Information about your environment (e.g., OS, Python version, etc.).
 
 ### Suggesting Enhancements
 
@@ -51,7 +51,7 @@ If you would like to contribute code to the project, please follow these steps:
 
    ```bash
    git clone https://github.com/MultiTonic/thinking-dataset.git
-   cd Tau\MLAgentsProject
+   cd thinking-dataset
    ```
 
 3. **Create a Branch**: Create a new branch for your feature or bug fix.
@@ -83,16 +83,13 @@ To set up your development environment, follow these steps:
 
    ```bash
    git clone https://github.com/MultiTonic/thinking-dataset.git
-   cd .\thinking dataset
+   cd thinking-dataset
    ```
-
-2. **Install Dependencies**: Install the required Python packages and environment.
-
+2. **Install Dependencies**: Install the required Python packages using `uv`.
    ```bash
-   .\Scripts\setup.bat
+   pip install uv
+   uv install -f thinking-dataset.toml
    ```
-
-3. **Open the Unity Project**: Launch Unity Hub and open the project folder.
 
 ## Style Guides
 
@@ -111,7 +108,7 @@ Please use clear and descriptive commit messages. Follow these guidelines:
 
 ## License
 
-By contributing to this project, you agree that your contributions will be licensed under the MIT License.
+By contributing to this project, you agree that your contributions will be licensed under the [**LICENSE**](LICENSE).
 
 ---
 

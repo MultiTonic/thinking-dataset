@@ -6,12 +6,12 @@
 """
 import os
 import stat
-from .base_operation import BaseOperation
+from .operation import Operation
 from huggingface_hub import hf_hub_download
 from ...utilities.log import Log
 
 
-class GetDownloadFile(BaseOperation):
+class GetDownloadFile(Operation):
     """
     A class to download a specific file from the dataset.
     """
@@ -24,7 +24,7 @@ class GetDownloadFile(BaseOperation):
         dest = os.path.join(local_dir, filename)
         normalized_dest = os.path.normpath(dest)
 
-        Log.info(self.log, f"Downloading {filename} to {normalized_dest}...")
+        Log.info(f"Downloading {filename} to {normalized_dest}...")
 
         if os.path.exists(dest):
             try:

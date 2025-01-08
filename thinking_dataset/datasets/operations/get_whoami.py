@@ -5,11 +5,11 @@
 @license MIT
 """
 
-from .base_operation import BaseOperation
+from .operation import Operation
 from ...utilities.log import Log
 
 
-class GetWhoami(BaseOperation):
+class GetWhoami(Operation):
     """
     A class to retrieve information about the authenticated user.
     """
@@ -20,7 +20,7 @@ class GetWhoami(BaseOperation):
         """
         try:
             user_info = self.data_tonic.api.whoami()
-            Log.info(self.log, f"Retrieved user info: {user_info}")
+            Log.info(f"Retrieved user info: {user_info}")
             return user_info
         except Exception as e:
             Log.error(self.log, f"Error retrieving user info: {e}")

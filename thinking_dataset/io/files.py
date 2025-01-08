@@ -1,58 +1,75 @@
-"""
-@file thinking_dataset/io/files.py
-@description Handles file I/O operations for the Thinking Dataset Project.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/io/files.py
+# @description Handles file I/O operations for the Thinking Dataset Project.
+# @version 1.0.5
+# @license MIT
 
 import os
 import shutil
 from ..utilities.log import Log
+from ..config.config import Config
+from ..config.config_keys import ConfigKeys as Keys
 
 
 class Files:
 
-    def __init__(self, config):
-        self.config = config
-
     @staticmethod
     def exists(path):
-        """
-        Check if the given path exists.
-        """
         return os.path.exists(path)
 
-    def get_raw_path(self):
-        base_dir = os.path.join(self.config.ROOT_DIR, self.config.DATA_DIR)
-        return os.path.join(base_dir, self.config.RAW_DIR)
-
-    def get_processed_path(self):
-        base_dir = os.path.join(self.config.ROOT_DIR, self.config.DATA_DIR)
-        return os.path.join(base_dir, self.config.PROCESSED_DIR)
-
-    def make_dir(self, path, log):
-        """
-        Creates the directory if it doesn't exist.
-        """
-        full_path = os.path.join(self.config.ROOT_DIR, path)
-        os.makedirs(full_path, exist_ok=True)
-        Log.info(log, f"Ensured directory exists: {full_path}")
+    @staticmethod
+    def get_path(key: Keys):
+        path = Config.get_value(key)
+        Log.info(f"Retrieved directory for key {key}: {path}")
+        if path is None:
+            raise ValueError(
+                f"Configuration key '{key.value}' is missing or None.")
+        Files.make_dir(path)
+        return path
 
     @staticmethod
-    def remove_dir(path, log):
-        """
-        Removes the directory if it exists.
-        """
+    def get_root_path():
+        return Files.get_path(Keys.ROOT_PATH)
+
+    @staticmethod
+    def get_data_path():
+        return Files.get_path(Keys.DATA_PATH)
+
+    @staticmethod
+    def get_raw_path():
+        return Files.get_path(Keys.RAW_PATH)
+
+    @staticmethod
+    def get_process_path():
+        return Files.get_path(Keys.PROCESS_PATH)
+
+    @staticmethod
+    def get_export_path():
+        return Files.get_path(Keys.EXPORT_PATH)
+
+    @staticmethod
+    def get_database_path():
+        return Files.get_path(Keys.DATABASE_PATH)
+
+    @staticmethod
+    def make_dir(path):
+        os.makedirs(path, exist_ok=True)
+        Log.info(f"Made directory: {path}")
+
+    @staticmethod
+    def remove_dir(path):
         abs_path = os.path.abspath(path)
         if Files.exists(abs_path):
             shutil.rmtree(abs_path)
-            Log.info(log, f"Removed directory: {abs_path}")
+            Log.info(f"Removed directory: {abs_path}")
+
+    @staticmethod
+    def remove_file(path):
+        if Files.exists(path):
+            os.remove(path)
+            Log.info(f"Removed file: {path}")
 
     @staticmethod
     def list(dir_path, file_extension=None):
-        """
-        List files in a directory with an optional file extension filter.
-        """
         if file_extension:
             return [
                 f for f in os.listdir(dir_path) if f.endswith(file_extension)
@@ -60,23 +77,17 @@ class Files:
         return os.listdir(dir_path)
 
     @staticmethod
-    def get_path(directory, filename):
-        return os.path.join(directory, filename)
+    def get_file_path(path, file_name):
+        return os.path.join(path, file_name)
 
     @staticmethod
-    def is_excluded(file, excluded_files, log):
-        """
-        Check if the file is in the excluded files list.
-        """
+    def is_excluded(file, excluded_files):
         if file in excluded_files:
-            Log.info(log, f"Skipping excluded file: {file}")
+            Log.info(f"Skipping excluded file: {file}")
             return True
         return False
 
     @staticmethod
     def format(file, pattern):
-        """
-        Format the load pattern with the given file's root and extension.
-        """
         file_root, file_ext = os.path.splitext(file)
         return pattern.format(file_root=file_root, file_ext=file_ext)

@@ -1,15 +1,15 @@
 ### Development Notes
 
 #### General Overview
-- **Project Name**: Dark Thoughts
-- **Purpose**: Create a dataset of hypothetical scenarios involving ethical dilemmas and cognitive biases to train AI models in reasoning, ethics, and decision-making.
+- **Project Name**: Thinking Dataset Project
+- **Purpose**: Create a dataset of hypothetical scenarios involving strategic dilemmas, cognitive biases, and complex decision-making to train AI models in reasoning, strategy, and decision-making.
 
 ### Project Phases
 
 #### Phase 1: Setup and Configuration
 - **Project Initialization**: Set up the `ThinkingDatasetProject` directory.
 - **Dependencies Installed**: Installed necessary Python packages and Semantic Kernel.
-- **README**: Created README.md to outline project goals, objectives, and setup instructions.
+- **README**: Created `README.md` to outline project goals, objectives, and setup instructions.
 
 #### Phase 2: Data Pipeline Development
 - **Raw Data Ingestion**: Collected and stored initial raw data sources.
@@ -32,11 +32,11 @@
 - **Community Engagement**: Engaged with the community for contributions and collaboration.
 
 ### Ideas and Features
-- **Scenario Development**: Create hypothetical scenarios with ethical dilemmas or cognitive biases.
+- **Scenario Development**: Create hypothetical scenarios with strategic dilemmas or cognitive biases.
 - **Persona Creation**: Develop detailed personas with backgrounds, motivations, and profiles.
-- **Data Collection and Annotation**: Collect raw data, annotate key themes, ethical issues, and decision points.
+- **Data Collection and Annotation**: Collect raw data, annotate key themes, strategic issues, and decision points.
 - **Cognitive Bias Analysis**: Analyze scenarios for cognitive biases and their impact on decision-making.
-- **Ethical Decision-Making Framework**: Develop a framework for evaluating ethical decisions.
+- **Strategic Decision-Making Framework**: Develop a framework for evaluating strategic decisions.
 - **AI Model Training and Evaluation**: Train AI models on synthetic case studies and evaluate their performance.
 - **User Interaction and Feedback**: Create interactive tools for user engagement and feedback.
 
@@ -64,7 +64,6 @@
 - Experiment with Testcontainers for deploying and managing Docker containers.
 - Set up local serverless endpoints to work as nodes in a swarm.
 - Configure dynamic workflows for nodes using simple YAML files.
-- Explore additional features like ethical decision-making simulations and scenario customization.
+- Explore additional features like strategic decision-making simulations and scenario customization.
 - Collaborate with educational institutions and research organizations.
 - Continuously gather feedback to improve the project.
-

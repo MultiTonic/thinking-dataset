@@ -19,13 +19,13 @@ def test_ensure_directories(monkeypatch, tmp_path):
     """
     # Initialize the Files class with raw and processed directories
     raw_dir = tmp_path / "raw"
-    processed_dir = tmp_path / "processed"
-    files = Files(raw_dir=raw_dir, processed_dir=processed_dir)
+    process_dir = tmp_path / "process"
+    files = Files(raw_dir=raw_dir, process_dir=process_dir)
     files.touch()
 
     # Ensure the directories were created
     assert os.path.isdir(files.raw_dir)
-    assert os.path.isdir(files.processed_dir)
+    assert os.path.isdir(files.process_dir)
 
 
 def test_list_files(monkeypatch, tmp_path):
@@ -34,27 +34,27 @@ def test_list_files(monkeypatch, tmp_path):
     """
     # Initialize the Files class with raw and processed directories
     raw_dir = tmp_path / "raw"
-    processed_dir = tmp_path / "processed"
-    files = Files(raw_dir=raw_dir, processed_dir=processed_dir)
+    process_dir = tmp_path / "process"
+    files = Files(raw_dir=raw_dir, process_dir=process_dir)
     files.touch()
 
     # Create some dummy files
-    raw_file = files.get_path(files.raw_dir, "test_raw.txt")
-    processed_file = files.get_path(files.processed_dir, "test_processed.txt")
-    parquet_file = files.get_path(files.raw_dir, "test_file.parquet")
+    raw_file = files.get_file_path(files.raw_dir, "test_raw.txt")
+    process_file = files.get_file_path(files.process_dir, "test_process.txt")
+    parquet_file = files.get_file_path(files.raw_dir, "test_file.parquet")
 
     with open(raw_file, "w") as f:
         f.write("raw")
 
-    with open(processed_file, "w") as f:
-        f.write("processed")
+    with open(process_file, "w") as f:
+        f.write("process")
 
     with open(parquet_file, "w") as f:
         f.write("parquet")
 
     # List files in the directories and ensure they are present
     assert "test_raw.txt" in files.list(files.raw_dir)
-    assert "test_processed.txt" in files.list(files.processed_dir)
+    assert "test_process.txt" in files.list(files.process_dir)
     assert "test_file.parquet" in files.list(files.raw_dir)
 
     # List files with specific extension
@@ -62,8 +62,8 @@ def test_list_files(monkeypatch, tmp_path):
                                              file_extension=".parquet")
     assert "test_raw.txt" not in files.list(files.raw_dir,
                                             file_extension=".parquet")
-    assert "test_processed.txt" not in files.list(files.raw_dir,
-                                                  file_extension=".parquet")
+    assert "test_process.txt" not in files.list(files.raw_dir,
+                                                file_extension=".parquet")
 
 
 def test_list_files_with_extension_filter(monkeypatch, tmp_path):
@@ -72,14 +72,14 @@ def test_list_files_with_extension_filter(monkeypatch, tmp_path):
     """
     # Initialize the Files class with raw and processed directories
     raw_dir = tmp_path / "raw"
-    processed_dir = tmp_path / "processed"
-    files = Files(raw_dir=raw_dir, processed_dir=processed_dir)
+    process_dir = tmp_path / "process"
+    files = Files(raw_dir=raw_dir, process_dir=process_dir)
     files.touch()
 
     # Create some dummy files with different extensions
-    txt_file = files.get_path(files.raw_dir, "test_file.txt")
-    parquet_file = files.get_path(files.raw_dir, "test_file.parquet")
-    csv_file = files.get_path(files.raw_dir, "test_file.csv")
+    txt_file = files.get_file_path(files.raw_dir, "test_file.txt")
+    parquet_file = files.get_file_path(files.raw_dir, "test_file.parquet")
+    csv_file = files.get_file_path(files.raw_dir, "test_file.csv")
 
     with open(txt_file, "w") as f:
         f.write("txt")

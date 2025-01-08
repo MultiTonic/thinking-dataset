@@ -72,22 +72,20 @@ def test_construct_paths():
     root_dir = "/test/root/dir"
     data_dir = "test_data"
 
-    # Construct paths for raw and processed data
-    raw_dir, processed_dir = construct_paths(root_dir, data_dir)
+    # Construct paths for raw and process data
+    raw_dir, process_dir = construct_paths(root_dir, data_dir)
     expected_raw_dir = os.path.join(root_dir, data_dir,
                                     "raw").replace("\\", "/").lower()
-    expected_processed_dir = os.path.join(root_dir, data_dir,
-                                          "processed").replace("\\",
-                                                               "/").lower()
+    expected_process_dir = os.path.join(root_dir, data_dir,
+                                        "process").replace("\\", "/").lower()
 
     # Normalize paths to handle drive letters on Windows
     raw_dir = os.path.splitdrive(raw_dir)[1].replace("\\", "/").lower()
-    processed_dir = os.path.splitdrive(processed_dir)[1].replace("\\",
-                                                                 "/").lower()
+    process_dir = os.path.splitdrive(process_dir)[1].replace("\\", "/").lower()
 
     # Assert the constructed paths to ensure correctness
     assert raw_dir == expected_raw_dir
-    assert processed_dir == expected_processed_dir
+    assert process_dir == expected_process_dir
 
 
 def test_validate_env_variables():
@@ -141,7 +139,7 @@ def test_download_dataset(monkeypatch):
 
     mock_urls = ["file1.parquet", "file2.parquet"]
 
-    datatonic = DataTonic(token=env_vars['HF_TOKEN'])
+    datatonic = DataTonic(read_token=env_vars['HF_TOKEN'])
 
     with patch.object(GetDownloadUrls, 'execute', return_value=mock_urls):
         with patch.object(GetDownloadFile, 'execute', return_value=True):

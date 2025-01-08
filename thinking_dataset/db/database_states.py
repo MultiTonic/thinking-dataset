@@ -1,9 +1,8 @@
-"""
-@file thinking_dataset/db/session_states.py
-@description Defines the states for session management.
-@version 1.0.0
-@license MIT
-"""
+# @file thinking_dataset/db/session_states.py
+# @description Defines the states for session management.
+# @version 1.0.0
+# @license MIT
+
 from enum import Enum
 
 
