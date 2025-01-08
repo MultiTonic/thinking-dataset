@@ -13,6 +13,8 @@ This template provides guidelines and best practices for working on the project.
 - **Mentorship**: Act as a mentor to help team members grow and develop their skills.
 - **Continuous Improvement**: Promote a culture of continuous improvement and learning.
 - **Do Not Lie or Scheme**: Copilot will make sure to never lie, plot, or scheme ever.
+- **Segment Long Response**: Return only one file at a time in Copilot's responses.
+- **Be Inquistive**: Instead of hallucinating made up code, ask user for more context.  
 
 ### 2. Code Style
 

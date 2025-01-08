@@ -169,5 +169,3 @@ In our next conversation, please provide:
 - ***display list of suggested subtasks to work***
 - ***display one short sentence what task we worked on last***
 - ***display the text `Ready!🚀`***
-
-Ready!🚀
