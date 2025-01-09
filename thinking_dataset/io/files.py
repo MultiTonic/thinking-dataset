@@ -1,12 +1,12 @@
 # @file thinking_dataset/io/files.py
 # @description Handles file I/O operations for the Thinking Dataset Project.
-# @version 1.0.9
+# @version 1.1.1
 # @license MIT
 
 import os
 import shutil
 from ..utilities.log import Log
-import thinking_dataset.config as config
+import thinking_dataset.config as cfg
 from thinking_dataset.config.config_keys import ConfigKeys as Keys
 
 
@@ -18,7 +18,7 @@ class Files:
 
     @staticmethod
     def get_path(key: Keys):
-        instance = config.initialize()
+        instance = cfg.initialize()
         path = instance.get_value(key)
         Log.info(f"Retrieved directory for key {key}: {path}")
         if path is None:

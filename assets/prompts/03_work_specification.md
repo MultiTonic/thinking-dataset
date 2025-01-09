@@ -97,8 +97,8 @@ In our next conversation, please provide:
 
 | Task Overview                                           | Completed |
 |---------------------------------------------------------|-----------|
-| **Support Dynamic Variables in Configuration**          |           |
-| Implement dynamic variable resolution in `config.py`.   |           |
+| **Support Dynamic Variables in Configuration**          | ✅         |
+| Implement dynamic variable resolution in `config.py`.   | ✅         |
 | **Implement Configurations for Each Pipe**              |           |
 | Configure `FileExtractorPipe` for directory access.     |           |
 | Configure `FilterByNamePipe` for file filtering.        |           |

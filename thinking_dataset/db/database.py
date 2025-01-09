@@ -6,7 +6,7 @@
 import os
 import sys
 import pandas as pd
-import thinking_dataset.config as config
+import thinking_dataset.config as cfg
 from sqlalchemy import create_engine, exc
 from contextlib import contextmanager
 from ..utilities.execute import execute
@@ -19,7 +19,7 @@ from ..utilities.log import Log
 class Database:
 
     def __init__(self):
-        config_instance = config.initialize()
+        config_instance = cfg.initialize()
         self.config = config_instance
         try:
             database_url = self.config.database_url.format(

@@ -10,7 +10,7 @@ from ..utilities.exceptions import exceptions
 from ..utilities.logger import logger
 from ..utilities.load_dotenv import dotenv
 from ..io.files import Files
-import thinking_dataset.config as config
+import thinking_dataset.config as cfg
 
 
 @click.command()
@@ -20,9 +20,8 @@ import thinking_dataset.config as config
 def clean(**kwargs):
     Log.info("Starting the clean command.")
 
-    config_instance = config.initialize()
-    path = Files.get_file_path(config_instance.paths['root'],
-                               config_instance.paths['data'])
+    config = cfg.initialize()
+    path = Files.get_file_path(config.paths['root'], config.paths['data'])
 
     if not Files.exists(path):
         Log.info(f"Directory not found: {path}")

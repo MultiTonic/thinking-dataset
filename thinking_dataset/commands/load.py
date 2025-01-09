@@ -8,7 +8,7 @@ import os
 from ..io.files import Files
 from ..utilities.log import Log
 from ..db.database import Database
-import thinking_dataset.config as config
+import thinking_dataset.config as cfg
 from ..utilities.logger import logger
 from ..datasets.dataset import Dataset
 from ..tonics.data_tonic import DataTonic
@@ -23,14 +23,13 @@ from ..utilities.exceptions import exceptions
 def load(**kwargs):
     Log.info("Starting the load command.")
 
-    config_instance = config.initialize()
+    config_instance = cfg.initialize()
 
-    hf_read_token = config_instance.get_env_value(
-        config.get_keys().HF_READ_TOKEN)
+    hf_read_token = config_instance.get_env_value(cfg.get_keys().HF_READ_TOKEN)
     hf_write_token = config_instance.get_env_value(
-        config.get_keys().HF_WRITE_TOKEN)
-    hf_org = config_instance.get_env_value(config.get_keys().HF_ORG)
-    hf_user = config_instance.get_env_value(config.get_keys().HF_USER)
+        cfg.get_keys().HF_WRITE_TOKEN)
+    hf_org = config_instance.get_env_value(cfg.get_keys().HF_ORG)
+    hf_user = config_instance.get_env_value(cfg.get_keys().HF_USER)
 
     data_tonic = DataTonic(read_token=hf_read_token,
                            write_token=hf_write_token,
@@ -41,8 +40,8 @@ def load(**kwargs):
     dataset = Dataset(data_tonic=data_tonic)
     Log.info("Initialized Dataset instance.")
 
-    root_path = config_instance.get_value(config.get_keys().ROOT_PATH)
-    process_path = config_instance.get_value(config.get_keys().PROCESS_PATH)
+    root_path = config_instance.get_value(cfg.get_keys().ROOT_PATH)
+    process_path = config_instance.get_value(cfg.get_keys().PROCESS_PATH)
     process_dir = os.path.normpath(os.path.join(root_path, process_path))
     Files.make_dir(process_dir)
     Log.info(f"Processed path: {process_dir}")
@@ -50,9 +49,9 @@ def load(**kwargs):
     process_files = Files.list(process_dir)
     Log.info(f"Files in process directory: {process_files}")
 
-    include_files = config_instance.get_value(config.get_keys().INCLUDE_FILES)
-    load_patterns = config_instance.get_value(config.get_keys().LOAD_PATTERNS)
-    exclude_files = config_instance.get_value(config.get_keys().EXCLUDE_FILES)
+    include_files = config_instance.get_value(cfg.get_keys().INCLUDE_FILES)
+    load_patterns = config_instance.get_value(cfg.get_keys().LOAD_PATTERNS)
+    exclude_files = config_instance.get_value(cfg.get_keys().EXCLUDE_FILES)
 
     load_files = []
 

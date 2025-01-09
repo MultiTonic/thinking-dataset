@@ -5,7 +5,7 @@
 
 from .operation import Operation
 from ...utilities.log import Log
-import thinking_dataset.config as config
+import thinking_dataset.config as cfg
 
 
 class GetDownloadUrls(Operation):
@@ -16,9 +16,9 @@ class GetDownloadUrls(Operation):
     def execute(self, dataset_id):
         try:
             dataset_info = self.data_tonic.get_info.execute(dataset_id)
-            config_instance = config.initialize()
+            config_instance = cfg.initialize()
             dataset_type = config_instance.get_value(
-                config.get_keys().DATASET_TYPE)
+                cfg.get_keys().DATASET_TYPE)
             download_urls = [
                 file.rfilename for file in dataset_info.siblings
                 if file.rfilename.endswith(f'.{dataset_type}')

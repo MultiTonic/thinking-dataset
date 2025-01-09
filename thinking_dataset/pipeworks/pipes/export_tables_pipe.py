@@ -1,16 +1,18 @@
 # @file thinking_dataset/pipeworks/pipes/export_tables_pipe.py
 # @description Pipe for exporting tables.
-# @version 1.2.31
+# @version 1.2.33
 # @license MIT
 
 import pandas as pd
 import sqlalchemy as sa
-import thinking_dataset.config as config
+import thinking_dataset.config as cfg
+import thinking_dataset.config.config_keys as Keys
 from .pipe import Pipe
 from ...io.files import Files
 from ...utilities.log import Log
 from ...db.database import Database
-from thinking_dataset.config.config_keys import ConfigKeys as Keys
+
+CK = Keys.ConfigKeys
 
 
 class ExportTablesPipe(Pipe):
@@ -26,10 +28,10 @@ class ExportTablesPipe(Pipe):
         inspector = sa.inspect(db.engine)
         return [column['name'] for column in inspector.get_columns(table)]
 
-    def _generate_output_path(self, table: str, template: str,
-                              file_format: str, out_path: str) -> str:
-        instance = config.initialize()
-        name = instance.get_value(Keys.DATABASE_NAME)
+    def _generate_out_path(self, table: str, template: str, file_format: str,
+                           out_path: str) -> str:
+        instance = cfg.initialize()
+        name = instance.get_value(CK.DATABASE_NAME.value)
         file = template.format(database_name=name,
                                table_name=table,
                                file_ext=f".{file_format}")
@@ -49,17 +51,17 @@ class ExportTablesPipe(Pipe):
 
     def flow(self, df: pd.DataFrame, **args) -> pd.DataFrame:
         db = Database()
-        instance = config.initialize()
+        instance = cfg.initialize()
         columns = self.config.get("columns", ["auto"])
-        tables = self.config.get("tables", ["auto"])
-        format = instance.get_value(Keys.DATASET_TYPE)
-        out_path = instance.get_value(Keys.EXPORT_PATH)
+        tables = self.config.get("tables", ["all"])
+        format = instance.get_value(CK.DATASET_TYPE.value)
+        out_path = self.config.get("path")
         template = self.config.get("template")
 
         if not template:
             raise ValueError("File template is not set in the configuration.")
 
-        if "auto" in tables:
+        if "all" in tables:
             tables = self._fetch_all_tables(db)
 
         Log.info("Starting ExportTablesPipe")
@@ -75,10 +77,10 @@ class ExportTablesPipe(Pipe):
             if "auto" in columns:
                 columns = self._fetch_table_columns(table, db)
             df = df[columns] if columns != ["auto"] else df
-            out_path = self._generate_output_path(table, template, format,
+            output_path = self._generate_out_path(table, template, format,
                                                   out_path)
-            self._export_data(df, out_path, format)
-            Log.info(f"Exported table {table} to {out_path}")
+            self._export_data(df, output_path, format)
+            Log.info(f"Exported table {table} to {output_path}")
 
         Log.info("Finished ExportTablesPipe")
 

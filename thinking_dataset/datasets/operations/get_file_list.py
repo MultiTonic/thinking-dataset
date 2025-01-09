@@ -5,7 +5,7 @@
 
 import sys
 from .operation import Operation
-import thinking_dataset.config as config
+import thinking_dataset.config as cfg
 from ...utilities.log import Log
 
 
@@ -20,7 +20,7 @@ class GetFileList(Operation):
                 f"{self.data_tonic.organization}/{self.data_tonic.dataset}")
 
             if isinstance(self.config, str):
-                self.config = config.initialize(self.config)
+                self.config = cfg.initialize(self.config)
 
             file_list = [
                 file.rfilename for file in dataset_info.siblings
