@@ -5,9 +5,70 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] - 2025-01-08
 
-## [1.4.26] - 2025-01-05
+### Added
+- Enhanced `ExportTablesPipe` to use `EXPORT_PATH` for output directory.
+- Updated `Pipeline` class to use `PROCESS_PATH` and `RAW_PATH` for accurate file management.
+- Added detailed changelog inventory following the standard specification.
+
+### Changed
+- Ensured downloaded files are saved in `data/raw` and not in the root directory.
+- Fixed Database initialization to remove unexpected config argument in `load.py`.
+- Adjusted `_process_file` method in `Pipeline` class to raise `FileNotFoundError` instead of logging a warning.
+- Ensured consistent path separators using `os.path.join` across the project.
+- Utilized `Config.get_value` and `Config.get_env_value` for fetching configuration values throughout the code.
+- Reviewed and ensured consistency across all pipes for logging, configuration usage, return types, and error handling.
+- Updated docstrings and inline comments for clarity and consistency across all relevant files.
+
+### Fixed
+- Successfully tested `prepare`, `load`, and `export` commands to ensure proper functionality.
+- Verified the execution of pipeline stages and correct file placements.
+- Fixed and enhanced various components of the pipeline to ensure files are placed correctly and commands execute without errors.
+- Ensured proper initialization and usage of configuration values.
+- Improved error handling and logging across the project.
+- Verified the functionality through thorough testing and debugging.
+
+## [Unreleased] - 2025-01-07
+
+### Added
+- Updated prompt template for project to include directives for avoiding code hallucination.
+- Modified AI to ensure it asks users for more context instead of making assumptions.
+- Corrected errors in the end of the prompt template.
+
+### Fixed
+- Enhanced prompt template to improve clarity and accuracy.
+
+## [Unreleased] - 2025-01-06
+
+### Added
+- Created `upload` command and associated pipeline for uploading process parquet files to the HF API dataset.
+- Added `FileExtractorPipe` for directory access and file extraction.
+- Added `FilterByNamePipe` for filtering files by name.
+- Added `UploadPipe` for handling the upload of files to HF API.
+- Improved text normalization through `NormalizeTextPipe` class and `TextUtils` methods.
+- Enhanced logging for tracking pipeline running time.
+- Conducted comprehensive testing for text normalization and data cleaning.
+- Refactored classes and methods for better performance and error handling.
+
+### Changed
+- Moved sensitive information from `config.yaml` to `.env` for improved security.
+- Updated `command_utils.py` to load environment variables properly.
+- Adjusted `load_dotenv` function for better environment variable verification.
+- Refactored `DataTonic` class to include `user` attribute.
+- Updated various CLI commands to utilize updated configuration and environment variables.
+- Enhanced logging and error handling across multiple components.
+- Enhanced `Log` class and configuration for better file handling and logging.
+- Refined `Dataset` class to utilize `Files` methods and adhere to PEP 8 standards.
+
+### Fixed
+- Addressed errors in `Files` class and improved directory handling.
+- Fixed sorting issues and progress bar updates in `Pipe` class.
+- Improved error handling in `clean` and `load` commands.
+- Verified and resolved multiple attribute errors and bugs in various components.
+- Ensured SQLAlchemy logging levels are set to `CRITICAL`.
+
+## [Unreleased] - 2025-01-05
 
 ### Added
 
