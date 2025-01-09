@@ -5,7 +5,7 @@
 
 from statemachine import StateMachine, State
 from .database_states import DatabaseStates as States
-from ..utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class SessionStateMachine(StateMachine):

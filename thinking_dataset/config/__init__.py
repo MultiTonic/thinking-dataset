@@ -10,7 +10,7 @@ from .config_resolver import __get_resolver, __get_dict_resolver
 from .config_validator import ConfigValidator as Validator
 from .config import Config
 from .config_parser import __get_value
-from ..utilities.command_utils import CommandUtils as utils
+from thinking_dataset.utils.command_utils import CommandUtils as utils
 
 _instance = None
 _dotenv = None

@@ -3,7 +3,7 @@
 # @version 1.0.1
 # @license MIT
 
-from ..utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class ConfigValidator:

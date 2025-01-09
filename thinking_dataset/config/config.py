@@ -3,7 +3,7 @@
 # @version 1.0.32
 # @license MIT
 
-from ..utilities.command_utils import CommandUtils as utils
+from thinking_dataset.utils.command_utils import CommandUtils as utils
 import thinking_dataset.config as config
 import thinking_dataset.config.config_keys as Keys
 

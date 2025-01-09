@@ -5,7 +5,7 @@
 
 import os
 import shutil
-from ..utilities.log import Log
+from thinking_dataset.utils.log import Log
 import thinking_dataset.config as config
 from thinking_dataset.config.config_keys import ConfigKeys as Keys
 

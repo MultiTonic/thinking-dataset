@@ -7,7 +7,7 @@
 
 import sys
 from functools import wraps
-from ..utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 def exceptions(func):

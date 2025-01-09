@@ -5,7 +5,7 @@
 
 from sqlalchemy import text
 from .database_operation import DatabaseOperation
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class Fetch(DatabaseOperation):

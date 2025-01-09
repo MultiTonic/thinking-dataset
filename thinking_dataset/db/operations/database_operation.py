@@ -4,7 +4,7 @@
 # @license MIT
 
 from abc import ABC, abstractmethod
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class DatabaseOperation(ABC):

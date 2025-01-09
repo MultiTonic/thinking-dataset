@@ -5,7 +5,7 @@
 
 import os
 import pandas as pd
-from ..utilities.log import Log
+from thinking_dataset.utils.log import Log
 from ..db.database import Database
 import thinking_dataset.config as config
 from ..io.files import Files

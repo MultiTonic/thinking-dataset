@@ -5,7 +5,7 @@
 
 import os
 import pandas as pd
-from ..utilities.log import Log
+from thinking_dataset.utils.log import Log
 from dotenv import load_dotenv as dotenv
 
 

@@ -9,7 +9,7 @@
 """
 
 import pytest
-from thinking_dataset.utilities.execute import execute
+from thinking_dataset.utils.execute import execute
 
 
 class MockOperation:

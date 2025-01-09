@@ -8,7 +8,7 @@ import sqlalchemy as sa
 import thinking_dataset.config as config
 from .pipe import Pipe
 from ...io.files import Files
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 from ...db.database import Database
 from thinking_dataset.config.config_keys import ConfigKeys as Keys
 

@@ -10,8 +10,8 @@ import pandas as pd
 from tqdm import tqdm
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from thinking_dataset.utilities.log import Log
-from thinking_dataset.utilities.command_utils import CommandUtils as utils
+from thinking_dataset.utils.log import Log
+from thinking_dataset.utils.command_utils import CommandUtils as utils
 
 
 class Pipe(ABC):

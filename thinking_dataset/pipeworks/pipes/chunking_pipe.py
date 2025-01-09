@@ -5,7 +5,7 @@
 
 import pandas as pd
 from .pipe import Pipe
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class ChunkingPipe(Pipe):

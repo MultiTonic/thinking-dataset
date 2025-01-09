@@ -4,7 +4,7 @@
 # @license MIT
 
 from .operation import Operation
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 import thinking_dataset.config as config
 
 

@@ -6,14 +6,14 @@
 import click
 import os
 from ..io.files import Files
-from ..utilities.log import Log
+from thinking_dataset.utils.log import Log
 from ..db.database import Database
 import thinking_dataset.config as config
-from ..utilities.logger import logger
+from thinking_dataset.utils.logger import logger
 from ..datasets.dataset import Dataset
 from ..tonics.data_tonic import DataTonic
-from ..utilities.load_dotenv import dotenv
-from ..utilities.exceptions import exceptions
+from thinking_dataset.utils.load_dotenv import dotenv
+from thinking_dataset.utils.exceptions import exceptions
 
 
 @click.command()

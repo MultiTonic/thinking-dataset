@@ -4,7 +4,7 @@
 # @license MIT
 
 from huggingface_hub import HfApi
-from thinking_dataset.utilities.log import Log
+from thinking_dataset.utils.log import Log
 from thinking_dataset.datasets.operations import (
     GetDownloadUrls, GetDownloadFile, GetMetadata, GetInfo, GetCardContent,
     GetConfiguration, GetDescription, GetDownloadSize, GetFileList, GetLicense,

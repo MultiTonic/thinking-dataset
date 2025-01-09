@@ -5,10 +5,10 @@
 
 import os
 import click
-from ..utilities.log import Log
-from ..utilities.exceptions import exceptions
-from ..utilities.logger import logger
-from ..utilities.load_dotenv import dotenv
+from thinking_dataset.utils.log import Log
+from thinking_dataset.utils.exceptions import exceptions
+from thinking_dataset.utils.logger import logger
+from thinking_dataset.utils.load_dotenv import dotenv
 from ..io.files import Files
 import thinking_dataset.config as config
 

@@ -6,7 +6,7 @@
 import sys
 from .operation import Operation
 import thinking_dataset.config as config
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class GetFileList(Operation):

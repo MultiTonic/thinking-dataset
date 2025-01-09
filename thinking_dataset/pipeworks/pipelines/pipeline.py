@@ -7,10 +7,10 @@ import os
 import time
 from ...io.files import Files
 from ..pipes.pipe import Pipe
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 import thinking_dataset.config as config
-from ...utilities.text_utils import TextUtils as Text
-from ...utilities.command_utils import CommandUtils as utils
+from thinking_dataset.utils.text_utils import TextUtils as Text
+from thinking_dataset.utils.command_utils import CommandUtils as utils
 
 
 class Pipeline:

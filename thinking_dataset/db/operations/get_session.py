@@ -5,7 +5,7 @@
 
 from .database_operation import DatabaseOperation
 from ..database_session import DatabaseSession
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class GetSession(DatabaseOperation):

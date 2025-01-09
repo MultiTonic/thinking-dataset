@@ -5,7 +5,7 @@
 
 import click
 from thinking_dataset.commands import download, clean, load, prepare, export
-from thinking_dataset.utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 @click.group()
