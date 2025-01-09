@@ -48,23 +48,31 @@ If you would like to contribute code to the project, please follow these steps:
 
 1. **Fork the Repository**: Click the "Fork" button at the top of the repository page to create a copy of the repository in your GitHub account.
 2. **Clone the Repository**: Clone your forked repository to your local machine.
+
    ```bash
    git clone https://github.com/MultiTonic/thinking-dataset.git
    cd thinking-dataset
    ```
+
 3. **Create a Branch**: Create a new branch for your feature or bug fix.
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
+
 4. **Make Changes**: Make your changes to the codebase.
 5. **Commit Changes**: Commit your changes with a descriptive commit message.
+
    ```bash
    git commit -m "Add feature: your feature name"
    ```
+
 6. **Push Changes**: Push your changes to your forked repository.
+
    ```bash
    git push origin feature/your-feature-name
    ```
+
 7. **Open a Pull Request**: Open a pull request to the main repository. Provide a detailed description of your changes and any relevant information.
 
 ## Development Setup
@@ -72,6 +80,7 @@ If you would like to contribute code to the project, please follow these steps:
 To set up your development environment, follow these steps:
 
 1. **Clone the Repository**: Clone the repository to your local machine.
+
    ```bash
    git clone https://github.com/MultiTonic/thinking-dataset.git
    cd thinking-dataset

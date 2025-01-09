@@ -1,17 +1,17 @@
 # @file thinking_dataset/db/database.py
 # @description Implementation of the Database class.
-# @version 1.1.2
+# @version 1.1.3
 # @license MIT
 
 import os
 import sys
 import pandas as pd
+import thinking_dataset.config as config
 from sqlalchemy import create_engine, exc
 from contextlib import contextmanager
 from ..utilities.execute import execute
 from .operations.query import Query
 from .operations.fetch import Fetch
-from ..config.config import Config
 from .database_session import DatabaseSession as Session
 from ..utilities.log import Log
 
@@ -19,7 +19,8 @@ from ..utilities.log import Log
 class Database:
 
     def __init__(self):
-        self.config = Config.get()
+        config_instance = config.initialize()
+        self.config = config_instance
         try:
             database_url = self.config.database_url.format(
                 name=self.config.database_name)

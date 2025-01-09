@@ -1,13 +1,13 @@
 # @file thinking_dataset/io/files.py
 # @description Handles file I/O operations for the Thinking Dataset Project.
-# @version 1.0.5
+# @version 1.0.9
 # @license MIT
 
 import os
 import shutil
 from ..utilities.log import Log
-from ..config.config import Config
-from ..config.config_keys import ConfigKeys as Keys
+import thinking_dataset.config as config
+from thinking_dataset.config.config_keys import ConfigKeys as Keys
 
 
 class Files:
@@ -18,7 +18,8 @@ class Files:
 
     @staticmethod
     def get_path(key: Keys):
-        path = Config.get_value(key)
+        instance = config.initialize()
+        path = instance.get_value(key)
         Log.info(f"Retrieved directory for key {key}: {path}")
         if path is None:
             raise ValueError(
@@ -90,4 +91,7 @@ class Files:
     @staticmethod
     def format(file, pattern):
         file_root, file_ext = os.path.splitext(file)
-        return pattern.format(file_root=file_root, file_ext=file_ext)
+        file_name = os.path.basename(file)
+        return pattern.format(file_root=file_root,
+                              file_ext=file_ext,
+                              file_name=file_name)

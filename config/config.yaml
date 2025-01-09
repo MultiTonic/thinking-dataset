@@ -1,114 +1,114 @@
-config:
-  huggingface:
-    name: "cablegate-pdf-dataset"
-    type: "parquet"
-  database:
-    url: "sqlite:///data/db/{name}.db"
-    type: "sqlite"
+dataset:
+  name: "cablegate-pdf-dataset"
+  type: "parquet"
+paths:
+  root: "."
+  data: "./data"
+  raw: "./data/raw"
+  process: "./data/process"
+  database: "./data/db"
+  export: "./data/export"
+database:
+  env: "development"
+  name: "thinking-dataset"
+  type: "sqlite"
+  url: "{{database.type}}:///data/db/{{database.name}}.db"
+  config:
     pool_size: 5
     max_overflow: 10
     connect_timeout: 30
     read_timeout: 30
     log_queries: True
-    environment: "development"
-    name: "thinking-dataset"
-  paths:
-    root: "."
-    data: "./data"
-    raw: "./data/raw"
-    process: "./data/process"
-    database: "./data/db"
-    export: "./data/export"
-  files:
-    include:
-    - "train-00000-of-00001.parquet"
-    exclude:
-    - "cleaned_data.parquet"
-    load:
-    - "{file_root}_prepare{file_ext}"
-  pipelines:
-  - pipeline:
-      name: "prepare"
-      description: "Default prepare pipeline"
-      config:
-        prepare_file: "{file_base}_prepare{file_ext}"
-      pipes:
-      - pipe:
-          type: "SubsetPipe"
-          config:
-            rows: [ 0, 100 ]
-            columns: [ "all" ]
-      - pipe:
-          type: "AddIdPipe"
-          config: {}
-      - pipe:
-          type: "DropColumnsPipe"
-          config:
-            columns: [ "file_name" ]
-      - pipe:
-          type: "RemapColumnsPipe"
-          config:
-            column_mapping:
-              pdf_content: cable
-            column_order:
-            - id
-            - cable
-      - pipe:
-          type: "RemoveDuplicatesPipe"
-          config:
-            columns: [ "auto" ]
-      - pipe:
-          type: "HandleMissingValuesPipe"
-          config:
-            columns: [ "auto" ]
-            remove_partials: True
-            allow_empty: False
-      - pipe:
-          type: "NormalizeTextPipe"
-          config:
-            columns: [ "cable" ]
-            contractions:
-              "ain't": "am not"
-            terms:
-              "i.e": "that is "
-      - pipe:
-          type: "FilterBySizePipe"
-          config:
-            column_name: "cable"
-            min_size: 500
-            max_size: 0
-      - pipe:
-          type: "ChunkingPipe"
-          config:
-            columns: [ "cable" ]
-            min_chunk_size: 500
-            max_chunk_size: 10000
-  - pipeline:
-      name: "export"
-      description: "Default export pipeline"
-      config: {}
-      pipes:
-      - pipe:
-          type: "ExportTablesPipe"
-          config:
-            tables: [ "auto" ]
-            columns: [ "auto" ]
-            type: "parquet"
-            template: "{database_name}-{table_name}{file_ext}"
-  - pipeline:
-      name: "upload"
-      description: "Pipeline for uploading exported data to HF API"
-      config: {}
-      pipes:
-      - pipe:
-          type: "FileExtractorPipe"
-          config:
-            directory: "{export_path}"
-            filter: "{dataset_type}"
-      - pipe:
-          type: "UploadPipe"
-          config:
-            org: "${HF_ORG}"
-            dataset: "{huggingface.name}"
-            token: "${HF_WRITE_TOKEN}"
-            user: "${HF_USER}"
+files:
+  include:
+  - "train-00000-of-00001.{{dataset.type}}"
+  exclude:
+  - "cleaned_data.{{dataset.type}}"
+  load:
+  - "{{paths.process}}/{file_name}"
+pipelines:
+- pipeline:
+    name: "prepare"
+    description: "Default prepare pipeline"
+    config:
+      prepare_file: "{file_base}{file_ext}"
+    pipes:
+    - pipe:
+        type: "SubsetPipe"
+        config:
+          rows: [ 0, 100 ]
+          columns: [ "all" ]
+    - pipe:
+        type: "AddIdPipe"
+        config: {}
+    - pipe:
+        type: "DropColumnsPipe"
+        config:
+          columns: [ "file_name" ]
+    - pipe:
+        type: "RemapColumnsPipe"
+        config:
+          column_mapping:
+            pdf_content: cable
+          column_order:
+          - id
+          - cable
+    - pipe:
+        type: "RemoveDuplicatesPipe"
+        config:
+          columns: [ "auto" ]
+    - pipe:
+        type: "HandleMissingValuesPipe"
+        config:
+          columns: [ "auto" ]
+          remove_partials: True
+          allow_empty: False
+    - pipe:
+        type: "NormalizeTextPipe"
+        config:
+          columns: [ "cable" ]
+          contractions:
+            "ain't": "am not"
+          terms:
+            "i.e": "that is "
+    - pipe:
+        type: "FilterBySizePipe"
+        config:
+          column_name: "cable"
+          min_size: 500
+          max_size: 0
+    - pipe:
+        type: "ChunkingPipe"
+        config:
+          columns: [ "cable" ]
+          min_chunk_size: 500
+          max_chunk_size: 10000
+- pipeline:
+    name: "export"
+    description: "Default export pipeline"
+    config: {}
+    pipes:
+    - pipe:
+        type: "ExportTablesPipe"
+        config:
+          tables: [ "auto" ]
+          columns: [ "auto" ]
+          type: "parquet"
+          template: "{{database.name}}-{table_name}.{{dataset.type}}"
+- pipeline:
+    name: "upload"
+    description: "Pipeline for uploading exported data to HF API"
+    config: {}
+    pipes:
+    - pipe:
+        type: "FileExtractorPipe"
+        config:
+          directory: "{{paths.export}}"
+          filter: "{{dataset.type}}"
+    - pipe:
+        type: "UploadPipe"
+        config:
+          org: "${HF_ORG}"
+          dataset: "{{dataset.name}}"
+          token: "${HF_WRITE_TOKEN}"
+          user: "${HF_USER}"

@@ -1,16 +1,16 @@
 # @file thinking_dataset/pipeworks/pipes/export_tables_pipe.py
 # @description Pipe for exporting tables.
-# @version 1.2.29
+# @version 1.2.31
 # @license MIT
 
 import pandas as pd
 import sqlalchemy as sa
+import thinking_dataset.config as config
 from .pipe import Pipe
 from ...io.files import Files
 from ...utilities.log import Log
 from ...db.database import Database
-from ...config.config import Config
-from ...config.config_keys import ConfigKeys as Keys
+from thinking_dataset.config.config_keys import ConfigKeys as Keys
 
 
 class ExportTablesPipe(Pipe):
@@ -26,22 +26,22 @@ class ExportTablesPipe(Pipe):
         inspector = sa.inspect(db.engine)
         return [column['name'] for column in inspector.get_columns(table)]
 
-    def _generate_output_path(self, table: str, file_template: str,
-                              file_format: str, output_dir: str) -> str:
-        database_name = Config.get_value(Keys.DATABASE_NAME)
-        file_name = file_template.format(database_name=database_name,
-                                         table_name=table,
-                                         file_ext=f".{file_format}")
-        return Files.get_file_path(output_dir, file_name)
+    def _generate_output_path(self, table: str, template: str,
+                              file_format: str, out_path: str) -> str:
+        instance = config.initialize()
+        name = instance.get_value(Keys.DATABASE_NAME)
+        file = template.format(database_name=name,
+                               table_name=table,
+                               file_ext=f".{file_format}")
+        return Files.get_file_path(out_path, file)
 
-    def _export_data(self, df: pd.DataFrame, output_path: str,
-                     file_format: str):
-        if file_format == "parquet":
-            df.to_parquet(output_path, index=False)
-        elif file_format == "csv":
-            df.to_csv(output_path, index=False)
+    def _export_data(self, df: pd.DataFrame, out_path: str, format: str):
+        if format == "parquet":
+            df.to_parquet(out_path, index=False)
+        elif format == "csv":
+            df.to_csv(out_path, index=False)
         else:
-            raise ValueError(f"Unsupported file format: {file_format}")
+            raise ValueError(f"Unsupported file format: {format}")
 
     def _fetch_data_from_database(self, table: str,
                                   db: Database) -> pd.DataFrame:
@@ -49,13 +49,14 @@ class ExportTablesPipe(Pipe):
 
     def flow(self, df: pd.DataFrame, **args) -> pd.DataFrame:
         db = Database()
+        instance = config.initialize()
         columns = self.config.get("columns", ["auto"])
         tables = self.config.get("tables", ["auto"])
-        file_format = self.config.get("format", "parquet")
-        output_dir = Config.get_value(Keys.EXPORT_PATH)
-        file_template = self.config.get("template")
+        format = instance.get_value(Keys.DATASET_TYPE)
+        out_path = instance.get_value(Keys.EXPORT_PATH)
+        template = self.config.get("template")
 
-        if not file_template:
+        if not template:
             raise ValueError("File template is not set in the configuration.")
 
         if "auto" in tables:
@@ -63,21 +64,21 @@ class ExportTablesPipe(Pipe):
 
         Log.info("Starting ExportTablesPipe")
         Log.info(f"Exporting columns: {columns}")
-        Log.info(f"Output directory: {output_dir}")
-        Log.info(f"File format: {file_format}")
+        Log.info(f"Output path: {out_path}")
+        Log.info(f"File format: {format}")
         Log.info(f"Exporting tables: {tables}")
 
-        Files.make_dir(path=output_dir)
+        Files.make_dir(path=out_path)
 
         for table in tables:
             df = self._fetch_data_from_database(table, db)
             if "auto" in columns:
                 columns = self._fetch_table_columns(table, db)
             df = df[columns] if columns != ["auto"] else df
-            output_path = self._generate_output_path(table, file_template,
-                                                     file_format, output_dir)
-            self._export_data(df, output_path, file_format)
-            Log.info(f"Exported table {table} to {output_path}")
+            out_path = self._generate_output_path(table, template, format,
+                                                  out_path)
+            self._export_data(df, out_path, format)
+            Log.info(f"Exported table {table} to {out_path}")
 
         Log.info("Finished ExportTablesPipe")
 

@@ -1,17 +1,17 @@
 # @file thinking_dataset/pipeworks/pipes/pipe.py
 # @description Defines BasePipe class for preprocessing tasks with logging.
-# @version 1.1.1
+# @version 1.1.2
 # @license MIT
 
+import time
+import threading
 import importlib
 import pandas as pd
 from tqdm import tqdm
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from thinking_dataset.utilities.log import Log
-from thinking_dataset.utilities.command_utils import CommandUtils as Utils
-import time
-import threading
+from thinking_dataset.utilities.command_utils import CommandUtils as utils
 
 
 class Pipe(ABC):
@@ -30,7 +30,7 @@ class Pipe(ABC):
     @staticmethod
     def get_pipe(pipe_type):
         module_name = "thinking_dataset.pipeworks.pipes." + \
-            Utils.camel_to_snake(pipe_type)
+            utils.camel_to_snake(pipe_type)
 
         try:
             module = importlib.import_module(module_name)
