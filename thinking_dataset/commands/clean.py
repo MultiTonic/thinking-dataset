@@ -1,6 +1,6 @@
 # @file thinking_dataset/commands/clean.py
 # @description Command to clean the data directory and other dynamic resources.
-# @version 1.0.2
+# @version 1.0.3
 # @license MIT
 
 import os
@@ -10,7 +10,7 @@ from ..utilities.exceptions import exceptions
 from ..utilities.logger import logger
 from ..utilities.load_dotenv import dotenv
 from ..io.files import Files
-from ..config.config import Config
+import thinking_dataset.config as config
 
 
 @click.command()
@@ -20,8 +20,9 @@ from ..config.config import Config
 def clean(**kwargs):
     Log.info("Starting the clean command.")
 
-    config = Config.get()
-    path = Files.get_file_path(config.root, config.data)
+    config_instance = config.initialize()
+    path = Files.get_file_path(config_instance.paths['root'],
+                               config_instance.paths['data'])
 
     if not Files.exists(path):
         Log.info(f"Directory not found: {path}")

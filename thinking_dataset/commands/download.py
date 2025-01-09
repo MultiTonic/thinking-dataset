@@ -1,6 +1,6 @@
 # @file thinking_dataset/commands/download.py
 # @description Command to download datasets.
-# @version 1.0.1
+# @version 1.0.3
 # @license MIT
 
 import click
@@ -8,8 +8,7 @@ from ..utilities.log import Log
 from ..utilities.exceptions import exceptions
 from ..utilities.logger import logger
 from ..utilities.load_dotenv import dotenv
-from ..config.config import Config
-from ..config.config_keys import ConfigKeys as Keys
+import thinking_dataset.config as config
 from ..tonics.data_tonic import DataTonic
 from ..datasets.dataset import Dataset
 
@@ -21,10 +20,15 @@ from ..datasets.dataset import Dataset
 def download(**kwargs):
     Log.info("Starting the download command.")
 
-    dt = DataTonic(read_token=Config.get_env_value(Keys.HF_READ_TOKEN),
-                   write_token=Config.get_env_value(Keys.HF_WRITE_TOKEN),
-                   org=Config.get_value(Keys.HF_ORG),
-                   user=Config.get_env_value(Keys.HF_USER))
+    config_instance = config.initialize()
+
+    dt = DataTonic(read_token=config_instance.get_env_value(
+        config.get_keys().HF_READ_TOKEN),
+                   write_token=config_instance.get_env_value(
+                       config.get_keys().HF_WRITE_TOKEN),
+                   org=config_instance.get_value(config.get_keys().HF_ORG),
+                   user=config_instance.get_env_value(
+                       config.get_keys().HF_USER))
     Log.info("Initialized DataTonic instance.")
 
     dataset = Dataset(data_tonic=dt)
@@ -33,11 +37,14 @@ def download(**kwargs):
     success = dataset.download()
 
     if success:
-        Log.info("Downloaded dataset "
-                 f"{Config.get_value(Keys.DATASET_NAME)} successfully.")
+        Log.info(
+            "Downloaded dataset "
+            f"{config_instance.get_value(config.get_keys().DATASET_NAME)} "
+            "successfully.")
     else:
-        Log.error("Failed to download dataset: "
-                  f"{Config.get_value(Keys.DATASET_NAME)}")
+        Log.error(
+            "Failed to download dataset: "
+            f"{config_instance.get_value(config.get_keys().DATASET_NAME)}")
 
     Log.info("Download command completed successfully.")
 

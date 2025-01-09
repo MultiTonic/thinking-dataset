@@ -1,17 +1,16 @@
 # @file thinking_dataset/datasets/dataset.py
 # @description Implementation of the Dataset class.
-# @version 1.0.6
+# @version 1.0.7
 # @license MIT
 
 import os
 import pandas as pd
 from ..utilities.log import Log
 from ..db.database import Database
-from ..config.config import Config
+import thinking_dataset.config as config
 from ..io.files import Files
 from typing import List, Optional
 from ..tonics.data_tonic import DataTonic
-from ..config.config_keys import ConfigKeys as Keys
 
 
 class Dataset:
@@ -26,11 +25,16 @@ class Dataset:
         try:
             self.api = data_tonic
             self.database = Database()
-            self.org = Config.get_env_value(Keys.HF_ORG)
-            self.name = Config.get_value(Keys.DATASET_NAME)
-            self.type = Config.get_value(Keys.DATASET_TYPE)
-            self.include = Config.get_value(Keys.INCLUDE_FILES)
-            self.exclude = Config.get_value(Keys.EXCLUDE_FILES)
+            config_instance = config.initialize()
+            self.org = config_instance.get_env_value(config.get_keys().HF_ORG)
+            self.name = config_instance.get_value(
+                config.get_keys().DATASET_NAME)
+            self.type = config_instance.get_value(
+                config.get_keys().DATASET_TYPE)
+            self.include = config_instance.get_value(
+                config.get_keys().INCLUDE_FILES)
+            self.exclude = config_instance.get_value(
+                config.get_keys().EXCLUDE_FILES)
 
             if not self.name:
                 raise ValueError("Dataset name is not configured.")
@@ -118,7 +122,9 @@ class Dataset:
 
     def download(self) -> bool:
         try:
-            token = Config.get_env_value(Keys.HF_READ_TOKEN)
+            config_instance = config.initialize()
+            token = config_instance.get_env_value(
+                config.get_keys().HF_READ_TOKEN)
             repo_id = self.get_repo_id()
             dataset_info = self.api.get_info.execute(repo_id)
             if dataset_info:

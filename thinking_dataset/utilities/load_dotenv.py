@@ -5,7 +5,7 @@
 
 from functools import wraps
 from dotenv import load_dotenv
-from ..utilities.command_utils import CommandUtils as Utils
+from ..utilities.command_utils import CommandUtils as utils
 
 
 def dotenv(print=False):
@@ -20,11 +20,11 @@ def dotenv(print=False):
         def wrapper(*args, **kwargs):
             log = kwargs['log']
             load_dotenv()
-            dotenv = Utils.load_dotenv()
+            dotenv = utils.load_dotenv()
             if print:
-                Utils.print_dotenv(dotenv, log)
+                utils.print_dotenv(dotenv, log)
 
-            if not Utils.verify_dotenv(dotenv, log):
+            if not utils.verify_dotenv(dotenv, log):
                 raise ValueError("Failed to validate environment variables.")
 
             kwargs['dotenv'] = dotenv

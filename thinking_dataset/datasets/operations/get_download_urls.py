@@ -1,12 +1,11 @@
 # @file thinking_dataset/datasets/operations/get_download_urls.py
 # @description Operation to retrieve dataset download URLs.
-# @version 1.0.0
+# @version 1.0.1
 # @license MIT
 
 from .operation import Operation
 from ...utilities.log import Log
-from ...config.config import Config
-from ...config.config_keys import ConfigKeys as Keys
+import thinking_dataset.config as config
 
 
 class GetDownloadUrls(Operation):
@@ -17,7 +16,9 @@ class GetDownloadUrls(Operation):
     def execute(self, dataset_id):
         try:
             dataset_info = self.data_tonic.get_info.execute(dataset_id)
-            dataset_type = Config.get_value(Keys.DATASET_TYPE)
+            config_instance = config.initialize()
+            dataset_type = config_instance.get_value(
+                config.get_keys().DATASET_TYPE)
             download_urls = [
                 file.rfilename for file in dataset_info.siblings
                 if file.rfilename.endswith(f'.{dataset_type}')

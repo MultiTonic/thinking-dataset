@@ -1,7 +1,9 @@
 # @file thinking_dataset/config/config_validator.py
-# @description Defines ConfigValidator class for validating dataset configuration.
-# @version 1.0.0
+# @description Defines class for validating dataset configuration.
+# @version 1.0.1
 # @license MIT
+
+from ..utilities.log import Log
 
 
 class ConfigValidator:
@@ -12,6 +14,7 @@ class ConfigValidator:
     @staticmethod
     def validate(config):
         missing = []
+
         if not config.dataset_name:
             missing.append("dataset_name")
         if not config.dataset_type:
@@ -61,3 +64,5 @@ class ConfigValidator:
             raise ValueError(
                 "Environment must be 'development', 'testing', or 'production'"
             )
+
+        Log.info("Configuration validated successfully.")

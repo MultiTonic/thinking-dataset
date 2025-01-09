@@ -1,9 +1,7 @@
-"""
-@file run_cli_commands.py
-@description A script to run commands in order: clean, download, prepare, load.
-@version 1.0.0
-@license MIT
-"""
+# @file run_cli_commands.py
+# @description Run workflow: clean, download, prepare, load, export.
+# @version 1.0.1
+# @license MIT
 
 import subprocess
 
