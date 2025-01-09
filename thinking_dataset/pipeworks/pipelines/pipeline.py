@@ -23,10 +23,10 @@ class Pipeline:
         self._setup_pipelines()
 
     def _setup_paths(self):
-        self.out_path = cfg.get_config().get_value(cfg.get_keys().PROCESS_PATH)
+        config = cfg.Config.get()
+        self.out_path = config.get_value(cfg.get_keys().PROCESS_PATH)
         Files.make_dir(self.out_path)
-        return cfg.get_config().get_value(
-            cfg.get_keys().RAW_PATH), self.out_path
+        return config.get_value(cfg.get_keys().RAW_PATH), self.out_path
 
     def _setup_pipelines(self):
         configs = self.config.pipelines

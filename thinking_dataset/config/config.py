@@ -50,14 +50,18 @@ class Config:
             cfg._instance = Config(config_path)
         return cfg._instance
 
-    def get_value(self, key: Keys):
-        value = getattr(self, key.value, None)
+    def get_value(self, key):
+        if isinstance(key, Keys):
+            key = key.value
+        value = getattr(self, key, None)
         return value
 
     @staticmethod
-    def get_env_value(key: Keys):
+    def get_env_value(key):
+        if isinstance(key, Keys):
+            key = key.value
         dotenv = cfg._dotenv
         if dotenv is None:
             dotenv = utils.load_dotenv()
-        value = dotenv.get(key.value)
+        value = dotenv.get(key)
         return value

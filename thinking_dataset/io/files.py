@@ -79,7 +79,7 @@ class Files:
 
     @staticmethod
     def get_file_path(path, file_name):
-        return os.path.join(path, file_name)
+        return os.path.normpath(os.path.join(path, file_name))
 
     @staticmethod
     def is_excluded(file, excluded_files):

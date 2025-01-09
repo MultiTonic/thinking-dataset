@@ -94,8 +94,12 @@ pipelines:
         config:
           tables: [ "all" ]
           columns: [ "auto" ]
-          template: "{{database.name}}-{table_name}.{{dataset.type}}"
+          shard_size: 1000000
+          pattern: "{{dataset.name}}-{split_name}-{split_info}.{{dataset.type}}"
           path: "{{paths.processed_data_train}}"
+          schema: [ "id", "cable" ]
+          drop_columns: True
+          fill_value: "null"
 - pipeline:
     name: "upload"
     description: "Pipeline for uploading exported data to HF API"
