@@ -101,36 +101,20 @@ In our next conversation, please provide:
 | Implement dynamic variable resolution in `config.py`.   | ✅         |
 | **Implement Configurations for Each Pipe**              |           |
 | Configure `FileExtractorPipe` for directory access.     |           |
-| Configure `FilterByNamePipe` for file filtering.        |           |
-| Configure `UploadPipe` for file uploads.                |           |
+| Configure `UploadFilePipe` for file uploads.            |           |
 | **Implement Upload Command**                            |           |
 | Create `UploadCommand` class in `upload.py`.            |           |
 | Implement the `execute` method for the `UploadCommand` class. |           |
 | Implement the `_upload_file` method for the `UploadCommand` class. |           |
-| **Integrate Upload Command into Pipeline**              |           |
-| Ensure the `upload` command is integrated into the pipeline configuration. |           |
-| **Update `run_cli_command.py` Script**                  |           |
-| Update the script to include export and upload functionalities. |           |
-| **Set Up Logging and Monitoring**                       |           |
-| Implement logging for all pipelines and commands.       |           |
+| **Integrate Upload Command into Pipeline**              | ✅         |
+| **Update `run_cli_command.py` Script**                  | ✅         |
+| **Set Up Logging and Monitoring**                       | ✅         |
 | **Optimize Pipeline Performance**                       |           |
-| Evaluate and optimize pipeline performance.             |           |
-| **Enhance Error Handling and Reporting**                |           |
-| Implement detailed error handling in all pipes and commands. |           |
-| **Implement Configuration Validation**                  |           |
-| Add validation logic for dynamic variable resolutions.  |           |
-| **User Feedback Mechanism**                             |           |
-| Create a system to collect and manage feedback.         |           |
+| **Enhance Error Handling and Reporting**                | ✅         |
+| **Implement Configuration Validation**                  | ✅         |
 | **Comprehensive Documentation**                         |           |
 | Develop detailed user guides and API documentation.     |           |
-| **Security Enhancements**                               |           |
-| Review and secure API tokens and sensitive data handling. |           |
-| **Update Documentation**                                |           |
-| Reflect all recent changes in the documentation, ensuring clarity and completeness. |           |
-| **Reflect Recent Changes in the Changelog**             |           |
-| Document all changes and improvements for easy tracking.|           |
-| **Ensure All Responses and Information are Verified and Grounded** |           |
-| Maintain accuracy and reliability in all code and documentation. |           |
+| **Security Enhancements**                               | ✅         |
 
 ---
 

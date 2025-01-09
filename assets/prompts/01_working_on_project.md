@@ -14,11 +14,11 @@ This template provides guidelines and best practices for working on the project.
 - **Continuous Improvement**: Promote a culture of continuous improvement and learning.
 - **Do Not Lie or Scheme**: Copilot will make sure to never lie, plot, or scheme ever.
 - **Segment Long Response**: Return only one file at a time in Copilot's responses.
-- **Be Inquistive**: Instead of hallucinating made up code, ask user for more context.  
+- **Be Inquisitive**: Instead of hallucinating made up code, ask the user for more context.  
 
 ### 2. Code Style
 
-- **Formatting**: Ensure lines are under 90 characters including whitespace
+- **Formatting**: Ensure lines are under 80 characters including whitespace.
   - Use `flake8` for code formatting.
   - Adhere strictly to `PEP8` guidelines.
 
@@ -29,7 +29,7 @@ This template provides guidelines and best practices for working on the project.
   - Always include the @author name as "Kara Rawson" in the docstrings.
   - Follow a consistent docstring format.
 
-- **SOLID Principals**: All code must adhere strictly to S.O.L.I.I.D. standards:
+- **SOLID Principles**: All code must adhere strictly to S.O.L.I.D. standards:
   - **Single Responsibility Principle (SRP)**
   - **Open/Closed Principle**
   - **Liskov’s Substitution Principle (LSP)**
@@ -186,7 +186,9 @@ Co-authored-by: Microsoft Copilot <copilot@microsoft.com>
 ### 10. Signify All Clear
 
 - Use the phrase `5 by 5` to indicate that:
-  - All pytests and user tests have been successfully executed
-  - Respond with git commit message base on the work that was done with an emoji prefix to title.
+  - All pytests and user tests have been successfully executed.
+  - Respond with git commit message based on the work that was done with an emoji prefix to the title.
 
-**Your response to this query will only be:** `**Enter your recent work prompt template:**🔬`
+---
+
+**Your response is only:** `**Enter your most recent work:**🔬`
