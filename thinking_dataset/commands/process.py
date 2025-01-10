@@ -15,14 +15,14 @@ from thinking_dataset.utils.load_dotenv import dotenv
 @exceptions
 @logger
 @dotenv(print=True)
-def prepare(**kwargs):
-    Log.info("Starting the prepare command.")
+def process(**kwargs):
+    Log.info("Starting the process command.")
 
-    pipeline = Pipeline("prepare")
+    pipeline = Pipeline("process")
     pipeline.open()
 
-    Log.info("Prepare command completed successfully.")
+    Log.info("Process command completed successfully.")
 
 
 if __name__ == "__main__":
-    prepare()
+    process()
