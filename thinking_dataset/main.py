@@ -4,8 +4,8 @@
 # @license MIT
 
 import click
-from thinking_dataset import \
-    download, clean, load, prepare, export, upload, Log
+from thinking_dataset.commands import download, clean, load, prepare, export, upload
+from thinking_dataset.utils.log import Log
 
 
 @click.group()

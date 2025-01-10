@@ -5,7 +5,7 @@
 
 import sys
 from .operation import Operation
-import thinking_dataset.config as conf
+import thinking_dataset.config as config
 from thinking_dataset.utils.log import Log
 
 

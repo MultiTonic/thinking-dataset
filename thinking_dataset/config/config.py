@@ -4,7 +4,7 @@
 # @license MIT
 
 from thinking_dataset.utils.command_utils import CommandUtils as utils
-import thinking_dataset.config as conf
+import thinking_dataset.config as config
 import thinking_dataset.config.config_keys as Keys
 
 
