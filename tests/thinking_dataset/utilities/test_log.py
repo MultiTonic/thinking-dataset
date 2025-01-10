@@ -10,7 +10,7 @@
 
 import pytest
 import logging
-from thinking_dataset.utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 @pytest.fixture

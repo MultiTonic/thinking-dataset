@@ -5,8 +5,8 @@
 
 import pandas as pd
 from .pipe import Pipe
-from ...utilities.log import Log
-from ...utilities.text_utils import TextUtils
+from thinking_dataset.utils.log import Log
+from thinking_dataset.utils.text_utils import TextUtils
 
 
 class FilterBySizePipe(Pipe):

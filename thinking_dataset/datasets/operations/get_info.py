@@ -5,7 +5,7 @@
 
 from .operation import Operation
 from huggingface_hub.utils import RepositoryNotFoundError
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class GetInfo(Operation):

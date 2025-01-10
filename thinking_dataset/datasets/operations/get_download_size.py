@@ -6,7 +6,7 @@
 """
 
 from .operation import Operation
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class GetDownloadSize(Operation):

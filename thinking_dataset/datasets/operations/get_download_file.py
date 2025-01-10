@@ -8,7 +8,7 @@ import os
 import stat
 from .operation import Operation
 from huggingface_hub import hf_hub_download
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class GetDownloadFile(Operation):

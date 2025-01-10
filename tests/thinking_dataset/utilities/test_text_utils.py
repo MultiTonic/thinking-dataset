@@ -9,7 +9,7 @@
 """
 
 import pytest
-from thinking_dataset.utilities.text_utils import TextUtils
+from thinking_dataset.utils.text_utils import TextUtils
 
 
 def test_truncate_text_simple():

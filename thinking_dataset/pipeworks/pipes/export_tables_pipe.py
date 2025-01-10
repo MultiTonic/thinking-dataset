@@ -5,11 +5,11 @@
 
 import pandas as pd
 import sqlalchemy as sa
-import thinking_dataset.config as cfg
+import thinking_dataset.config as conf
 import thinking_dataset.config.config_keys as Keys
 from .pipe import Pipe
 from ...io.files import Files
-from ...utilities.log import Log
+from thinking_dataset.utils.log import Log
 from ...db.database import Database
 
 CK = Keys.ConfigKeys
@@ -34,7 +34,7 @@ class ExportTablesPipe(Pipe):
                            out_path: str,
                            shard_num=None,
                            total_shards=None) -> str:
-        instance = cfg.initialize()
+        instance = conf.initialize()
         dataset_name = instance.get_value(CK.DATASET_NAME)
         split_name = 'train'
         split_info = f"{shard_num:05d}-of-{total_shards:05d}" \
@@ -91,7 +91,7 @@ class ExportTablesPipe(Pipe):
 
     def flow(self, df: pd.DataFrame, **args) -> pd.DataFrame:
         db = Database()
-        instance = cfg.initialize()
+        instance = conf.initialize()
         columns = self.config.get("columns", ["auto"])
         tables = self.config.get("tables", ["all"])
         file_type = instance.get_value(CK.DATASET_TYPE)

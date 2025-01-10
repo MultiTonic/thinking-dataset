@@ -1,12 +1,12 @@
 # @file thinking_dataset/datasets/operations/get_file_list.py
 # @description Operation to retrieve list of dataset files.
-# @version 1.0.1
+# @version 1.0.2
 # @license MIT
 
 import sys
 from .operation import Operation
-import thinking_dataset.config as cfg
-from ...utilities.log import Log
+import thinking_dataset.config as conf
+from thinking_dataset.utils.log import Log
 
 
 class GetFileList(Operation):
@@ -20,7 +20,7 @@ class GetFileList(Operation):
                 f"{self.data_tonic.organization}/{self.data_tonic.dataset}")
 
             if isinstance(self.config, str):
-                self.config = cfg.initialize(self.config)
+                self.config = conf.initialize(self.config)
 
             file_list = [
                 file.rfilename for file in dataset_info.siblings

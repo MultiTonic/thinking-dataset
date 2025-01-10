@@ -1,11 +1,11 @@
 # @file thinking_dataset/config/config.py
 # @description Defines DatasetConfig class for storing dataset configuration.
-# @version 1.0.33
+# @version 1.0.34
 # @license MIT
 
-from ..utilities.command_utils import CommandUtils as utils
-import thinking_dataset.config as cfg
-from thinking_dataset.config.config_keys import ConfigKeys as Keys
+from thinking_dataset.utils.command_utils import CommandUtils as utils
+import thinking_dataset.config as conf
+import thinking_dataset.config.config_keys as Keys
 
 
 class Config:
@@ -14,14 +14,14 @@ class Config:
     """
 
     def __new__(cls, *args, **kwargs):
-        if not cfg._instance:
-            cfg._instance = super(Config, cls).__new__(cls)
-        return cfg._instance
+        if not conf._instance:
+            conf._instance = super(Config, cls).__new__(cls)
+        return conf._instance
 
     def __init__(self, path: str):
         if hasattr(self, 'initialized'):
             return
-        loader = cfg.get_loader()(path)
+        loader = conf.get_loader()(path)
         self.config = loader.config
 
         combined_config = {
@@ -32,23 +32,23 @@ class Config:
             'pipelines': self.config.get('pipelines', [])
         }
 
-        resolved_config = cfg.get_dict_resolver()(combined_config,
-                                                  combined_config)
+        resolved_config = conf.get_dict_resolver()(combined_config,
+                                                   combined_config)
 
-        cfg.get_attr().initialize_attributes(resolved_config, self)
-        cfg.get_validator().validate(self)
-        cfg._dotenv = utils.load_dotenv()
+        conf.get_attr().initialize_attributes(resolved_config, self)
+        conf.get_validator().validate(self)
+        conf._dotenv = utils.load_dotenv()
         self.config = resolved_config
         self.paths = resolved_config.get('paths', {})
         self.initialized = True
 
     @staticmethod
     def get():
-        if not cfg._instance:
-            cfg._dotenv = utils.load_dotenv()
-            config_path = cfg._dotenv.get("CONFIG_PATH")
-            cfg._instance = Config(config_path)
-        return cfg._instance
+        if not conf._instance:
+            conf._dotenv = utils.load_dotenv()
+            config_path = conf._dotenv.get("CONFIG_PATH")
+            conf._instance = Config(config_path)
+        return conf._instance
 
     def get_value(self, key):
         if isinstance(key, Keys):
@@ -60,7 +60,7 @@ class Config:
     def get_env_value(key):
         if isinstance(key, Keys):
             key = key.value
-        dotenv = cfg._dotenv
+        dotenv = conf._dotenv
         if dotenv is None:
             dotenv = utils.load_dotenv()
         value = dotenv.get(key)

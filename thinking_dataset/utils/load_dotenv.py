@@ -5,7 +5,7 @@
 
 from functools import wraps
 from dotenv import load_dotenv
-from ..utilities.command_utils import CommandUtils as utils
+from thinking_dataset.utils.command_utils import CommandUtils as utils
 
 
 def dotenv(print=False):

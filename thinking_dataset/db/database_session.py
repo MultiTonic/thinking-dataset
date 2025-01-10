@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from contextlib import contextmanager
 from .session_statemachine import SessionStateMachine as StateMachine
-from ..utilities.log import Log
+from thinking_dataset.utils.log import Log
 
 
 class DatabaseSession:

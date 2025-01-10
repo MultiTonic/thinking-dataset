@@ -7,26 +7,26 @@ import os
 import time
 from ...io.files import Files
 from ..pipes.pipe import Pipe
-from ...utilities.log import Log
-import thinking_dataset.config as cfg
-from ...utilities.text_utils import TextUtils as Text
-from ...utilities.command_utils import CommandUtils as utils
+from thinking_dataset.utils.log import Log
+import thinking_dataset.config as conf
+from thinking_dataset.utils.text_utils import TextUtils as Text
+from thinking_dataset.utils.command_utils import CommandUtils as utils
 
 
 class Pipeline:
     pipelines = []
 
     def __init__(self, name=None):
-        self.config = cfg.initialize()
+        self.config = conf.initialize()
         self.in_path, self.out_path = self._setup_paths()
         self.name = name
         self._setup_pipelines()
 
     def _setup_paths(self):
-        config = cfg.Config.get()
-        self.out_path = config.get_value(cfg.get_keys().PROCESS_PATH)
+        config = conf.Config.get()
+        self.out_path = config.get_value(conf.get_keys().PROCESS_PATH)
         Files.make_dir(self.out_path)
-        return config.get_value(cfg.get_keys().RAW_PATH), self.out_path
+        return config.get_value(conf.get_keys().RAW_PATH), self.out_path
 
     def _setup_pipelines(self):
         configs = self.config.pipelines
