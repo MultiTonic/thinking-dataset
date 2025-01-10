@@ -1,6 +1,6 @@
 # @file config/config.yaml
 # @description Configuration for the Cablegate PDF Dataset Project
-# @version 1.0.1
+# @version 1.0.3
 # @license MIT
 
 dataset:
@@ -108,7 +108,7 @@ pipelines:
           fill_value: "null"
 - pipeline:
     name: "upload"
-    description: "Default upload pipeline using Hfapi"
+    description: "Default upload pipeline"
     config: {}
     pipes:
     - pipe:
@@ -117,11 +117,12 @@ pipelines:
           path: "{{paths.export}}"
           filter: "{{dataset.type}}"
     - pipe:
-        type: "UploadFilePipe"
+        type: "FileUploadHfApiPipe"
         config:
           org: "${HF_ORG}"
           dataset: "{{dataset.name}}"
           token: "${HF_WRITE_TOKEN}"
           user: "${HF_USER}"
+          repo_type: "dataset"
           out_path: "{{paths.processed_data}}"
           dry_run: True
