@@ -1,3 +1,8 @@
+# @file config/config.yaml
+# @description Configuration for the Cablegate PDF Dataset Project
+# @version 1.0.1
+# @license MIT
+
 dataset:
   name: "cablegate-pdf-dataset"
   type: "parquet"
@@ -8,7 +13,8 @@ paths:
   process: "./data/process"
   database: "./data/db"
   export: "./data/export"
-  processed_data_train: "./data/export/processed_data/train"
+  processed_data: "processed_data"
+  processed_data_train: "{{paths.export}}/{{paths.processed_data}}/train"
 database:
   env: "development"
   name: "thinking-dataset"
@@ -102,18 +108,20 @@ pipelines:
           fill_value: "null"
 - pipeline:
     name: "upload"
-    description: "Pipeline for uploading exported data to HF API"
+    description: "Default upload pipeline using Hfapi"
     config: {}
     pipes:
     - pipe:
         type: "FileExtractorPipe"
         config:
-          directory: "{{paths.export}}"
+          path: "{{paths.export}}"
           filter: "{{dataset.type}}"
     - pipe:
-        type: "UploadPipe"
+        type: "UploadFilePipe"
         config:
           org: "${HF_ORG}"
           dataset: "{{dataset.name}}"
           token: "${HF_WRITE_TOKEN}"
           user: "${HF_USER}"
+          out_path: "{{paths.processed_data}}"
+          dry_run: True
