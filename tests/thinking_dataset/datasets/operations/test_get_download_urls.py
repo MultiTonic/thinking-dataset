@@ -12,7 +12,7 @@ import os
 import pytest
 from unittest.mock import MagicMock
 from dotenv import load_dotenv
-from thinking_dataset.datasets.operations.get_download_urls \
+from thinking_dataset.dataset.operations.get_download_urls \
     import GetDownloadUrls
 
 # Load environment variables from .env file

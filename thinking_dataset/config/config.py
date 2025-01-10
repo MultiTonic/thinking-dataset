@@ -1,11 +1,11 @@
-# @file config.py
+# @file thinking_dataset/config/config.py
 # @description Defines DatasetConfig class for storing dataset configuration.
-# @version 1.0.36
+# @version 1.0.38
 # @license MIT
 
-from thinking_dataset.utils.command_utils import CommandUtils as utils
 import thinking_dataset.config as conf
 import thinking_dataset.config.config_keys as Keys
+from thinking_dataset.utils.command_utils import CommandUtils as utils
 
 
 class Config:
@@ -40,6 +40,7 @@ class Config:
         conf._dotenv = utils.load_dotenv()
         self.config = resolved_config
         self.paths = resolved_config.get('paths', {})
+
         self.initialized = True
 
     @staticmethod

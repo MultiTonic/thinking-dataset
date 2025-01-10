@@ -11,7 +11,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from huggingface_hub import DatasetInfo
-from thinking_dataset.datasets.operations.get_permissions import GetPermissions
+from thinking_dataset.dataset.operations.get_permissions import GetPermissions
 
 
 def test_get_permissions():

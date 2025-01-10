@@ -9,7 +9,7 @@ author Kara Rawson
 """
 
 import pytest
-from thinking_dataset.datasets.operations.get_download_size \
+from thinking_dataset.dataset.operations.get_download_size \
     import GetDownloadSize
 
 

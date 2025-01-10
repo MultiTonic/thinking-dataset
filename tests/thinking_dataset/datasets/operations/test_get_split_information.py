@@ -10,7 +10,7 @@
 
 import pytest
 from unittest.mock import MagicMock
-from thinking_dataset.datasets.operations.get_split_information \
+from thinking_dataset.dataset.operations.get_split_information \
     import GetSplitInformation
 
 

@@ -10,7 +10,7 @@
 
 import pytest
 from unittest.mock import MagicMock
-from thinking_dataset.datasets.operations.get_license import GetLicense
+from thinking_dataset.dataset.operations.get_license import GetLicense
 
 
 class MockDatasetInfo:

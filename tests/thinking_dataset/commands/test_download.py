@@ -21,9 +21,9 @@ from thinking_dataset.commands.download \
             construct_paths,
             validate_env_variables,
             download_dataset)
-from thinking_dataset.datasets.operations.get_download_urls \
+from thinking_dataset.dataset.operations.get_download_urls \
     import GetDownloadUrls
-from thinking_dataset.datasets.operations.get_download_file \
+from thinking_dataset.dataset.operations.get_download_file \
     import GetDownloadFile
 
 # Load environment variables from .env file

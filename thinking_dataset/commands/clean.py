@@ -1,16 +1,16 @@
 # @file thinking_dataset/commands/clean.py
 # @description Command to clean the data directory and other dynamic resources.
-# @version 1.0.3
+# @version 1.0.4
 # @license MIT
 
 import os
 import click
+import thinking_dataset.config as conf
 from thinking_dataset.utils.log import Log
 from thinking_dataset.utils.exceptions import exceptions
 from thinking_dataset.utils.logger import logger
 from thinking_dataset.utils.load_dotenv import dotenv
 from ..io.files import Files
-import thinking_dataset.config as conf
 
 
 @click.command()

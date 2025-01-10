@@ -142,7 +142,7 @@ This project is licensed under the MIT License. See the [**LICENSE**](LICENSE) f
 ## Acknowledgements
 
 - **Kara Rawson** - Lead Engineer
-- **Joseph Pollack** - Business Leader
+- **Joseph Pollack** - Creator & Business Leader
 - **MultiTonic Team** - Support and Collaboration
 - **Hugging Face** - Providing robust tools and infrastructure for dataset management
 

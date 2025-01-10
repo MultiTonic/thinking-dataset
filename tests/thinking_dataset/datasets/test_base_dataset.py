@@ -9,7 +9,7 @@ author Kara Rawson
 """
 
 import pytest
-from thinking_dataset.datasets.base_dataset import BaseDataset
+from thinking_dataset.dataset.base_dataset import BaseDataset
 
 
 class MockDataTonic:

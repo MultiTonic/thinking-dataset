@@ -1,12 +1,12 @@
 # @file thinking_dataset/commands/download.py
 # @description Command to download datasets.
-# @version 1.0.6
+# @version 1.0.8
 # @license MIT
 
 import click
 import thinking_dataset.config as conf
 import thinking_dataset.config.config_keys as Keys
-from ..datasets.dataset import Dataset
+import thinking_dataset.dataset as td
 from ..tonics.data_tonic import DataTonic
 from thinking_dataset.utils.log import Log
 from thinking_dataset.utils.logger import logger
@@ -23,26 +23,26 @@ CK = Keys.ConfigKeys
 def download(**kwargs):
     Log.info("Starting the download command.")
 
-    instance = conf.initialize()
-    dt = DataTonic(read_token=instance.get_env_value(CK.HF_READ_TOKEN),
-                   write_token=instance.get_env_value(CK.HF_WRITE_TOKEN),
-                   org=instance.get_value(CK.HF_ORG),
-                   user=instance.get_env_value(CK.HF_USER))
+    conf.initialize()
+    dt = DataTonic(read_token=conf.get_env_value(CK.HF_READ_TOKEN),
+                   write_token=conf.get_env_value(CK.HF_WRITE_TOKEN),
+                   org=conf.get_value(CK.HF_ORG),
+                   user=conf.get_env_value(CK.HF_USER))
 
     Log.info("Initialized DataTonic instance.")
 
-    dataset = Dataset(data_tonic=dt)
+    dataset = td.Dataset(data_tonic=dt)
 
     Log.info("Initialized Dataset instance.")
 
     success = dataset.download()
     if success:
         Log.info("Downloaded dataset "
-                 f"{instance.get_value(CK.DATASET_NAME)} "
+                 f"{conf.get_value(CK.DATASET_NAME)} "
                  "successfully.")
     else:
         Log.error("Failed to download dataset: "
-                  f"{instance.get_value(CK.DATASET_NAME)}")
+                  f"{conf.get_value(CK.DATASET_NAME)}")
 
     Log.info("Download command completed successfully.")
 

@@ -5,10 +5,10 @@
 
 import click
 from thinking_dataset.utils.log import Log
-from ..pipeworks.pipelines.pipeline import Pipeline
-from thinking_dataset.utils.exceptions import exceptions
 from thinking_dataset.utils.logger import logger
+from ..pipeworks.pipelines.pipeline import Pipeline
 from thinking_dataset.utils.load_dotenv import dotenv
+from thinking_dataset.utils.exceptions import exceptions
 
 
 @click.command()

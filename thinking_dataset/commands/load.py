@@ -1,19 +1,20 @@
 # @file thinking_dataset/commands/load.py
 # @description CLI command to load datasets into the database.
-# @version 1.0.12
+# @version 1.0.19
 # @license MIT
 
 import click
-import os
+import thinking_dataset.config as conf
+import thinking_dataset.config.config_keys as Keys
+import thinking_dataset.dataset as td
 from ..io.files import Files
 from thinking_dataset.utils.log import Log
-from ..db.database import Database
-import thinking_dataset.config as conf
 from thinking_dataset.utils.logger import logger
-from ..datasets.dataset import Dataset
 from ..tonics.data_tonic import DataTonic
 from thinking_dataset.utils.load_dotenv import dotenv
 from thinking_dataset.utils.exceptions import exceptions
+
+CK = Keys.ConfigKeys
 
 
 @click.command()
@@ -23,59 +24,60 @@ from thinking_dataset.utils.exceptions import exceptions
 def load(**kwargs):
     Log.info("Starting the load command.")
 
-    config_instance = conf.initialize()
+    conf.initialize()
+    org = conf.get_env_value(CK.HF_ORG)
+    user = conf.get_env_value(CK.HF_USER)
+    read_token = conf.get_env_value(CK.HF_READ_TOKEN)
+    write_token = conf.get_env_value(CK.HF_WRITE_TOKEN)
 
-    hf_read_token = config_instance.get_env_value(
-        conf.get_keys().HF_READ_TOKEN)
-    hf_write_token = config_instance.get_env_value(
-        conf.get_keys().HF_WRITE_TOKEN)
-    hf_org = config_instance.get_env_value(conf.get_keys().HF_ORG)
-    hf_user = config_instance.get_env_value(conf.get_keys().HF_USER)
+    dt = DataTonic(read_token=read_token,
+                   write_token=write_token,
+                   org=org,
+                   user=user)
 
-    data_tonic = DataTonic(read_token=hf_read_token,
-                           write_token=hf_write_token,
-                           org=hf_org,
-                           user=hf_user)
     Log.info("Initialized DataTonic instance.")
 
-    dataset = Dataset(data_tonic=data_tonic)
+    dataset = td.Dataset(data_tonic=dt)
+
     Log.info("Initialized Dataset instance.")
 
-    root_path = config_instance.get_value(conf.get_keys().ROOT_PATH)
-    process_path = config_instance.get_value(conf.get_keys().PROCESS_PATH)
-    process_dir = os.path.normpath(os.path.join(root_path, process_path))
-    Files.make_dir(process_dir)
-    Log.info(f"Processed path: {process_dir}")
+    root_path = Files.get_root_path()
+    process_path = Files.get_process_path()
+    process_path = Files.get_file_path(root_path, process_path)
+    Files.make_dir(process_path)
 
-    process_files = Files.list(process_dir)
-    Log.info(f"Files in process directory: {process_files}")
+    Log.info(f"Processed path: {process_path}")
 
-    include_files = config_instance.get_value(conf.get_keys().INCLUDE_FILES)
-    load_patterns = config_instance.get_value(conf.get_keys().LOAD_PATTERNS)
-    exclude_files = config_instance.get_value(conf.get_keys().EXCLUDE_FILES)
+    files = Files.list(process_path)
 
-    load_files = []
+    Log.info(f"Files in process directory: {files}")
 
-    for file_name in include_files:
-        if file_name in exclude_files:
+    includes = conf.get_value(CK.INCLUDE_FILES)
+    patterns = conf.get_value(CK.LOAD_PATTERNS)
+    excludes = conf.get_value(CK.EXCLUDE_FILES)
+
+    files = []
+
+    for file_name in includes:
+        if Files.is_excluded(file_name, excludes):
             continue
-        for pattern in load_patterns:
-            load_file = os.path.normpath(pattern.format(file_name=file_name))
-            full_path = os.path.join(root_path, load_file)
-            if os.path.exists(full_path):
-                load_files.append(full_path)
+        for pattern in patterns:
+            file = Files.format(file_name, pattern)
+            path = Files.get_file_path(root_path, file)
+            if Files.exists(path):
+                files.append(path)
                 break
             else:
-                Log.error(f"File not found: {full_path}")
-                raise RuntimeError(f"File not found: {full_path}")
+                Log.error(f"File not found: {path}")
+                raise RuntimeError(f"File not found: {path}")
 
-    Log.info(f"Parquet files to be loaded: {load_files}")
+    Log.info(f"Parquet files to be loaded: {files}")
 
-    if load_files:
-        database = Database()
-        if not dataset.load(database=database, files_to_load=load_files):
+    if files:
+        if not dataset.load(files_to_load=files):
             raise RuntimeError(
                 "Failed to load dataset files into the database.")
+
         Log.info("Loaded dataset files into the database successfully.")
     else:
         raise RuntimeError(

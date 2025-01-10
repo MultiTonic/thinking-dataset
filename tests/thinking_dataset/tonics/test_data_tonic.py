@@ -9,11 +9,11 @@
 """
 import pytest
 from unittest.mock import MagicMock, patch
-from thinking_dataset.datasets.operations.get_configuration \
+from thinking_dataset.dataset.operations.get_configuration \
     import GetConfiguration
-from thinking_dataset.datasets.operations.get_download_urls \
+from thinking_dataset.dataset.operations.get_download_urls \
     import GetDownloadUrls
-from thinking_dataset.datasets.operations.get_info import GetInfo
+from thinking_dataset.dataset.operations.get_info import GetInfo
 
 HF_TOKEN = "your_hf_token"
 HF_ORGANIZATION = "your_hf_organization"

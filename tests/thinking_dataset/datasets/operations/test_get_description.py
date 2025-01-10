@@ -10,7 +10,7 @@
 
 import pytest
 from unittest.mock import MagicMock
-from thinking_dataset.datasets.operations.get_description import GetDescription
+from thinking_dataset.dataset.operations.get_description import GetDescription
 
 
 class MockDatasetInfo:

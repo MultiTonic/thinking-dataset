@@ -10,7 +10,7 @@
 
 import unittest
 import logging
-from thinking_dataset.datasets.operations.operation import Operation
+from thinking_dataset.dataset.operations.operation import Operation
 
 
 class MockOperation(Operation):

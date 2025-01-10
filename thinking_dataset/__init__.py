@@ -6,7 +6,7 @@
 from .commands import download, clean, load, prepare, export, upload
 from .utils.log import Log
 from .config.config import Config
-from .datasets.dataset import Dataset
+from .dataset.dataset import Dataset
 
 __all__ = [
     "download", "clean", "load", "prepare", "export", "upload", "Log",

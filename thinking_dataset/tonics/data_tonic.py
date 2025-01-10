@@ -5,7 +5,7 @@
 
 from huggingface_hub import HfApi
 from thinking_dataset.utils.log import Log
-from thinking_dataset.datasets.operations import (
+from thinking_dataset.dataset.operations import (
     GetDownloadUrls, GetDownloadFile, GetMetadata, GetInfo, GetCardContent,
     GetConfiguration, GetDescription, GetDownloadSize, GetFileList, GetLicense,
     GetPermissions, GetSplitInformation, GetTags, ListDatasets)

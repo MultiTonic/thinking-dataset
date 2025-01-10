@@ -9,7 +9,7 @@ author Kara Rawson
 """
 
 import unittest
-from thinking_dataset.datasets.operations.operation_types import OperationTypes
+from thinking_dataset.dataset.operations.operation_types import OperationTypes
 
 
 class TestOperationTypes(unittest.TestCase):
