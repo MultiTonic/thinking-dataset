@@ -1,6 +1,6 @@
 # @file thinking_dataset/commands/download.py
 # @description Command to download datasets.
-# @version 1.0.8
+# @version 1.0.9
 # @license MIT
 
 import click
@@ -20,7 +20,7 @@ CK = Keys.ConfigKeys
 @exceptions
 @logger
 @dotenv(print=True)
-def download(**kwargs):
+def download():
     Log.info("Starting the download command.")
 
     conf.initialize()
@@ -31,12 +31,12 @@ def download(**kwargs):
 
     Log.info("Initialized DataTonic instance.")
 
-    dataset = td.Dataset(data_tonic=dt)
+    d = td.Dataset(data_tonic=dt)
 
     Log.info("Initialized Dataset instance.")
 
-    success = dataset.download()
-    if success:
+    completed = d.download()
+    if completed:
         Log.info("Downloaded dataset "
                  f"{conf.get_value(CK.DATASET_NAME)} "
                  "successfully.")

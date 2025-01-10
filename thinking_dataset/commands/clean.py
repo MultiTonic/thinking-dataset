@@ -1,6 +1,6 @@
-# @file thinking_dataset/commands/clean.py
+# @file clean.py
 # @description Command to clean the data directory and other dynamic resources.
-# @version 1.0.4
+# @version 1.0.7
 # @license MIT
 
 import os
@@ -17,7 +17,7 @@ from ..io.files import Files
 @exceptions
 @logger
 @dotenv(print=True)
-def clean(**kwargs):
+def clean():
     Log.info("Starting the clean command.")
 
     config = conf.initialize()
@@ -70,11 +70,11 @@ def _clean_directory(path):
     return removed_files_count, removed_dirs_count, skipped_count
 
 
-def _generate_summary(removed_files_count, removed_dirs_count, skipped_count):
-    total_removed = removed_files_count + removed_dirs_count
+def _generate_summary(remove_count, dir_count, skip_count):
+    total_removed = remove_count + dir_count
     summary = f"Cleanup Summary: {total_removed} items removed"
-    if skipped_count > 0:
-        summary += f" ({skipped_count} items skipped)"
+    if skip_count > 0:
+        summary += f" ({skip_count} items skipped)"
     return summary
 
 

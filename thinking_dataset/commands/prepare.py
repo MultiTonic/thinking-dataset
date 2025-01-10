@@ -15,7 +15,7 @@ from thinking_dataset.utils.exceptions import exceptions
 @exceptions
 @logger
 @dotenv(print=True)
-def prepare(**kwargs):
+def prepare():
     Log.info("Starting the prepare command.")
 
     pipeline = Pipeline("prepare")

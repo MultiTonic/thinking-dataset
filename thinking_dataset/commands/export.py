@@ -15,7 +15,7 @@ from ..pipeworks.pipelines.pipeline import Pipeline
 @exceptions
 @logger
 @dotenv(print=True)
-def export(**args):
+def export():
     Log.info("Starting the export command.")
 
     pipeline = Pipeline("export")

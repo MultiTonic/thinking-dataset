@@ -15,7 +15,7 @@ from ..pipeworks.pipelines.pipeline import Pipeline
 @exceptions
 @logger
 @dotenv(print=True)
-def upload(**args):
+def upload():
     Log.info("Starting the upload command.")
 
     pipeline = Pipeline("upload")

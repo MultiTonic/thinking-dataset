@@ -1,9 +1,7 @@
-"""
-@file thinking_dataset/utils/exceptions.py
-@desc Decorator for handling exceptions and logging using the Log Singleton.
-@version 1.0.1
-@license MIT
-"""
+# @file thinking_dataset/utils/exceptions.py
+# @description Decorator for exceptions and logging using the Log Singleton.
+# @version 1.0.2
+# @license MIT
 
 import sys
 from functools import wraps
@@ -11,15 +9,16 @@ from thinking_dataset.utils.log import Log
 
 
 def exceptions(func):
-    """
-    A decorator to handle exceptions and logging for a function.
-    """
 
     @wraps(func)
     def wrapper(*args, **kwargs):
         error_occurred = False
         try:
-            return func(*args, **kwargs)
+            return func(
+                *args, **{
+                    key: val
+                    for key, val in kwargs.items() if key != 'log'
+                })
         except ValueError as e:
             Log.error(f"Validation error: {e}", exc_info=True)
             error_occurred = True

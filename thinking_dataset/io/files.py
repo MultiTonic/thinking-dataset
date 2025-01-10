@@ -1,13 +1,16 @@
 # @file thinking_dataset/io/files.py
 # @description Handles file I/O operations for the Thinking Dataset Project.
-# @version 1.1.2
+# @version 1.1.4
 # @license MIT
 
 import os
 import shutil
+import datetime
 from thinking_dataset.utils.log import Log
 import thinking_dataset.config as conf
 from thinking_dataset.config.config_keys import ConfigKeys as Keys
+from huggingface_hub import HfApi
+from typing import List
 
 
 class Files:
@@ -95,3 +98,27 @@ class Files:
         return pattern.format(file_root=file_root,
                               file_ext=file_ext,
                               file_name=file_name)
+
+    @staticmethod
+    def list_dataset_files(org: str, dataset: str, token: str) -> List[dict]:
+        api = HfApi(token=token)
+        dataset_info = api.dataset_info(repo_id=f"{org}/{dataset}")
+        files = dataset_info.siblings
+        return files
+
+    @staticmethod
+    def list_detailed_dataset(org: str, dataset: str, token: str):
+        try:
+            files = Files.list_dataset_files(org, dataset, token)
+            print(f"\n    Repository: {org}/{dataset}\n")
+            print(
+                f"{'Mode':<10} {'LastWriteTime':<25} {'Length':<10} {'Name'}")
+            print(f"{'-'*10} {'-'*25} {'-'*10} {'-'*4}")
+            for file in files:
+                last_write_time = datetime.datetime.fromtimestamp(
+                    file.rtimestamp).strftime('%m/%d/%Y %I:%M %p')
+                print(f"-{'-'*5:<9} {last_write_time:<25} "
+                      f"{file.size:<10} {file.rfilename}")
+        except Exception as e:
+            Log.error(f"Error listing files from dataset: {e}")
+            raise RuntimeError(f"Error listing files from dataset: {e}")

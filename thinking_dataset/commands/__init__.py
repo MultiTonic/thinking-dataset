@@ -1,6 +1,6 @@
 # @file thinking_dataset/commands/__init__.py
 # @description Initialization file to import all command modules.
-# @version 1.1.0
+# @version 1.1.1
 # @license MIT
 # flake8: noqa
 
@@ -10,5 +10,6 @@ from .load import load
 from .prepare import prepare
 from .export import export
 from .upload import upload
+from .ls import ls
 
-__all__ = ["download", "clean", "load", "prepare", "export", "upload"]
+__all__ = ["download", "clean", "load", "prepare", "export", "upload", "ls"]

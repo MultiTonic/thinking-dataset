@@ -3,12 +3,12 @@
 # @version 1.0.1
 # @license MIT
 
-from .commands import download, clean, load, prepare, export, upload
+from .commands import download, clean, load, prepare, export, upload, ls
 from .utils.log import Log
 from .config.config import Config
 from .dataset.dataset import Dataset
 
 __all__ = [
-    "download", "clean", "load", "prepare", "export", "upload", "Log",
+    "download", "clean", "load", "prepare", "export", "upload", "ls", "Log",
     "Config", "Dataset"
 ]

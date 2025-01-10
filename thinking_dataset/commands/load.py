@@ -21,7 +21,7 @@ CK = Keys.ConfigKeys
 @exceptions
 @logger
 @dotenv(print=True)
-def load(**kwargs):
+def load():
     Log.info("Starting the load command.")
 
     conf.initialize()
