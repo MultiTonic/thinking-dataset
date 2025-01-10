@@ -1,10 +1,10 @@
-# @file thinking_dataset/config/config.py
+# @file config.py
 # @description Defines DatasetConfig class for storing dataset configuration.
-# @version 1.0.34
+# @version 1.0.36
 # @license MIT
 
 from thinking_dataset.utils.command_utils import CommandUtils as utils
-import thinking_dataset.config as config
+import thinking_dataset.config as conf
 import thinking_dataset.config.config_keys as Keys
 
 
@@ -51,14 +51,14 @@ class Config:
         return conf._instance
 
     def get_value(self, key):
-        if isinstance(key, Keys):
+        if isinstance(key, Keys.ConfigKeys):
             key = key.value
         value = getattr(self, key, None)
         return value
 
     @staticmethod
     def get_env_value(key):
-        if isinstance(key, Keys):
+        if isinstance(key, Keys.ConfigKeys):
             key = key.value
         dotenv = conf._dotenv
         if dotenv is None:

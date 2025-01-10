@@ -1,16 +1,19 @@
 # @file thinking_dataset/commands/download.py
 # @description Command to download datasets.
-# @version 1.0.4
+# @version 1.0.6
 # @license MIT
 
 import click
+import thinking_dataset.config as conf
+import thinking_dataset.config.config_keys as Keys
+from ..datasets.dataset import Dataset
+from ..tonics.data_tonic import DataTonic
 from thinking_dataset.utils.log import Log
-from thinking_dataset.utils.exceptions import exceptions
 from thinking_dataset.utils.logger import logger
 from thinking_dataset.utils.load_dotenv import dotenv
-import thinking_dataset.config as config
-from ..tonics.data_tonic import DataTonic
-from ..datasets.dataset import Dataset
+from thinking_dataset.utils.exceptions import exceptions
+
+CK = Keys.ConfigKeys
 
 
 @click.command()
@@ -20,31 +23,26 @@ from ..datasets.dataset import Dataset
 def download(**kwargs):
     Log.info("Starting the download command.")
 
-    config_instance = config.initialize()
+    instance = conf.initialize()
+    dt = DataTonic(read_token=instance.get_env_value(CK.HF_READ_TOKEN),
+                   write_token=instance.get_env_value(CK.HF_WRITE_TOKEN),
+                   org=instance.get_value(CK.HF_ORG),
+                   user=instance.get_env_value(CK.HF_USER))
 
-    dt = DataTonic(read_token=config_instance.get_env_value(
-        config.get_keys().HF_READ_TOKEN),
-                   write_token=config_instance.get_env_value(
-                       config.get_keys().HF_WRITE_TOKEN),
-                   org=config_instance.get_value(config.get_keys().HF_ORG),
-                   user=config_instance.get_env_value(
-                       config.get_keys().HF_USER))
     Log.info("Initialized DataTonic instance.")
 
     dataset = Dataset(data_tonic=dt)
+
     Log.info("Initialized Dataset instance.")
 
     success = dataset.download()
-
     if success:
-        Log.info(
-            "Downloaded dataset "
-            f"{config_instance.get_value(config.get_keys().DATASET_NAME)} "
-            "successfully.")
+        Log.info("Downloaded dataset "
+                 f"{instance.get_value(CK.DATASET_NAME)} "
+                 "successfully.")
     else:
-        Log.error(
-            "Failed to download dataset: "
-            f"{config_instance.get_value(config.get_keys().DATASET_NAME)}")
+        Log.error("Failed to download dataset: "
+                  f"{instance.get_value(CK.DATASET_NAME)}")
 
     Log.info("Download command completed successfully.")
 

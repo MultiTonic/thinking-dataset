@@ -8,7 +8,7 @@ import os
 from ..io.files import Files
 from thinking_dataset.utils.log import Log
 from ..db.database import Database
-import thinking_dataset.config as config
+import thinking_dataset.config as conf
 from thinking_dataset.utils.logger import logger
 from ..datasets.dataset import Dataset
 from ..tonics.data_tonic import DataTonic

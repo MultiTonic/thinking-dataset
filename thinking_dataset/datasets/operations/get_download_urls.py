@@ -5,7 +5,7 @@
 
 from .operation import Operation
 from thinking_dataset.utils.log import Log
-import thinking_dataset.config as config
+import thinking_dataset.config as conf
 
 
 class GetDownloadUrls(Operation):

@@ -8,7 +8,7 @@ import time
 from ...io.files import Files
 from ..pipes.pipe import Pipe
 from thinking_dataset.utils.log import Log
-import thinking_dataset.config as config
+import thinking_dataset.config as conf
 from thinking_dataset.utils.text_utils import TextUtils as Text
 from thinking_dataset.utils.command_utils import CommandUtils as utils
 

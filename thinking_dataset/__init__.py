@@ -4,7 +4,7 @@
 # @license MIT
 
 from .commands import download, clean, load, prepare, export, upload
-from .utilities.log import Log
+from .utils.log import Log
 from .config.config import Config
 from .datasets.dataset import Dataset
 
