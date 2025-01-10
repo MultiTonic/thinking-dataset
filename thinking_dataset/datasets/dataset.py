@@ -1,16 +1,19 @@
 # @file thinking_dataset/datasets/dataset.py
 # @description Implementation of the Dataset class.
-# @version 1.0.7
+# @version 1.0.8
 # @license MIT
 
 import os
 import pandas as pd
+import thinking_dataset.config as conf
+import thinking_dataset.config.config_keys as Keys
 from thinking_dataset.utils.log import Log
 from ..db.database import Database
-import thinking_dataset.config as conf
 from ..io.files import Files
 from typing import List, Optional
 from ..tonics.data_tonic import DataTonic
+
+CK = Keys.ConfigKeys
 
 
 class Dataset:
@@ -26,13 +29,11 @@ class Dataset:
             self.api = data_tonic
             self.database = Database()
             config_instance = conf.initialize()
-            self.org = config_instance.get_env_value(conf.get_keys().HF_ORG)
-            self.name = config_instance.get_value(conf.get_keys().DATASET_NAME)
-            self.type = config_instance.get_value(conf.get_keys().DATASET_TYPE)
-            self.include = config_instance.get_value(
-                conf.get_keys().INCLUDE_FILES)
-            self.exclude = config_instance.get_value(
-                conf.get_keys().EXCLUDE_FILES)
+            self.org = config_instance.get_env_value(CK.HF_ORG)
+            self.name = config_instance.get_value(CK.DATASET_NAME)
+            self.type = config_instance.get_value(CK.DATASET_TYPE)
+            self.include = config_instance.get_value(CK.INCLUDE_FILES)
+            self.exclude = config_instance.get_value(CK.EXCLUDE_FILES)
 
             if not self.name:
                 raise ValueError("Dataset name is not configured.")
@@ -121,8 +122,7 @@ class Dataset:
     def download(self) -> bool:
         try:
             config_instance = conf.initialize()
-            token = config_instance.get_env_value(
-                conf.get_keys().HF_READ_TOKEN)
+            token = config_instance.get_env_value(CK.HF_READ_TOKEN)
             repo_id = self.get_repo_id()
             dataset_info = self.api.get_info.execute(repo_id)
             if dataset_info:
