@@ -1,5 +1,5 @@
 """
-@file thinking_dataset/utilities/execute.py
+@file thinking_dataset/utils/execute.py
 @description Defines a decorator for executing database operations.
 @version 1.0.0
 @license MIT

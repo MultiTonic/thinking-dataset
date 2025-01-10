@@ -1,4 +1,4 @@
-# @file thinking_dataset/utilities/command_utils.py
+# @file thinking_dataset/utils/command_utils.py
 # @description Utility class for common command-related operations.
 # @version 1.0.0
 # @license MIT

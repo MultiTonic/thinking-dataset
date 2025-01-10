@@ -1,4 +1,4 @@
-# @file thinking_dataset/utilities/config_parser.py
+# @file thinking_dataset/utils/config_parser.py
 # @description Utility function to handle dot notation lookup.
 # @version 1.0.8
 # @license MIT

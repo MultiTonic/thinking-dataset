@@ -4,10 +4,10 @@
 # @license MIT
 
 import click
-from ..utilities.log import Log
-from ..utilities.logger import logger
-from ..utilities.load_dotenv import dotenv
-from ..utilities.exceptions import exceptions
+from ..utils.log import Log
+from ..utils.logger import logger
+from ..utils.load_dotenv import dotenv
+from ..utils.exceptions import exceptions
 from ..pipeworks.pipelines.pipeline import Pipeline
 
 

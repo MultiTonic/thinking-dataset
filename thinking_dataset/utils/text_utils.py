@@ -1,4 +1,4 @@
-# @file thinking_dataset/utilities/text_utils.py
+# @file thinking_dataset/utils/text_utils.py
 # @description Utility functions for text processing in the thinking-dataset.
 # @version 1.0.0
 # @license MIT

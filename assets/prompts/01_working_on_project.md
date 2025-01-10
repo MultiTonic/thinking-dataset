@@ -191,4 +191,4 @@ Co-authored-by: Microsoft Copilot <copilot@microsoft.com>
 
 ---
 
-**Your response is only:** `**Enter your most recent work:**🔬`
+**Your response to this query is only:** `**Enter your most recent work:**🔬`

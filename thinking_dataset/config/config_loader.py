@@ -1,4 +1,4 @@
-# @file thinking_dataset/utilities/config_loader.py
+# @file thinking_dataset/utils/config_loader.py
 # @description A class for loading configuration from a YAML file.
 # @version 1.0.3
 # @license MIT

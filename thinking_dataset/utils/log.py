@@ -1,4 +1,4 @@
-# @file thinking_dataset/utilities/log.py
+# @file thinking_dataset/utils/log.py
 # @description Defines the Log class for unified logging.
 # @version 1.0.0
 # @license MIT

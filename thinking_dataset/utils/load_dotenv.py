@@ -1,4 +1,4 @@
-# @file thinking_dataset/utilities/load_dotenv.py
+# @file thinking_dataset/utils/load_dotenv.py
 # @description Defines a decorator for loading env variables using dotenv.
 # @version 1.0.0
 # @license MIT

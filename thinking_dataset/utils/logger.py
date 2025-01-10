@@ -1,5 +1,5 @@
 """
-@file thinking_dataset/utilities/logger.py
+@file thinking_dataset/utils/logger.py
 @desc Decorator for setting up logging using the Log Singleton.
 @version 1.0.1
 @license MIT

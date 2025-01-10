@@ -1,5 +1,5 @@
 """
-@file thinking_dataset/utilities/exceptions.py
+@file thinking_dataset/utils/exceptions.py
 @desc Decorator for handling exceptions and logging using the Log Singleton.
 @version 1.0.1
 @license MIT
