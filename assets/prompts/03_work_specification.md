@@ -2,29 +2,34 @@
 
 ## Overview
 
-This template outlines the implementation of a new feature: a system for uploading process data to the HF API dataset. The objective is to develop a command and pipeline that will manage the uploading of parquet files from the `./data/process` directory.
+This template outlines the implementation of new features, including a system for uploading process data to the HF API dataset and basic file and directory commands for interacting with the dataset repository. The objective is to develop commands and pipelines that will manage the uploading of parquet files from the `./data/process` directory and provide file management utilities.
 
 ## Specification Details
 
 ### 1. Command Definition
 
-Add a new command to handle the uploading of process parquet files to the HF API dataset.
+Add new commands to handle the uploading of process parquet files to the HF API dataset and basic file management operations.
 
 ### 2. Configuration
 
-The configuration for this new system will include the following:
+The configuration for these new systems will include the following:
 
 - **write_token**: Token for authenticating with the HF API.
 - **dataset_name**: Name of the dataset to which the files will be uploaded.
 - **upload_path**: Path where the process files are located.
+- **Other Configurations**: Dynamic variables for file and directory operations.
 
 ### 3. Implementation
 
-Implement the `upload` command to handle the uploading of process parquet files to the HF API dataset.
+Implement the `upload` command and file management commands to handle the uploading of process parquet files to the HF API dataset and provide file management utilities.
 
-- **Command Name**: `upload`
-- **File Path**: `thinking_dataset/commands/upload.py`
-- **Description**: Add a new command for uploading process parquet files to the HF API dataset.
+- **Command Names**: `upload`, `list_files`, `list_dirs`, `check_exists`, `create_dir`
+- **File Paths**: 
+  - `thinking_dataset/commands/upload.py`
+  - `thinking_dataset/commands/files.py`
+- **Description**: 
+  - Add a new command for uploading process parquet files to the HF API dataset.
+  - Add new commands for listing files, listing directories, checking if a file or directory exists, and creating a new directory.
 - **Version**: 1.0.0
 - **License**: MIT
 
@@ -72,11 +77,27 @@ The `upload` command should be implemented as follows:
             LOG: Failed to upload file_path with ERROR e
     ```
 
-### 5. Integration
+### 5. File Management Commands
 
-Integrate the `upload` command into the existing workflow to ensure it processes and uploads the data files effectively. The new system will use configuration similar to the download system to manage include/exclude files.
+Implement basic file and directory commands for interacting with the dataset repository:
 
-#### 6. Focus on Current Work
+1. **List All Files in the Repository**:
+    - Command to list all files within a specified directory in the repo and output to the console.
+
+2. **List All Directories in the Repository**:
+    - Command to list all directories within a specified directory in the repo and output to the console.
+
+3. **Check if File or Directory Exists**:
+    - Command to check if a specific file or directory exists within the repo.
+
+4. **Create a New Directory**:
+    - Command to create a new directory within the repo.
+
+### 6. Integration
+
+Integrate the `upload` command and file management commands into the existing workflow to ensure they process and manage the data files effectively. The new system will use configuration similar to the download system to manage include/exclude files.
+
+### 7. Focus on Current Work
 
 Currently, we are focusing on:
 - Creating a new pipeline called `upload` for uploading process data.
@@ -86,7 +107,7 @@ Currently, we are focusing on:
 - Ensuring the configuration is updated to support dynamic variable resolution.
 - Adding detailed objectives for logging, performance optimization, error handling, validation, feedback, documentation, and security.
 
-#### 7. Future Conversation
+### 8. Future Conversation
 
 In our next conversation, please provide:
 - Feedback on the implementation and any issues encountered.
@@ -102,18 +123,18 @@ In our next conversation, please provide:
 | **Implement Configurations for Each Pipe**              | ✅         |
 | Configure `FileExtractorPipe` for directory access.     | ✅         |
 | Configure `UploadFilePipe` for file uploads.            | ✅         |
-| **Implement Upload Command**                            |           |
-| Create `UploadCommand` class in `upload.py`.            |           |
-| Implement the `execute` method for the `UploadCommand` class. |           |
-| Implement the `_upload_file` method for the `UploadCommand` class. |           |
+| **Implement Upload Command**                            | 🚧 In Progress |
+| Create `UploadCommand` class in `upload.py`.            | 🚧 In Progress |
+| Implement the `execute` method for the `UploadCommand` class. | 🚧 In Progress |
+| Implement the `_upload_file` method for the `UploadCommand` class. | 🚧 In Progress |
 | **Integrate Upload Command into Pipeline**              | ✅         |
 | **Update `run_cli_command.py` Script**                  | ✅         |
 | **Set Up Logging and Monitoring**                       | ✅         |
-| **Optimize Pipeline Performance**                       |           |
+| **Optimize Pipeline Performance**                       | 🚧 In Progress |
 | **Enhance Error Handling and Reporting**                | ✅         |
 | **Implement Configuration Validation**                  | ✅         |
-| **Comprehensive Documentation**                         |           |
-| Develop detailed user guides and API documentation.     |           |
+| **Comprehensive Documentation**                         | 🚧 In Progress |
+| Develop detailed user guides and API documentation.     | 🚧 In Progress |
 | **Security Enhancements**                               | ✅         |
 
 ---
@@ -141,6 +162,10 @@ In our next conversation, please provide:
 - Added `skip_files` flag to `Pipeline.open` method to control file processing.
 - Refactored `Files` class to handle configuration attributes correctly.
 - Improved error handling and logging for better debugging.
+
+### New Features
+- **Basic File and Directory Commands**:
+    - Created commands to list files and directories, check if a file or directory exists, and create a new directory within the dataset repository.
 
 ### Documentation and Changelog
 - Updated documentation to reflect all recent changes and new options.
