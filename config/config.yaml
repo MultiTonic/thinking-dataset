@@ -35,7 +35,7 @@ files:
   - "{{paths.process}}/{file_name}"
 pipelines:
 - pipeline:
-    name: "prepare"
+    name: "process"
     description: "Default prepare pipeline"
     config:
       prepare_file: "{file_base}{file_ext}"
