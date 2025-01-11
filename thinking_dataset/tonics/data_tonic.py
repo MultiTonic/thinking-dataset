@@ -7,7 +7,6 @@ import thinking_dataset.config as conf
 import thinking_dataset.dataset.dataset_attributes as Attr
 
 from huggingface_hub import HfApi
-from thinking_dataset.utils.log import Log
 
 from thinking_dataset.dataset.operations import (
     DownloadOperation, GetDownloadUrls, GetDownloadFile, GetMetadata, GetInfo,
@@ -52,7 +51,5 @@ class DataTonic:
             self.get_whoami = GetWhoami(self)
             self.list_datasets = ListDatasets(self)
             self.load_operation = LoadOperation(self)
-            Log.info("DataTonic initialized successfully!")
         except Exception as e:
-            Log.error(f"Error initializing DataTonic: {e}", exc_info=True)
-            raise e
+            raise RuntimeError(f"Error initializing DataTonic: {e}")

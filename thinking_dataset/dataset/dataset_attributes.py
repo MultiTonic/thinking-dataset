@@ -6,7 +6,6 @@
 import thinking_dataset.config.config_keys as Keys
 import thinking_dataset.dataset.dataset_keys as DKeys
 import thinking_dataset.config as conf
-from thinking_dataset.utils.log import Log
 
 CK = Keys.ConfigKeys
 DK = DKeys.DatasetKeys
@@ -29,6 +28,5 @@ class DatasetAttributes:
                 DK.READ_TOKEN: conf.get_env_value(CK.HF_READ_TOKEN),
                 DK.WRITE_TOKEN: conf.get_env_value(CK.HF_WRITE_TOKEN)
             }
-            Log.info("DatasetAttributes initialized successfully!")
         except Exception as e:
             raise RuntimeError(f"Error initializing DatasetAttributes: {e}")

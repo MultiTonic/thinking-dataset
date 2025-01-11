@@ -21,9 +21,7 @@ class DatabaseSession:
     def __init__(self, engine):
         if not DatabaseSession._Session:
             DatabaseSession._Session = sessionmaker(bind=engine)
-            Log.info("Sessionmaker initialized successfully.")
         self.state = StateMachine()
-        Log.info("State machine and logger initialized successfully.")
 
     def _start(self):
         if self.state.is_idle:
@@ -32,7 +30,7 @@ class DatabaseSession:
                 self.state.start_session()
                 Log.info("Session started successfully.")
             except SQLAlchemyError as e:
-                Log.error(f"Error starting session: {e}", exc_info=True)
+                raise e
 
     def _commit(self):
         if self.state.is_active:
@@ -41,7 +39,7 @@ class DatabaseSession:
                 self.state.commit_session()
                 Log.info("Committed session")
             except SQLAlchemyError as e:
-                Log.error(f"Error committing session: {e}", exc_info=True)
+                raise e
 
     def _rollback(self, error):
         if DatabaseSession._session:
@@ -50,7 +48,7 @@ class DatabaseSession:
                 self.state.rollback_session()
                 Log.error(f"Session error: {error}", exc_info=True)
             except SQLAlchemyError as e:
-                Log.error(f"Error during rollback: {e}", exc_info=True)
+                raise e
 
     def _close(self):
         if DatabaseSession._session:
@@ -59,7 +57,7 @@ class DatabaseSession:
                 self.state.close_session()
                 Log.info("Session closed successfully.")
             except SQLAlchemyError as e:
-                Log.error(f"Error closing session: {e}", exc_info=True)
+                raise e
 
     @contextmanager
     def get(self):

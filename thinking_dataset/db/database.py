@@ -1,10 +1,9 @@
 # @file thinking_dataset/db/database.py
 # @description Implementation of the Database class.
-# @version 1.1.3
+# @version 1.1.4
 # @license MIT
 
 import os
-import sys
 import pandas as pd
 import thinking_dataset.config as conf
 from sqlalchemy import create_engine, exc
@@ -25,16 +24,12 @@ class Database:
             database_url = self.config.database_url.format(
                 name=self.config.database_name)
             self._set_database_url(database_url)
-            Log.info(f"Database URL: {self.url}")
 
             self._create_database_path()
             self._initialize_engine()
             self._initialize_session()
-            Log.info("Database initialized successfully.")
         except exc.SQLAlchemyError as e:
-            Log.error(f"Error initializing the Database class: {e}",
-                      exc_info=True)
-            sys.exit(1)
+            raise e
 
     def _set_database_url(self, url: str):
         self.url = url
@@ -65,7 +60,7 @@ class Database:
                 yield session
                 Log.info("Session retrieved successfully.")
         except exc.SQLAlchemyError as e:
-            Log.error(f"Error retrieving the session: {e}", exc_info=True)
+            raise e
 
     @execute(Query)
     def query(self, query: str):
@@ -86,6 +81,4 @@ class Database:
             Log.info(f"Data fetched from table: {table_name}")
             return df
         except exc.SQLAlchemyError as e:
-            Log.error(f"Error fetching data from table {table_name}: {e}",
-                      exc_info=True)
-            raise
+            raise e

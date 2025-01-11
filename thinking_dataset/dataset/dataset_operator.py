@@ -1,10 +1,9 @@
 # @file thinking_dataset/dataset/dataset_operator.py
 # @description Implementation of the DatasetOperator class.
-# @version 1.0.5
+# @version 1.0.6
 # @license MIT
 
 from typing import List, Optional
-from thinking_dataset.utils.log import Log
 from thinking_dataset.dataset.operations import (
     DownloadOperation, GetCardContent, GetConfiguration, GetDescription,
     GetDownloadFile, GetDownloadSize, GetDownloadUrls, GetFileList, GetInfo,
@@ -42,8 +41,6 @@ class DatasetOperator:
             OT.GET_TAGS: GetTags(self.api),
             OT.GET_WHOAMI: GetWhoami(self.api),
         }
-
-        Log.info("DatasetOperator initialized successfully!")
 
     def download(self) -> bool:
         return self.ops[OT.DOWNLOAD].execute()

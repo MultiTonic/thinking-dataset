@@ -173,7 +173,7 @@ In our next conversation, please provide:
 
 ---
 
-**Your response is only this following order:**
+**Your response for this query is only this following order:**
 - ***display table of current tasks and status***
 - ***display list of suggested subtasks to work***
 - ***display one short sentence what task we worked on last***

@@ -4,7 +4,6 @@
 # @license MIT
 
 from typing import List, Optional
-from thinking_dataset.utils.log import Log
 from thinking_dataset.db.database import Database
 from thinking_dataset.tonics.data_tonic import DataTonic
 from thinking_dataset.dataset.dataset_keys import DatasetKeys as DK
@@ -26,7 +25,6 @@ class Dataset:
         try:
             self.api = data_tonic
             self.database = Database()
-
             attr = Attr().attributes
             Val.validate(attr)
             self.org = attr[DK.ORG]
@@ -35,8 +33,6 @@ class Dataset:
             self.include = attr[DK.INCLUDE]
             self.exclude = attr[DK.EXCLUDE]
             self.op = OP(self.api, attr, self.database)
-
-            Log.info("Dataset initialized successfully!")
         except Exception as e:
             raise RuntimeError(f"Error initializing Dataset: {e}")
 

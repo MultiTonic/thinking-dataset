@@ -1,6 +1,6 @@
 # @file session_statemachine.py
 # @description Session management state machine.
-# @version 1.0.1
+# @version 1.0.2
 # @license MIT
 
 from statemachine import StateMachine, State
@@ -21,7 +21,6 @@ class SessionStateMachine(StateMachine):
 
     def __init__(self):
         super().__init__()
-        Log.info("State machine initialized successfully.")
 
     @property
     def is_idle(self):
