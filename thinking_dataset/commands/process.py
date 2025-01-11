@@ -7,18 +7,22 @@ import click
 from thinking_dataset.utils.log import Log
 from ..pipeworks.pipelines.pipeline import Pipeline
 from thinking_dataset.utils.exceptions import exceptions
+from thinking_dataset.utils.logger import logger
+from thinking_dataset.utils.load_dotenv import dotenv
 
 
 @click.command()
 @exceptions
-def prepare():
-    Log.info("Starting the prepare command.")
+@logger
+@dotenv(print=True)
+def process():
+    Log.info("Starting the process command.")
 
-    pipeline = Pipeline("prepare")
+    pipeline = Pipeline("process")
     pipeline.open()
 
-    Log.info("Prepare command completed successfully.")
+    Log.info("Process command completed successfully.")
 
 
 if __name__ == "__main__":
-    prepare()
+    process()
