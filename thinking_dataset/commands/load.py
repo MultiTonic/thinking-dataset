@@ -1,6 +1,6 @@
 # @file thinking_dataset/commands/load.py
 # @description CLI command to load datasets into the database.
-# @version 1.0.19
+# @version 1.0.20
 # @license MIT
 
 import click
@@ -9,9 +9,7 @@ import thinking_dataset.config.config_keys as Keys
 import thinking_dataset.dataset as td
 from ..io.files import Files
 from thinking_dataset.utils.log import Log
-from thinking_dataset.utils.logger import logger
 from ..tonics.data_tonic import DataTonic
-from thinking_dataset.utils.load_dotenv import dotenv
 from thinking_dataset.utils.exceptions import exceptions
 
 CK = Keys.ConfigKeys
@@ -19,8 +17,6 @@ CK = Keys.ConfigKeys
 
 @click.command()
 @exceptions
-@logger
-@dotenv(print=True)
 def load():
     Log.info("Starting the load command.")
 

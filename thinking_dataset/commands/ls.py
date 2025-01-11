@@ -1,17 +1,13 @@
 # @file thinking_dataset/commands/ls.py
 # @description Command to list all files in the DataTonic dataset directory.
-# @version 1.0.14
+# @version 1.0.17
 # @license MIT
 
 import click
-import sys
 import thinking_dataset.config as conf
 import thinking_dataset.config.config_keys as Keys
 import thinking_dataset.dataset as Dataset
 
-from thinking_dataset.utils.log import Log
-from thinking_dataset.utils.logger import logger
-from thinking_dataset.utils.load_dotenv import dotenv
 from thinking_dataset.utils.exceptions import exceptions
 from thinking_dataset.tonics.data_tonic import DataTonic
 
@@ -22,8 +18,6 @@ DT = DataTonic
 
 @click.command()
 @exceptions
-@logger
-@dotenv()
 def ls():
     try:
         conf.initialize()
@@ -49,8 +43,7 @@ def ls():
             click.echo(f"- {file.name}")
 
     except Exception as e:
-        Log.error(f"Error listing files: {e}", exc_info=True)
-        sys.exit(1)
+        raise e
 
 
 if __name__ == '__main__':

@@ -1,11 +1,12 @@
 # @file thinking_dataset/db/database.py
 # @description Implementation of the Database class.
-# @version 1.1.4
+# @version 1.1.6
 # @license MIT
 
 import os
 import pandas as pd
 import thinking_dataset.config as conf
+import thinking_dataset.config.config_keys as Keys
 from sqlalchemy import create_engine, exc
 from contextlib import contextmanager
 from thinking_dataset.utils.execute import execute
@@ -14,15 +15,16 @@ from .operations.fetch import Fetch
 from .database_session import DatabaseSession as Session
 from thinking_dataset.utils.log import Log
 
+CK = Keys.ConfigKeys
+
 
 class Database:
 
     def __init__(self):
-        config_instance = conf.initialize()
-        self.config = config_instance
         try:
-            database_url = self.config.database_url.format(
-                name=self.config.database_name)
+            conf.initialize()
+            database_url = conf.get_value(
+                CK.DATABASE_URL).format(name=conf.get_value(CK.DATABASE_NAME))
             self._set_database_url(database_url)
 
             self._create_database_path()
@@ -42,10 +44,10 @@ class Database:
     def _initialize_engine(self):
         self.engine = create_engine(
             self.url,
-            pool_size=self.config.pool_size,
-            max_overflow=self.config.max_overflow,
-            connect_args={'timeout': self.config.connect_timeout},
-            echo=self.config.log_queries)
+            pool_size=conf.get_value(CK.POOL_SIZE),
+            max_overflow=conf.get_value(CK.MAX_OVERFLOW),
+            connect_args={'timeout': conf.get_value(CK.CONNECT_TIMEOUT)},
+            echo=conf.get_value(CK.LOG_QUERIES))
 
         Log.info("Database engine created successfully.")
 

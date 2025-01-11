@@ -1,6 +1,6 @@
 # @file thinking_dataset/commands/download.py
 # @description Command to download datasets.
-# @version 1.0.9
+# @version 1.0.10
 # @license MIT
 
 import click
@@ -9,8 +9,6 @@ import thinking_dataset.config.config_keys as Keys
 import thinking_dataset.dataset as td
 from ..tonics.data_tonic import DataTonic
 from thinking_dataset.utils.log import Log
-from thinking_dataset.utils.logger import logger
-from thinking_dataset.utils.load_dotenv import dotenv
 from thinking_dataset.utils.exceptions import exceptions
 
 CK = Keys.ConfigKeys
@@ -18,8 +16,6 @@ CK = Keys.ConfigKeys
 
 @click.command()
 @exceptions
-@logger
-@dotenv(print=True)
 def download():
     Log.info("Starting the download command.")
 

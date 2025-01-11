@@ -1,7 +1,9 @@
 # @file thinking_dataset/dataset/dataset.py
-# @description Implementation of the Dataset class.
-# @version 1.0.18
+# @description Implementation of the Dataset class with lazy-loaded database.
+# @version 1.0.21
 # @license MIT
+
+import thinking_dataset.config.config_keys as Keys
 
 from typing import List, Optional
 from thinking_dataset.db.database import Database
@@ -12,10 +14,12 @@ from thinking_dataset.dataset.dataset_validator import DatasetValidator as Val
 from thinking_dataset.dataset.dataset_attributes \
     import DatasetAttributes as Attr
 
+CK = Keys.ConfigKeys
+
 
 class Dataset:
     """
-    A class for dataset operations.
+    A class for working with sets of data
     """
 
     def __init__(self, data_tonic: DataTonic):
@@ -24,7 +28,7 @@ class Dataset:
 
         try:
             self.api = data_tonic
-            self.database = Database()
+            self._database = None
             attr = Attr().attributes
             Val.validate(attr)
             self.org = attr[DK.ORG]
@@ -35,6 +39,12 @@ class Dataset:
             self.op = OP(self.api, attr, self.database)
         except Exception as e:
             raise RuntimeError(f"Error initializing Dataset: {e}")
+
+    @property
+    def database(self):
+        if self._database is None:
+            self._database = Database()
+        return self._database
 
     def download(self) -> bool:
         return self.op.download()
