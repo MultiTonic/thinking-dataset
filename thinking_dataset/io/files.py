@@ -1,6 +1,6 @@
 # @file thinking_dataset/io/files.py
 # @description Handles file I/O operations for the Thinking Dataset Project.
-# @version 1.1.4
+# @version 1.1.6
 # @license MIT
 
 import os
@@ -122,3 +122,13 @@ class Files:
         except Exception as e:
             Log.error(f"Error listing files from dataset: {e}")
             raise RuntimeError(f"Error listing files from dataset: {e}")
+
+    @staticmethod
+    def list_files_recursive(directory: str,
+                             extension: str = None) -> List[str]:
+        file_paths = []
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if extension is None or file.endswith(extension):
+                    file_paths.append(Files.get_file_path(root, file))
+        return file_paths

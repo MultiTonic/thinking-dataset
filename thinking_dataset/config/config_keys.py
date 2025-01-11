@@ -1,6 +1,6 @@
 # @file thinking_dataset/config/config_keys.py
 # @description Defines keys used in the dataset configuration.
-# @version 1.0.0
+# @version 1.0.1
 # @license MIT
 
 from enum import Enum
@@ -24,6 +24,8 @@ class ConfigKeys(Enum):
     PROCESS_PATH = "process"
     EXPORT_PATH = "export"
     DATABASE_PATH = "database"
+    PROCESSED_DATA_PATH = "processed_data"
+    PROCESSED_DATA_TRAIN_PATH = "processed_data/train"
     INCLUDE_FILES = "include_files"
     EXCLUDE_FILES = "exclude_files"
     LOAD_PATTERNS = "load_patterns"

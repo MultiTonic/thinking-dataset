@@ -1,6 +1,6 @@
 # @file config/config.yaml
 # @description Configuration for the Cablegate PDF Dataset Project
-# @version 1.0.3
+# @version 1.0.4
 # @license MIT
 
 dataset:
@@ -114,7 +114,7 @@ pipelines:
     - pipe:
         type: "FileExtractorPipe"
         config:
-          path: "{{paths.export}}"
+          path: "{{paths.processed_data_train}}"
           filter: "{{dataset.type}}"
     - pipe:
         type: "FileUploadHfApiPipe"
