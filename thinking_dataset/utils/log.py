@@ -1,13 +1,14 @@
 # @file thinking_dataset/utils/log.py
 # @description Defines the Log class for unified logging.
-# @version 1.0.0
+# @version 1.0.9
 # @license MIT
 
-import logging
 import sys
 import inspect
+import logging as log
+import functools
 
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+LF = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 
 class Log:
@@ -16,6 +17,14 @@ class Log:
     """
 
     _instance = None
+    _level = log.INFO
+
+    CRITICAL = log.CRITICAL
+    ERROR = log.ERROR
+    WARNING = log.WARNING
+    INFO = log.INFO
+    DEBUG = log.DEBUG
+    NOTSET = log.NOTSET
 
     @staticmethod
     def _get_name():
@@ -27,16 +36,17 @@ class Log:
 
     @staticmethod
     def _setup():
-        logging.basicConfig(level=logging.INFO,
-                            format=LOG_FORMAT,
-                            datefmt='%Y.%m.%d:%H:%M:%S',
-                            handlers=[logging.StreamHandler(sys.stdout)])
+        log.basicConfig(level=Log._level,
+                        format=LF,
+                        datefmt='%Y.%m.%d:%H:%M:%S',
+                        handlers=[log.StreamHandler(sys.stdout)])
 
-        sqlalchemy_logger = logging.getLogger('sqlalchemy.engine')
-        sqlalchemy_logger.setLevel(logging.INFO)
-        sqlalchemy_logger.propagate = False
+        logger = log.getLogger('sqlalchemy.engine')
+        logger.setLevel(Log._level)
+        logger.propagate = False
 
-        Log._instance = logging.getLogger("thinking-dataset")
+        Log._instance = log.getLogger("thinking-dataset")
+        Log._instance.setLevel(Log._level)
 
     @staticmethod
     def get():
@@ -45,23 +55,52 @@ class Log:
         return Log._instance
 
     @staticmethod
+    def set_level(level):
+        Log._level = level
+        if Log._instance:
+            Log._instance.setLevel(Log._level)
+            logger = log.getLogger('sqlalchemy.engine')
+            logger.setLevel(Log._level)
+
+    @staticmethod
     def info(message):
-        log = Log.get()
-        log.name = Log._get_name()
-        log.info(message)
+        if Log._level <= log.INFO:
+            logger = Log.get()
+            logger.name = Log._get_name()
+            logger.info(message)
 
     @staticmethod
     def error(message, exc_info=None):
-        log = Log.get()
-        log.name = Log._get_name()
-        log.error(message, exc_info=exc_info)
+        if Log._level <= log.ERROR:
+            logger = Log.get()
+            logger.name = Log._get_name()
+            logger.error(message, exc_info=exc_info)
 
     @staticmethod
     def warn(message):
-        log = Log.get()
-        log.name = Log._get_name()
-        log.warning(message)
+        if Log._level <= log.WARNING:
+            logger = Log.get()
+            logger.name = Log._get_name()
+            logger.warning(message)
 
     @staticmethod
     def get_handler():
-        return logging.StreamHandler(sys.stdout)
+        return log.StreamHandler(sys.stdout)
+
+    @staticmethod
+    def level(level):
+
+        def decorator(func):
+
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                prev_level = Log._level
+                Log.set_level(level)
+                try:
+                    return func(*args, **kwargs)
+                finally:
+                    Log.set_level(prev_level)
+
+            return wrapper
+
+        return decorator

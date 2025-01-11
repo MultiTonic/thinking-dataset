@@ -1,6 +1,6 @@
 # @file thinking_dataset/commands/ls.py
 # @description Command to list all files in the DataTonic dataset directory.
-# @version 1.0.17
+# @version 1.0.20
 # @license MIT
 
 import click
@@ -8,8 +8,9 @@ import thinking_dataset.config as conf
 import thinking_dataset.config.config_keys as Keys
 import thinking_dataset.dataset as Dataset
 
-from thinking_dataset.utils.exceptions import exceptions
+from thinking_dataset.utils.log import Log as log
 from thinking_dataset.tonics.data_tonic import DataTonic
+from thinking_dataset.utils.exceptions import exceptions
 
 CK = Keys.ConfigKeys
 D = Dataset.Dataset
@@ -18,6 +19,7 @@ DT = DataTonic
 
 @click.command()
 @exceptions
+@log.level(log.CRITICAL)
 def ls():
     try:
         conf.initialize()
