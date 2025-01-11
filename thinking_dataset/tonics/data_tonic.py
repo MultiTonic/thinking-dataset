@@ -1,6 +1,6 @@
 # @file thinking_dataset/tonics/data_tonic.py
 # @description Manages dataset operations and interacts with the Hf Api.
-# @version 1.2.12
+# @version 1.2.13
 # @license MIT
 
 import thinking_dataset.config as conf
@@ -21,7 +21,7 @@ CK = conf.config_keys.ConfigKeys
 class DataTonic:
     """
     Manages dataset operations for a specified organization and dataset,
-    and handles interactions with the Hf Api.
+    and handles interactions with the Hf Api and DataTonic.
     """
 
     def __init__(self, read_token, write_token, org, user):
@@ -31,7 +31,7 @@ class DataTonic:
             self.organization = org
             self.user = user
             self.dataset = conf.get_value(CK.DATASET_NAME)
-            Log.info(f"Dataset name: {self.dataset}")
+            self.dataset_type = conf.get_value(CK.DATABASE_TYPE)
             self.api = HfApi(token=read_token)
             self.attributes = Attr.DatasetAttributes().attributes
             self.download_operation = DownloadOperation(
