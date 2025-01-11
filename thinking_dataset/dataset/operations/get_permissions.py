@@ -17,6 +17,6 @@ class GetPermissions(Operation):
         """
         Checks the permissions of the dataset.
         """
-        dataset_info = self.data_tonic.get_dataset_info(dataset_id)
+        dataset_info = self.dt.get_dataset_info(dataset_id)
         self.log_info(f"Dataset permissions: {dataset_info.private}")
         return dataset_info.private

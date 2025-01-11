@@ -17,7 +17,7 @@ class GetSplitInformation(Operation):
         """
         Retrieves the split information of the dataset.
         """
-        dataset_info = self.data_tonic.get_dataset_info()
+        dataset_info = self.dt.get_dataset_info()
         splits = dataset_info.card_data['dataset_info']['splits']
         self.log_info(f"Dataset splits: {splits}")
         return splits

@@ -3,7 +3,7 @@
 # @version 1.0.21
 # @license MIT
 
-import thinking_dataset.config.config_keys as Keys
+import thinking_dataset.config.config_keys as keys
 
 from typing import List, Optional
 from thinking_dataset.db.database import Database
@@ -14,7 +14,7 @@ from thinking_dataset.dataset.dataset_validator import DatasetValidator as Val
 from thinking_dataset.dataset.dataset_attributes \
     import DatasetAttributes as Attr
 
-CK = Keys.ConfigKeys
+CK = keys.ConfigKeys
 
 
 class Dataset:

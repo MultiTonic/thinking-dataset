@@ -13,12 +13,9 @@ class ListDatasets(Operation):
     """
 
     def execute(self):
-        datasets = list(
-            self.data_tonic.api.list_datasets(
-                author=self.data_tonic.organization))
+        datasets = list(self.dt.api.list_datasets(author=self.dt.organization))
         Log.info(
-            self.log,
-            f"Number of {self.data_tonic.organization} datasets listed: "
+            self.log, f"Number of {self.dt.organization} datasets listed: "
             f"{len(datasets)}")
 
         return datasets

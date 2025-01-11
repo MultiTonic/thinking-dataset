@@ -17,7 +17,7 @@ class GetConfiguration(Operation):
         """
         Retrieves the configurations of the dataset.
         """
-        dataset_info = self.data_tonic.get_dataset_info()
+        dataset_info = self.dt.get_dataset_info()
         configs = dataset_info.card_data.get('configs', [])
         self.log_info(f"Dataset configurations: {configs}")
         return configs

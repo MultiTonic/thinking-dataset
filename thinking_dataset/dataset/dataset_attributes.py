@@ -3,11 +3,11 @@
 # @version 1.0.5
 # @license MIT
 
-import thinking_dataset.config.config_keys as Keys
+import thinking_dataset.config.config_keys as keys
 import thinking_dataset.dataset.dataset_keys as DKeys
 import thinking_dataset.config as conf
 
-CK = Keys.ConfigKeys
+CK = keys.ConfigKeys
 DK = DKeys.DatasetKeys
 
 

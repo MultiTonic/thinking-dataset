@@ -17,7 +17,7 @@ class GetTags(Operation):
         """
         Retrieves tags associated with the dataset.
         """
-        dataset_info = self.data_tonic.get_dataset_info(dataset_id)
+        dataset_info = self.dt.get_dataset_info(dataset_id)
         tags = dataset_info.tags
         self.log_info(f"Dataset tags: {tags}")
         return tags

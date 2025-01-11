@@ -17,7 +17,7 @@ class GetLicense(Operation):
         """
         Retrieves the license information of the dataset.
         """
-        dataset_info = self.data_tonic.get_dataset_info()
+        dataset_info = self.dt.get_dataset_info()
         license_info = dataset_info.card_data.get('license', None)
         self.log_info(f"Dataset license: {license_info}")
         return license_info

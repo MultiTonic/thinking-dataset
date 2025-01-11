@@ -15,7 +15,7 @@ class GetDownloadUrls(Operation):
 
     def execute(self, dataset_id):
         try:
-            dataset_info = self.data_tonic.get_info.execute(dataset_id)
+            dataset_info = self.dt.get_info.execute(dataset_id)
             config_instance = conf.initialize()
             dataset_type = config_instance.get_value(
                 conf.get_keys().DATASET_TYPE)

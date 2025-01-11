@@ -5,14 +5,14 @@
 
 import click
 import thinking_dataset.config as conf
-import thinking_dataset.config.config_keys as Keys
+import thinking_dataset.config.config_keys as keys
 import thinking_dataset.dataset as td
 from ..io.files import Files
 from thinking_dataset.utils.log import Log
 from ..tonics.data_tonic import DataTonic
 from thinking_dataset.utils.exceptions import exceptions
 
-CK = Keys.ConfigKeys
+CK = keys.ConfigKeys
 
 
 @click.command()

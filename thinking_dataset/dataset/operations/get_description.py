@@ -17,7 +17,7 @@ class GetDescription(Operation):
         """
         Retrieves the description of the dataset.
         """
-        dataset_info = self.data_tonic.get_dataset_info()
+        dataset_info = self.dt.get_dataset_info()
         description = dataset_info.card_data.get('description', '')
         self.log_info(f"Dataset description: {description}")
         return description

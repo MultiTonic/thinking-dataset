@@ -6,7 +6,7 @@
 import os
 import pandas as pd
 import thinking_dataset.config as conf
-import thinking_dataset.config.config_keys as Keys
+import thinking_dataset.config.config_keys as keys
 from sqlalchemy import create_engine, exc
 from contextlib import contextmanager
 from thinking_dataset.utils.execute import execute
@@ -15,7 +15,7 @@ from .operations.fetch import Fetch
 from .database_session import DatabaseSession as Session
 from thinking_dataset.utils.log import Log
 
-CK = Keys.ConfigKeys
+CK = keys.ConfigKeys
 
 
 class Database:

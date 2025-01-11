@@ -19,7 +19,7 @@ class GetWhoami(Operation):
         Retrieves information about the authenticated user.
         """
         try:
-            user_info = self.data_tonic.api.whoami()
+            user_info = self.dt.api.whoami()
             Log.info(f"Retrieved user info: {user_info}")
             return user_info
         except Exception as e:

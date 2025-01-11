@@ -13,7 +13,7 @@ class Operation(ABC):
     """
 
     def __init__(self, data_tonic):
-        self.data_tonic = data_tonic
+        self.dt = data_tonic
 
     def _execute(self, *args, **kwargs):
         try:

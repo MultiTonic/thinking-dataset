@@ -17,6 +17,6 @@ class GetMetadata(Operation):
         """
         Retrieves metadata about the dataset.
         """
-        dataset_info = self.data_tonic.get_dataset_info()
+        dataset_info = self.dt.get_dataset_info()
         self.log_info(f"Dataset metadata: {dataset_info}")
         return dataset_info

@@ -15,7 +15,7 @@ class GetInfo(Operation):
 
     def execute(self, repo_id):
         try:
-            dataset_info = self.data_tonic.api.dataset_info(repo_id)
+            dataset_info = self.dt.api.dataset_info(repo_id)
             description = dataset_info.card_data.get(
                 'description', 'No description available')
             Log.info(f"Retrieved dataset info: {description}")

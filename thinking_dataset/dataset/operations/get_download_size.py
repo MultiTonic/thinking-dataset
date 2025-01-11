@@ -18,7 +18,7 @@ class GetDownloadSize(Operation):
         """
         Retrieves the download size of the dataset.
         """
-        dataset_info = self.data_tonic.get_dataset_info()
+        dataset_info = self.dt.get_dataset_info()
         download_size = dataset_info.card_data.get('download_size', 0)
         Log.info(f"Dataset download size: {download_size}")
         return download_size

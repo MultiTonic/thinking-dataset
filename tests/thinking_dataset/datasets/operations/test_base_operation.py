@@ -42,7 +42,7 @@ class TestBaseOperation(unittest.TestCase):
         """
         Test initialization of BaseOperation.
         """
-        self.assertEqual(self.operation.data_tonic, self.mock_data_tonic)
+        self.assertEqual(self.operation.dt, self.mock_data_tonic)
 
     def test_log_info(self):
         """

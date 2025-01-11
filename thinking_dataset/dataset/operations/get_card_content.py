@@ -15,7 +15,7 @@ class GetCardContent(Operation):
         """
         Retrieves card content of the dataset.
         """
-        dataset_info = self.data_tonic.get_dataset_info(dataset_id)
+        dataset_info = self.dt.get_dataset_info(dataset_id)
         card_content = dataset_info.card_data
         self.log_info(f"Dataset card data: {card_content}")
         return card_content
