@@ -1,6 +1,6 @@
 # @file thinking_dataset/utils/log.py
 # @description Defines the Log class for unified logging.
-# @version 1.0.9
+# @version 1.0.10
 # @license MIT
 
 import sys
@@ -82,6 +82,13 @@ class Log:
             logger = Log.get()
             logger.name = Log._get_name()
             logger.warning(message)
+
+    @staticmethod
+    def debug(message):
+        if Log._level <= log.DEBUG:
+            logger = Log.get()
+            logger.name = Log._get_name()
+            logger.debug(message)
 
     @staticmethod
     def get_handler():

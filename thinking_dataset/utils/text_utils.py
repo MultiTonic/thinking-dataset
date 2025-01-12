@@ -1,6 +1,6 @@
 # @file thinking_dataset/utils/text_utils.py
 # @description Utility functions for text processing in the thinking-dataset.
-# @version 1.0.0
+# @version 1.1.1
 # @license MIT
 
 import re
@@ -105,3 +105,17 @@ class TextUtils:
     @staticmethod
     def remove_weird_dates(text):
         return re.sub(r'\b\d{2}/\s?\d{2}/\s?\d{2}\b', '', text)
+
+    @staticmethod
+    def shorten_path(path: str, max_length: int) -> str:
+        if len(path) <= max_length:
+            return path
+
+        file_name = path.split('/')[-1]
+        file_name_length = len(file_name)
+
+        if file_name_length >= max_length:
+            return f"...{file_name[-(max_length - 3):]}"
+
+        remaining_length = max_length - file_name_length - 3
+        return f"...{path[:remaining_length]}...{file_name}"

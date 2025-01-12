@@ -1,6 +1,6 @@
 # @file thinking_dataset/config/config.py
 # @description Defines DatasetConfig class for storing dataset configuration.
-# @version 1.0.39
+# @version 1.1.2
 # @license MIT
 
 import thinking_dataset.config as conf
