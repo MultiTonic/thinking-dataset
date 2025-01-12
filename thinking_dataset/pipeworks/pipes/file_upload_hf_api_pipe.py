@@ -1,3 +1,8 @@
+# @file file_upload_hf_api_pipe.py
+# @description Pipe to upload files to the HF API dataset based on the df.
+# @version 1.0.1
+# @license MIT
+
 import pandas as pd
 from .pipe import Pipe
 from huggingface_hub import CommitInfo
@@ -6,9 +11,6 @@ from thinking_dataset.io.files import Files
 from thinking_dataset.tonics.data_tonic import DataTonic
 from thinking_dataset.utils.text_utils import TextUtils as text
 from thinking_dataset.utils.command_utils import CommandUtils as utils
-from tqdm import tqdm
-import threading
-import time
 import os
 
 
@@ -33,7 +35,6 @@ class FileUploadHfApiPipe(Pipe):
         token = utils.parse_env_value(token)
         repo_id = utils.get_repo_id(org, dataset)
 
-        Log.info(f"User: {user}")
         Log.info(f"Repo Id: {repo_id}")
         Log.info(f"Repo Type: {repo_type}")
 
@@ -44,19 +45,10 @@ class FileUploadHfApiPipe(Pipe):
         dt = DataTonic(token, token, org, user)
 
         total_size = df['file_path'].map(os.path.getsize).sum()
-        progress_bar = tqdm(total=total_size,
-                            unit='B',
-                            unit_scale=True,
-                            desc="Uploading files")
+        Log.info(
+            f"Total size to upload: {text.human_readable_size(total_size)}")
 
-        def update_progress_bar():
-            while progress_bar.n < total_size:
-                progress_bar.refresh()
-                time.sleep(1)
-
-        updater_thread = threading.Thread(target=update_progress_bar)
-        updater_thread.start()
-
+        uploaded_size = 0
         for _, row in df.iterrows():
             file_path = row["file_path"]
             file_name = Files.get_file_name(file_path)
@@ -70,7 +62,9 @@ class FileUploadHfApiPipe(Pipe):
                 Log.info(f"Dry run: {dry_run}")
                 Log.info(f"Fake upload {text.shorten_path(file_path, 80)}")
                 Log.info(f"to {text.shorten_path(remote_path, 80)}")
-                progress_bar.update(os.path.getsize(local_path))
+                uploaded_size += os.path.getsize(local_path)
+                Log.info(f"Uploaded {text.human_readable_size(uploaded_size)} "
+                         f"of {text.human_readable_size(total_size)}")
                 continue
 
             with open(local_path, "rb") as file:
@@ -82,7 +76,10 @@ class FileUploadHfApiPipe(Pipe):
 
                 if isinstance(info, CommitInfo):
                     Log.info("Successfully uploaded")
-                    progress_bar.update(os.path.getsize(local_path))
+                    uploaded_size += os.path.getsize(local_path)
+                    Log.info(
+                        f"Uploaded {text.human_readable_size(uploaded_size)} "
+                        f"of {text.human_readable_size(total_size)}")
                 else:
                     raise RuntimeError(
                         "Failed to upload "
@@ -90,8 +87,5 @@ class FileUploadHfApiPipe(Pipe):
                         f"to {text.shorten_path(remote_path, 80)}. "
                         f"Response: {info}")
 
-        progress_bar.n = total_size
-        progress_bar.refresh()
-        progress_bar.close()
-        updater_thread.join()
+        Log.info("Completed FileUploadHfApiPipe")
         return df
