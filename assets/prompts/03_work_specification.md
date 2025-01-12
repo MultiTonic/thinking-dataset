@@ -204,3 +204,11 @@ In our next conversation, please provide:
 
 ### Last Task Worked On
 - Our last task was getting file upload working with HF API.
+
+---
+
+**Your response only for this query in following order:**
+- ***display table of current tasks and status***
+- ***display list of suggested subtasks to work***
+- ***display one short sentence what task we worked on last***
+- ***display the text `Ready!🚀`***
