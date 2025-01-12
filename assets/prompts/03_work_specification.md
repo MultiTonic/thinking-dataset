@@ -1,22 +1,21 @@
-# Promot Template for Work Specification
+# Prompt Template for Work Specification
 
 ## Overview
 
-This template outlines the implementation of new features, including the development of critical pipeline components, data enrichment, and case study creation. The objective is to generate synthetic scenarios and case studies, manage file operations, and ensure dynamic configuration for efficient processing and integration.
+Implement new features: critical pipeline components, data enrichment, and case study creation. Objectives include generating synthetic scenarios and case studies, managing file operations, and ensuring dynamic configuration.
 
 ## Details
 
 ### 1. Command Definition
 
-Add a new `generate` command with subcommands to handle the generation of synthetic cables, stakeholder personas, Situation Reports (SitReps), and case studies. Include basic file management operations.
+Add a `generate` command with subcommands for generating synthetic cables, stakeholder personas, SitReps, and case studies. Include basic file management operations.
 
 ### 2. Configuration
 
-The configuration for these new systems will include the following:
-
-- **write_token**: Token for authenticating with relevant APIs.
-- **dataset_name**: Name of the dataset for processing.
-- **upload_path**: Path where the process files are located.
+Include the following configurations:
+- **write_token**: Token for API authentication.
+- **dataset_name**: Dataset for processing.
+- **upload_path**: Path for process files.
 - **Other Configurations**: Dynamic variables for file and directory operations.
 
 ### 3. Implementation
@@ -24,122 +23,64 @@ The configuration for these new systems will include the following:
 Implement the `generate` command with subcommands for generating synthetic data and managing files.
 
 - **Command Names**: `generate`, `upload`, `ls`, `process`, `load`, `download`, `export`
-- **Generate Subcommands**: `persona`, `sitrep`, `cable`, `case_study`
+- **Subcommands**: `persona`, `sitrep`, `cable`, `case_study`
 - **File Paths**:
   - `thinking_dataset/commands/generate.py`
   - `thinking_dataset/io/files.py`
+  - `thinking_dataset/tonics/data_tonic.py`
+  - `thinking_dataset/pipelines/pipeline.py`
+  - `thinking_dataset/pipes/pipe.py`
+  - `thinking_dataset/db/database.py`
+  - `thinking_dataset/datasets/dataset.py`
 - **Description**:
-  - Add the `generate` command with subcommands for generating synthetic data, including cables, personas, SitReps, and case studies.
-  - Add commands for listing files, listing directories, checking if a file or directory exists, and creating a new directory.
+  - Add the `generate` command with subcommands for generating synthetic data (cables, personas, SitReps, case studies).
+  - Add commands for file and directory management.
 - **Version**: 1.0.0
 - **License**: MIT
 
 ### 4. Generation Command
 
-The `generate` command with subcommands should be implemented as follows:
-
-#### Algorithms and Pseudocode
+Implement the `generate` command with subcommands:
 
 1. **Initialize the Generation Command**:
     - Load configuration properties.
-
-    ```pseudo
-    CLASS GenerateCommand:
-        FUNCTION __init__(config):
-            self.config = config
-    ```
 
 2. **Execute the Generation Command**:
     - Read configuration properties.
     - Route to appropriate subcommand.
     - Execute subcommand logic.
 
-    ```pseudo
-    FUNCTION execute(subcommand):
-        CONFIG_PROPS = CONFIG.get("config_properties")
-
-        IF subcommand == "persona":
-            CALL _generate_persona()
-        ELSE IF subcommand == "sitrep":
-            CALL _generate_sitrep()
-        ELSE IF subcommand == "cable":
-            CALL _generate_cable()
-        ELSE IF subcommand == "case_study":
-            CALL _generate_case_study()
-    ```
-
 3. **Generate Subcommand Methods**:
     - Generate synthetic data for the specified subcommand.
-    - Handle any exceptions during the generation process.
-
-    ```pseudo
-    FUNCTION _generate_persona():
-        TRY:
-            LOG: Generating persona
-            # Add persona generation logic here
-            LOG: Successfully generated persona
-        EXCEPT Exception as e:
-            LOG: Failed to generate persona with ERROR e
-
-    FUNCTION _generate_sitrep():
-        TRY:
-            LOG: Generating sitrep
-            # Add sitrep generation logic here
-            LOG: Successfully generated sitrep
-        EXCEPT Exception as e:
-            LOG: Failed to generate sitrep with ERROR e
-
-    FUNCTION _generate_cable():
-        TRY:
-            LOG: Generating cable
-            # Add cable generation logic here
-            LOG: Successfully generated cable
-        EXCEPT Exception as e:
-            LOG: Failed to generate cable with ERROR e
-
-    FUNCTION _generate_case_study():
-        TRY:
-            LOG: Generating case study
-            # Add case study generation logic here
-            LOG: Successfully generated case study
-        EXCEPT Exception as e:
-            LOG: Failed to generate case study with ERROR e
-    ```
+    - Handle exceptions during the generation process.
 
 ### 5. File Management Commands
 
-Implement basic file and directory commands for interacting with the dataset repository:
+Implement basic file and directory commands:
 
-1. **List All Files in the Repository**:
-    - Command to list all files within a specified directory in the repo and output to the console.
-
-2. **List All Directories in the Repository**:
-    - Command to list all directories within a specified directory in the repo and output to the console.
-
-3. **Check if File or Directory Exists**:
-    - Command to check if a specific file or directory exists within the repo.
-
-4. **Create a New Directory**:
-    - Command to create a new directory within the repo.
+1. **List All Files**: Command to list all files within a specified directory.
+2. **List All Directories**: Command to list all directories within a specified directory.
+3. **Check if File/Directory Exists**: Command to check existence within the repo.
+4. **Create a New Directory**: Command to create a new directory within the repo.
 
 ### 6. Integration
 
-Integrate the `generate` command with subcommands and file management commands into the existing workflow to ensure efficient processing and management of data files. The new system will use configuration similar to the download system to manage include/exclude files.
+Integrate the `generate` command and file management commands into the existing workflow. Use configuration similar to the download system to manage include/exclude files.
 
 ### 7. Focus on Current Work
 
-Currently, we are focusing on:
-- Creating new pipelines for generating synthetic data.
-- Adding `GenerateCablesPipe`, `GeneratePersonasPipe`, `GenerateSitRepsPipe`, and `GenerateCaseStudiesPipe` to handle data generation.
-- Ensuring the configuration supports dynamic variable resolution.
-- Adding detailed objectives for logging, performance optimization, error handling, validation, feedback, documentation, and security.
+Focus on:
+- Creating pipelines for generating synthetic data.
+- Adding `GenerateCablesPipe`, `GeneratePersonasPipe`, `GenerateSitRepsPipe`, `GenerateCaseStudiesPipe`.
+- Ensuring dynamic configuration.
+- Logging, performance optimization, error handling, validation, feedback, documentation, security.
 
 ### 8. Future Conversation
 
-In our next conversation, please provide:
-- Feedback on the implementation and any issues encountered.
-- Additional requirements or enhancements for the generation and upload pipelines.
-- Any new features or changes to be incorporated based on current progress.
+Next session, provide:
+- Feedback on implementation and issues encountered.
+- Additional requirements or enhancements.
+- Any new features or changes based on progress.
 
 ## Itemized Task Todo List for Phase 3: Data Enrichment and Case Study Creation
 
@@ -204,6 +145,48 @@ In our next conversation, please provide:
 
 ### Last Task Worked On
 - Our last task was getting file upload working with HF API.
+
+### Developing Algorithms for Combining Seed Objects
+
+We will focus on developing algorithms for combining seed objects to generate synthetic cables.
+
+#### 1. Load Seed Objects from Database
+
+Query the database to retrieve the seed objects along with their IDs:
+```sql
+SELECT id, content FROM cablegate_pdf WHERE LENGTH(content) BETWEEN 500 AND 10000;
+```
+
+#### 2. Random Selection
+
+Randomly pick three seed objects. Assuming we have a list of seed objects obtained from the database query, we'll use the `select_random_objects` function:
+```pseudo
+FUNCTION select_random_objects(seed_objects, count):
+    RETURN random.sample(seed_objects, count)
+```
+Using the function, we pick three random seed objects from the retrieved dataset:
+
+#### 3. JSON Structure
+
+Create a JSON structure to store the inspirations. Only include the content and ID:
+```json
+{
+  "inspirations": [
+    {
+      "id": 1,
+      "content": "Seed Object 1"
+    },
+    {
+      "id": 2,
+      "content": "Seed Object 2"
+    },
+    {
+      "id": 3,
+      "content": "Seed Object 3"
+    }
+  ]
+}
+```
 
 ---
 
