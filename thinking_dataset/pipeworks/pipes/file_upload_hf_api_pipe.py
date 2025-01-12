@@ -1,8 +1,3 @@
-# @file thinking_dataset/pipeworks/pipes/file_upload_hf_api_pipe.py
-# @desc Uploads files to the HF API dataset based on the DataFrame.
-# @version 1.0.31
-# @license MIT
-
 import pandas as pd
 from .pipe import Pipe
 from huggingface_hub import CommitInfo
@@ -11,6 +6,10 @@ from thinking_dataset.io.files import Files
 from thinking_dataset.tonics.data_tonic import DataTonic
 from thinking_dataset.utils.text_utils import TextUtils as text
 from thinking_dataset.utils.command_utils import CommandUtils as utils
+from tqdm import tqdm
+import threading
+import time
+import os
 
 
 class FileUploadHfApiPipe(Pipe):
@@ -44,6 +43,20 @@ class FileUploadHfApiPipe(Pipe):
 
         dt = DataTonic(token, token, org, user)
 
+        total_size = df['file_path'].map(os.path.getsize).sum()
+        progress_bar = tqdm(total=total_size,
+                            unit='B',
+                            unit_scale=True,
+                            desc="Uploading files")
+
+        def update_progress_bar():
+            while progress_bar.n < total_size:
+                progress_bar.refresh()
+                time.sleep(1)
+
+        updater_thread = threading.Thread(target=update_progress_bar)
+        updater_thread.start()
+
         for _, row in df.iterrows():
             file_path = row["file_path"]
             file_name = Files.get_file_name(file_path)
@@ -57,7 +70,8 @@ class FileUploadHfApiPipe(Pipe):
                 Log.info(f"Dry run: {dry_run}")
                 Log.info(f"Fake upload {text.shorten_path(file_path, 80)}")
                 Log.info(f"to {text.shorten_path(remote_path, 80)}")
-                return df
+                progress_bar.update(os.path.getsize(local_path))
+                continue
 
             with open(local_path, "rb") as file:
                 info = dt.api.upload_file(path_or_fileobj=file,
@@ -68,10 +82,16 @@ class FileUploadHfApiPipe(Pipe):
 
                 if isinstance(info, CommitInfo):
                     Log.info("Successfully uploaded")
+                    progress_bar.update(os.path.getsize(local_path))
                 else:
                     raise RuntimeError(
                         "Failed to upload "
                         f"{text.shorten_path(file_path, 80)} "
                         f"to {text.shorten_path(remote_path, 80)}. "
                         f"Response: {info}")
+
+        progress_bar.n = total_size
+        progress_bar.refresh()
+        progress_bar.close()
+        updater_thread.join()
         return df

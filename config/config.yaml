@@ -385,4 +385,5 @@ pipelines:
           token: "${HF_WRITE_TOKEN}"
           dataset: "{{dataset.name}}"
           repo_type: "dataset"
+          remote_path: "{{paths.processed_data_train}}"
           dry_run: False
