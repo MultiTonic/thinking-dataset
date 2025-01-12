@@ -1,8 +1,10 @@
-# Work Specification Template
+### Work Specification Template
+
+---
 
 ## Overview
 
-This template outlines the implementation of new features, including a system for uploading process data to the HF API dataset and basic file and directory commands for interacting with the dataset repository. The objective is to develop commands and pipelines that will manage the uploading of parquet files from the `./data/process` directory and provide file management utilities.
+This template outlines the implementation of new features, including a system for uploading process data to the HF API dataset and basic file and directory commands for interacting with the dataset repository. The objective is to develop commands and pipelines that will manage the uploading of parquet files from the `./data/export` directory and provide file management utilities.
 
 ## Specification Details
 
@@ -23,10 +25,10 @@ The configuration for these new systems will include the following:
 
 Implement the `upload` command and file management commands to handle the uploading of process parquet files to the HF API dataset and provide file management utilities.
 
-- **Command Names**: `upload`, `list_files`, `list_dirs`, `check_exists`, `create_dir`
+- **Command Names**: `upload`, `ls`, `process`, `load`, `download`, `export`
 - **File Paths**: 
   - `thinking_dataset/commands/upload.py`
-  - `thinking_dataset/commands/files.py`
+  - `thinking_dataset/io/files.py`
 - **Description**: 
   - Add a new command for uploading process parquet files to the HF API dataset.
   - Add new commands for listing files, listing directories, checking if a file or directory exists, and creating a new directory.
@@ -102,8 +104,7 @@ Integrate the `upload` command and file management commands into the existing wo
 Currently, we are focusing on:
 - Creating a new pipeline called `upload` for uploading process data.
 - Adding a `FileExtractorPipe` to handle directory access and file extraction.
-- Adding a `FilterByNamePipe` to filter files by name.
-- Adding an `UploadPipe` to handle the file upload process.
+- Adding an `FilUploadHfApiPipe` to handle the file upload process.
 - Ensuring the configuration is updated to support dynamic variable resolution.
 - Adding detailed objectives for logging, performance optimization, error handling, validation, feedback, documentation, and security.
 
@@ -123,10 +124,10 @@ In our next conversation, please provide:
 | **Implement Configurations for Each Pipe**              | ✅         |
 | Configure `FileExtractorPipe` for directory access.     | ✅         |
 | Configure `UploadFilePipe` for file uploads.            | ✅         |
-| **Implement Upload Command**                            | 🚧 In Progress |
-| Create `UploadCommand` class in `upload.py`.            | 🚧 In Progress |
-| Implement the `execute` method for the `UploadCommand` class. | 🚧 In Progress |
-| Implement the `_upload_file` method for the `UploadCommand` class. | 🚧 In Progress |
+| **Implement Upload Command**                            | ✅         |
+| Create `UploadCommand` class in `upload.py`.            | ✅         |
+| Implement the `execute` method for the `UploadCommand` class. | ✅         |
+| Implement the `_upload_file` method for the `UploadCommand` class. | ✅         |
 | **Integrate Upload Command into Pipeline**              | ✅         |
 | **Update `run_cli_command.py` Script**                  | ✅         |
 | **Set Up Logging and Monitoring**                       | ✅         |
@@ -149,7 +150,7 @@ In our next conversation, please provide:
 
 ### Class and Function Updates
 - Refactored `DataTonic` class to include `user` attribute.
-- Updated CLI commands (`clean`, `download`, `prepare`, `load`) to utilize the updated configuration and environment variables.
+- Updated CLI commands (`clean`, `download`, `prepare`, `load`, `ls`) to utilize the updated configuration and environment variables.
 - Corrected header comments for consistency and clarity.
 - Added and verified environment validation checks.
 - Enhanced logging for better tracking and debugging.
@@ -173,7 +174,7 @@ In our next conversation, please provide:
 
 ---
 
-**Your response for this query is only this following order:**
+**Your response only for this query in following order:**
 - ***display table of current tasks and status***
 - ***display list of suggested subtasks to work***
 - ***display one short sentence what task we worked on last***
