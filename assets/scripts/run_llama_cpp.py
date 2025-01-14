@@ -30,7 +30,8 @@ g_cmd = {
     f"""
     cd {g_paths['llama']}
     make clean && make CUBLAS=1
-    ./main -m {os.path.join(g_paths['models'], g_paths['model'])} -p "{g_paths['prompt']}"
+    ./main -m {os.path.join(g_paths['models'],
+                            g_paths['model'])} -p "{g_paths['prompt']}"
     """
 }
 
