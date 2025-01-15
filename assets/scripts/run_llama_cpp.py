@@ -11,7 +11,6 @@ from rich.console import Console
 import signal
 import os
 from huggingface_hub import hf_hub_download
-import llama_cpp
 
 console = Console()
 
@@ -114,13 +113,19 @@ if __name__ == "__main__":
     try:
         install_py_pkgs()
         install_llama_cpp_python()
-        model_path = download_model()
+        # model_path = download_model()
 
-        # Basic usage example
-        model = llama_cpp.Llama(model_path=model_path)
+        from llama_cpp import Llama
+
+        llm = Llama.from_pretrained(
+            repo_id="bullerwins/DeepSeek-V3-GGUF",
+            filename=
+            "DeepSeek-V3-Q4_K_M/DeepSeek-V3-Q4_K_M-00001-of-00010.gguf",
+        )
+
         print(
-            model("The quick brown fox jumps ",
-                  stop=["."])["choices"][0]["text"])
+            llm.create_chat_completion(
+                messages="What is the answer to the universe?"))
 
     except Exception as e:
         error(e)
