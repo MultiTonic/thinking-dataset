@@ -1,7 +1,7 @@
 # flake8: noqa
 # @file assets/scripts/run_llama_cpp.py
-# @description Download and install llama-cpp-python with CUDA toolkit and other required Python packages
-# @version 2.9.5
+# @description Download and install llama-cpp-python with CUDA toolkit and other required Python packages, and download model using hfapi
+# @version 3.0.0
 # @license MIT
 
 import sys
@@ -9,10 +9,21 @@ import subprocess
 import traceback
 from rich.console import Console
 import signal
+import os
+from huggingface_hub import hf_hub_download
 
 console = Console()
 
-packages = {'py_pkgs': ['tqdm', 'requests']}
+path = {
+    'models': os.path.join(os.getcwd(), 'data', 'models'),
+    'repo': 'bartowski/Meta-Llama-3.1-8B-Instruct-GGUF',
+    'model': 'Meta-Llama-3.1-8B-Instruct-Q4_0_4_4.gguf'
+}
+
+packages = {
+    'py_pkgs': ['tqdm', 'requests', 'huggingface_hub'],
+    'llama_cpp': ['llama-cpp-python']
+}
 
 cmd = {
     'install_py_pkgs':
@@ -77,6 +88,20 @@ def install_llama_cpp_python():
     )
 
 
+def download_model():
+    console.print(
+        "[green]Starting model download from Hugging Face Hub[/green]")
+    if not os.path.exists(path['models']):
+        os.makedirs(path['models'])
+    try:
+        file_path = hf_hub_download(repo_id=path['repo'],
+                                    filename=path['model'],
+                                    local_dir=path['models'])
+        console.print(f"[green]Model downloaded to {file_path}[/green]")
+    except Exception as e:
+        error(f"Failed to download model: {e}")
+
+
 def signal_handler(sig, frame):
     console.print("[red]Installation aborted by user.[/red]")
     sys.exit(0)
@@ -87,5 +112,6 @@ if __name__ == "__main__":
     try:
         install_py_pkgs()
         install_llama_cpp_python()
+        download_model()
     except Exception as e:
         error(e)
