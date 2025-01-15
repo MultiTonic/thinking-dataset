@@ -1,6 +1,6 @@
 # @file assets/scripts/run_llama_cpp.py
 # @description Download LLaMA model, check system, run llama.cpp with CUDA
-# @version 2.7.11
+# @version 2.8.5
 # @license MIT
 
 import sys, os, subprocess, argparse, logging, inspect  # noqa
@@ -13,9 +13,8 @@ path = {
     'models': os.path.join(os.getcwd(), 'data', 'models'),
     'repo': 'bartowski/Meta-Llama-3.1-8B-Instruct-GGUF',
     'model': 'Meta-Llama-3.1-8B-Instruct-Q4_0_4_4.gguf',
-    'llama': "/path/to/llama.cpp",
-    'prompt': "Your prompt here",
-    'wsl_cmd': "wsl -e bash -c"
+    'llama': "C:/path/to/llama.cpp",
+    'prompt': "Your prompt here"
 }
 
 cmd = {
@@ -28,11 +27,18 @@ cmd = {
     f"""
         ./main -m {os.path.join(path['models'], path['model'])} \\
         -p "{path['prompt']}"
+    """,
+    'install_cuda':
+    """
+        pip install llama-cpp-python \\
+        --extra-index-url \\
+        https://abetlen.github.io/llama-cpp-python/whl/cu125 \\
+        --force-reinstall
     """
 }
 
-checks = {'wsl': ['wsl', '--version'], 'cuda': "nvcc --version", 'timeout': 10}
-cuda_version = "12.2"
+checks = {'cuda': "nvcc --version", 'timeout': 10}
+cuda_version = "12.5"
 is_check = False
 
 logging.basicConfig(
@@ -68,21 +74,12 @@ def run(cmd):
         log("Command timed out")
     except Exception as e:
         log(f"Failed to run command {cmd}: {e}", logging.ERROR)
-    return None
-
-
-def check_wsl():
-    result = run(checks['wsl'])
-    if result and result.stdout:
-        text = result.stdout.split('\n')[0].split(':', 1)[1].strip()
-        if text:
-            log(f"Detected WSL version: {text}")
-            return True
-    exit("WSL not available. Install WSL. Try: 'wsl --install'")
+        return None
+    return _stdout
 
 
 def check_cuda():
-    result = run(f"{path['wsl_cmd']} \"{checks['cuda']}\"")
+    result = run(checks['cuda'])
     if result and result.stdout:
         log(f"Detected CUDA version: {result.stdout.strip()}")
         for line in result.stdout.split('\n'):
@@ -94,11 +91,17 @@ def check_cuda():
                 else:
                     exit(f"CUDA version {version} is not compatible. "
                          f"Required version: {cuda_version}")
-    exit("CUDA not available. Install CUDA.")
+    log("CUDA not available.")
+    input("\nTo install CUDA 12.5, press any key to continue...")
+    log("Installing CUDA 12.5...")
+    install_result = run(cmd['install_cuda'])
+    if not install_result:
+        exit("Failed to install CUDA 12.5.")
+    log("CUDA 12.5 installed successfully.")
+    return check_cuda()  # Recheck CUDA after installation
 
 
 def check_sys():
-    check_wsl()
     check_cuda()
     log("System check passed.")
 
@@ -117,22 +120,16 @@ def dl():
 
 def run_llama_cpp():
     parser = P(description="Run LLaMA with llama.cpp and CUDA")
-    parser.add_argument('--check', action='store_true', help="Check system")
-    args = parser.parse_args()
+    args = parser.parse_args()  # noqa
 
-    global is_check
-    is_check = args.check
     log("Checking system...")
     check_sys()
-    if is_check:
-        log("System checks completed successfully.")
-        return
 
     log("Checking for models and downloading if needed...")
     dl()
-    result_clean = run(f"{path['wsl_cmd']} \"{cmd['make_clean']}\"")
+    result_clean = run(cmd['make_clean'])
     if result_clean:
-        result_run = run(f"{path['wsl_cmd']} \"{cmd['run_llama']}\"")
+        result_run = run(cmd['run_llama'])
         if not result_run:
             exit("Failed to run LLaMA command.")
     else:
