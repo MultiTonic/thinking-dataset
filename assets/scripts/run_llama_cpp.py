@@ -1,30 +1,24 @@
+# flake8: noqa
 # @file assets/scripts/run_llama_cpp.py
-# @description Download LLaMA model, check system, run llama.cpp with CUDA
-# @version 2.8.8
+# @description Download and install llama-cpp-python with CUDA toolkit and other required Python packages
+# @version 2.9.5
 # @license MIT
 
 import sys
-import os
 import subprocess
 import traceback
-from huggingface_hub import hf_hub_download
 from rich.console import Console
+import signal
 
 console = Console()
 
-path = {
-    'models': os.path.join(os.getcwd(), 'data', 'models'),
-    'repo': 'bartowski/Meta-Llama-3.1-8B-Instruct-GGUF',
-    'model': 'Meta-Llama-3.1-8B-Instruct-Q4_0_4_4.gguf',
-    'prompt': "Your prompt here"
-}
+packages = {'py_pkgs': ['tqdm', 'requests']}
 
 cmd = {
-    'run_llama':
-    (f"llama-cpp-python -m {os.path.join(path['models'], path['model'])} "
-     f"-p '{path['prompt']}'"),
-    'install_cuda':
-    f"{sys.executable} -m pip install llama-cpp-python"
+    'install_py_pkgs':
+    f"{sys.executable} -m pip install {' '.join(packages['py_pkgs'])}",
+    'install_llama_cpp_python':
+    f"{sys.executable} -m pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu124/"
 }
 
 
@@ -35,10 +29,10 @@ def error(msg):
     sys.exit(1)
 
 
-def run_command(command):
-    console.print(f"[blue]Running command:[/blue] {command}")
+def run(cmd):
+    console.print(f"[blue]Running command:[/blue] {cmd}")
     try:
-        process = subprocess.Popen(command,
+        process = subprocess.Popen(cmd,
                                    shell=True,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE,
@@ -61,43 +55,37 @@ def run_command(command):
                 f"{stderr}")
         return stdout, stderr
     except Exception as e:
-        error(f"Failed to run command {command}: {e}")
+        error(f"Failed to run command {cmd}: {e}")
 
 
-def install_llama_cpp():
-    console.print("[green]Starting installation of llama-cpp-python[/green]")
-    stdout, stderr = run_command(cmd['install_cuda'])
-    console.print("[green]Installation of llama-cpp-python "
-                  "completed successfully[/green]")
-
-
-def download_model():
-    console.print("[green]Checking model directory and "
-                  "downloading model if necessary[/green]")
-    if not os.path.exists(path['models']):
-        os.makedirs(path['models'])
-        console.print(
-            f"[green]Created directory for models at {path['models']}[/green]")
-    try:
-        file_path = hf_hub_download(repo_id=path['repo'],
-                                    filename=path['model'],
-                                    local_dir=path['models'])
-        console.print(f"[green]Model downloaded to {file_path}[/green]")
-    except Exception as e:
-        error(f"Failed to download model: {e}")
-
-
-def run_llama():
-    console.print("[green]Running llama-cpp-python[/green]")
-    stdout, stderr = run_command(cmd['run_llama'])
+def install_py_pkgs():
     console.print(
-        "[green]Execution of llama-cpp-python completed successfully[/green]")
+        "[green]Starting installation of required Python packages[/green]")
+    stdout, stderr = run(cmd['install_py_pkgs'])
+    console.print(
+        "[green]Installation of required Python packages completed successfully[/green]"
+    )
+
+
+def install_llama_cpp_python():
+    console.print(
+        "[green]Starting installation of llama-cpp-python with CUDA support[/green]"
+    )
+    stdout, stderr = run(cmd['install_llama_cpp_python'])
+    console.print(
+        "[green]Installation of llama-cpp-python with CUDA support completed successfully[/green]"
+    )
+
+
+def signal_handler(sig, frame):
+    console.print("[red]Installation aborted by user.[/red]")
+    sys.exit(0)
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C
     try:
-        install_llama_cpp()
-        download_model()
-        run_llama()
+        install_py_pkgs()
+        install_llama_cpp_python()
     except Exception as e:
         error(e)
