@@ -19,6 +19,7 @@ class ConfigKeys(Enum):
     ENVIRONMENT = "environment"
     DATABASE_NAME = "database_name"
     ROOT_PATH = "root"
+    TEMPLATES_PATH = "templates"
     DATA_PATH = "data"
     RAW_PATH = "raw"
     PROCESS_PATH = "process"

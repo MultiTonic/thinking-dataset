@@ -139,7 +139,7 @@ pipelines:
         config:
           template: "{{paths.templates}}/generate_cable.json"
     - pipe:
-        type: "SeedTemplatePipe"
+        type: "SeedTemplatesPipe"
         config:
           table: "your_table_name"
           seed_amount: 3

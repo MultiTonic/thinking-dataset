@@ -23,6 +23,8 @@ class ConfigValidator:
             missing.append("database_url")
         if not config.root:
             missing.append("root")
+        if not config.root:
+            missing.append("templates")
         if not config.data:
             missing.append("data")
         if not config.raw:

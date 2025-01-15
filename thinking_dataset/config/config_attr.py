@@ -28,6 +28,8 @@ class ConfigAttr:
         obj.environment = config.get('database', {}).get('env', 'development')
         obj.database_name = config.get('database', {}).get('name')
         obj.root = config.get('paths', {}).get('root', '.')
+        obj.templates = config.get('paths', {}).get('templates',
+                                                    './assets/templates')
         obj.data = config.get('paths', {}).get('data', './data')
         obj.raw = config.get('paths', {}).get('raw', './data/raw')
         obj.process = config.get('paths', {}).get('process', './data/process')
