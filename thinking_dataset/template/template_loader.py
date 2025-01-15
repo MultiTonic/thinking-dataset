@@ -1,6 +1,6 @@
-# @file thinking_dataset/templates/template_loader.py
+# @file thinking_dataset/template/template_loader.py
 # @description Template loader class.
-# @version 1.0.0
+# @version 1.0.1
 # @license MIT
 
 import json
@@ -16,6 +16,7 @@ class TemplateLoader:
     def load(self):
         with open(self.template_path, 'r') as file:
             template = json.load(file)
+
         if self.validator.validate(template):
             return template
         else:

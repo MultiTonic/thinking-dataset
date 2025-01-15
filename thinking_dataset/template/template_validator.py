@@ -1,4 +1,4 @@
-# @file thinking_dataset/templates/template_validator.py
+# @file thinking_dataset/template/template_validator.py
 # @description Template validation class.
 # @version 1.0.0
 # @license MIT

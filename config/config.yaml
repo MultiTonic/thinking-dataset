@@ -137,9 +137,10 @@ pipelines:
     - pipe:
         type: "LoadTemplatesPipe"
         config:
+          flush: True
           template: "{{paths.templates}}/generate_cable.json"
     - pipe:
         type: "SeedTemplatesPipe"
         config:
-          table: "your_table_name"
+          table: "train-00000-of-00001"
           seed_amount: 3
