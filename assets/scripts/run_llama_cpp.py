@@ -18,31 +18,28 @@ path = {
 }
 
 cmd = {
-    'make_clean':
-    f"""
+    'make_clean': f"""
         cd {path['llama']} && \\
         make clean && make CUBLAS=1
     """,
-    'run_llama':
-    f"""
+    'run_llama': f"""
         ./main -m {os.path.join(path['models'], path['model'])} \\
         -p "{path['prompt']}"
     """,
-    'install_cuda':
-    """
-        pip install llama-cpp-python \\
-        --extra-index-url \\
-        https://abetlen.github.io/llama-cpp-python/whl/cu125 \\
-        --force-reinstall
+    'install_cuda': f"""
+        {sys.executable} -m pip install llama-cpp-python --force-reinstall
+    """,
+    'python_version': f"""
+        {sys.executable} --version
     """
 }
 
 checks = {'cuda': "nvcc --version", 'timeout': 10}
 cuda_version = "12.5"
-is_check = False
+installation_attempted = False
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="[%(levelname)s] %(message)s",
     datefmt="[%X]",
     handlers=[RichHandler(rich_tracebacks=True, show_path=False)])
@@ -63,11 +60,14 @@ def exit(msg, code=1):
 
 
 def run(cmd):
+    log(f"Running command: {cmd}", logging.DEBUG)
     try:
         _stdout = subprocess.run(cmd,
                                  capture_output=True,
                                  text=True,
-                                 timeout=checks['timeout'])
+                                 timeout=checks['timeout'],
+                                 shell=True)
+        log(f"Command output: {_stdout.stdout}", logging.DEBUG)
         if _stdout and _stdout.returncode == 0:
             return _stdout
     except subprocess.TimeoutExpired:
@@ -75,10 +75,13 @@ def run(cmd):
     except Exception as e:
         log(f"Failed to run command {cmd}: {e}", logging.ERROR)
         return None
+    log(f"Command failed with return code: {_stdout.returncode}",
+        logging.DEBUG)
     return _stdout
 
 
 def check_cuda():
+    global installation_attempted
     result = run(checks['cuda'])
     if result and result.stdout:
         log(f"Detected CUDA version: {result.stdout.strip()}")
@@ -92,20 +95,24 @@ def check_cuda():
                     exit(f"CUDA version {version} is not compatible. "
                          f"Required version: {cuda_version}")
     log("CUDA not available.")
-    print("")
-    log("Installing CUDA 12.5 automatically...")
-    print("")
-    os.system('pause')
-    install_result = run(cmd['install_cuda'])
-    if not install_result:
-        exit("Failed to install CUDA 12.5.")
-    log("CUDA 12.5 installed successfully.")
-    return check_cuda()
+    if not installation_attempted:
+        log("Installing CUDA 12.5 automatically...")
+        install_result = run(cmd['install_cuda'])
+        installation_attempted = True
+        if not install_result:
+            exit("Failed to install CUDA 12.5.")
+        log("CUDA 12.5 installed successfully.")
+        return check_cuda()
+    else:
+        exit("Failed to detect CUDA after attempted installation.")
+    return False
 
 
 def check_sys():
-    check_cuda()
-    log("System check passed.")
+    if check_cuda():
+        log("System check passed.")
+    else:
+        log("System check failed.")
 
 
 def dl():
@@ -126,6 +133,13 @@ def run_llama_cpp():
 
     log("Checking system...")
     check_sys()
+
+    log("Running basic Python version command for testing...")
+    result_python_version = run(cmd['python_version'])
+    if result_python_version:
+        log("Python version command executed successfully.")
+    else:
+        log("Failed to execute Python version command.")
 
     log("Checking for models and downloading if needed...")
     dl()
