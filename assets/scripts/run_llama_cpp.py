@@ -1,6 +1,6 @@
 # @file assets/scripts/run_llama_cpp.py
 # @description Download LLaMA model, check system, run llama.cpp with CUDA
-# @version 2.8.5
+# @version 2.8.6
 # @license MIT
 
 import sys, os, subprocess, argparse, logging, inspect  # noqa
@@ -92,13 +92,15 @@ def check_cuda():
                     exit(f"CUDA version {version} is not compatible. "
                          f"Required version: {cuda_version}")
     log("CUDA not available.")
-    input("\nTo install CUDA 12.5, press any key to continue...")
-    log("Installing CUDA 12.5...")
+    print("")
+    log("Installing CUDA 12.5 automatically...")
+    print("")
+    os.system('pause')
     install_result = run(cmd['install_cuda'])
     if not install_result:
         exit("Failed to install CUDA 12.5.")
     log("CUDA 12.5 installed successfully.")
-    return check_cuda()  # Recheck CUDA after installation
+    return check_cuda()
 
 
 def check_sys():
