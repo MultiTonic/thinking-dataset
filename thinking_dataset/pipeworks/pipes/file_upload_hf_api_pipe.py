@@ -14,7 +14,7 @@ from .pipe import Pipe
 from huggingface_hub import CommitInfo
 from thinking_dataset.utils.log import Log
 from thinking_dataset.io.files import Files
-from thinking_dataset.tonics.data_tonic import DataTonic
+from thinking_dataset.data.data_tonic import DataTonic
 from thinking_dataset.utils.text_utils import TextUtils as text
 from thinking_dataset.utils.command_utils import CommandUtils as utils
 

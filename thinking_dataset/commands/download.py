@@ -7,7 +7,7 @@ import click
 import thinking_dataset.config as conf
 import thinking_dataset.config.config_keys as keys
 import thinking_dataset.dataset as td
-from ..tonics.data_tonic import DataTonic
+from ..data.data_tonic import DataTonic
 from thinking_dataset.utils.log import Log
 from thinking_dataset.utils.exceptions import exceptions
 

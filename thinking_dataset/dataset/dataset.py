@@ -7,7 +7,7 @@ import thinking_dataset.config.config_keys as keys
 
 from typing import List, Optional
 from thinking_dataset.db.database import Database
-from thinking_dataset.tonics.data_tonic import DataTonic
+from thinking_dataset.data.data_tonic import DataTonic
 from thinking_dataset.dataset.dataset_keys import DatasetKeys as DK
 from thinking_dataset.dataset.dataset_operator import DatasetOperator as OP
 from thinking_dataset.dataset.dataset_validator import DatasetValidator as Val

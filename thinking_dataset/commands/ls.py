@@ -9,7 +9,7 @@ import thinking_dataset.config.config_keys as Keys
 import thinking_dataset.dataset as Dataset
 
 from thinking_dataset.utils.log import Log as log
-from thinking_dataset.tonics.data_tonic import DataTonic
+from thinking_dataset.data.data_tonic import DataTonic
 from thinking_dataset.utils.exceptions import exceptions
 
 CK = Keys.ConfigKeys

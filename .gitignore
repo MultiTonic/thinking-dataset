@@ -172,5 +172,5 @@ cython_debug/
 .vscode
 
 # Dataset Data
-[Dd]ata/
+/[Dd]ata/
 assets/resources/DB.Browser.for.SQLite-v3.13.1-win64/

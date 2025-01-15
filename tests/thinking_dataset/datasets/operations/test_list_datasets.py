@@ -13,7 +13,7 @@ import pytest
 from unittest.mock import patch
 from dotenv import load_dotenv
 from loguru import logger
-from thinking_dataset.tonics.data_tonic import DataTonic
+from thinking_dataset.data.data_tonic import DataTonic
 from thinking_dataset.dataset.operations.list_datasets import ListDatasets
 from thinking_dataset.utils.text_utils import TextUtils
 

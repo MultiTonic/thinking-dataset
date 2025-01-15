@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 from unittest.mock import patch
 from rich.console import Console
 from contextlib import redirect_stdout
-from thinking_dataset.tonics.data_tonic \
+from thinking_dataset.data.data_tonic \
     import DataTonic
 from thinking_dataset.commands.download \
     import (load_env_variables,
