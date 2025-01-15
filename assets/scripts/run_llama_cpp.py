@@ -1,145 +1,143 @@
 # @file assets/scripts/run_llama_cpp.py
 # @description Download LLaMA model, check system, run llama.cpp with CUDA
-# @version 2.6.9
+# @version 2.7.11
 # @license MIT
 
-import sys
-import os
-import subprocess
-import argparse
+import sys, os, subprocess, argparse, logging, inspect  # noqa
 from huggingface_hub import hf_hub_download
 from rich.logging import RichHandler
-import logging
 
-paths = {
-    'models': os.path.join(os.getcwd(), 'data', 'models', '8B'),
+P = argparse.ArgumentParser
+
+path = {
+    'models': os.path.join(os.getcwd(), 'data', 'models'),
     'repo': 'bartowski/Meta-Llama-3.1-8B-Instruct-GGUF',
     'model': 'Meta-Llama-3.1-8B-Instruct-Q4_0_4_4.gguf',
     'llama': "/path/to/llama.cpp",
     'prompt': "Your prompt here",
     'wsl_cmd': "wsl -e bash -c"
 }
-checks = {'wsl': ['wsl', '--version'], 'timeout': 10}
+
 cmd = {
     'make_clean':
     f"""
-    cd {paths['llama']} && \\
-    make clean && make CUBLAS=1
+        cd {path['llama']} && \\
+        make clean && make CUBLAS=1
     """,
     'run_llama':
     f"""
-    ./main -m {os.path.join(paths['models'], paths['model'])} \\
-    -p "{paths['prompt']}"
+        ./main -m {os.path.join(path['models'], path['model'])} \\
+        -p "{path['prompt']}"
     """
 }
 
+checks = {'wsl': ['wsl', '--version'], 'cuda': "nvcc --version", 'timeout': 10}
+cuda_version = "12.2"
 is_check = False
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(levelname)s] %(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True, show_path=False)])
 
-def _log():
-    logging.basicConfig(level=logging.INFO,
-                        format="%(message)s",
-                        datefmt="[%X]",
-                        handlers=[RichHandler()])
-    return logging.getLogger("rich")
-
-
-log = _log()
+logger = logging.getLogger("rich")
 
 
-def log_msg(msg, level=logging.INFO):
-    log.log(level, msg)
+def log(msg, level=logging.INFO):
+    frame = inspect.stack()[1]
+    filename = os.path.basename(frame.filename)
+    lineno = frame.lineno
+    logger.log(level, f"{msg} ({filename}:{lineno})")
 
 
-def exit_script(msg, code=1):
-    log_msg(msg, logging.ERROR if code else logging.INFO)
+def exit(msg, code=1):
+    log(msg, logging.ERROR if code else logging.INFO)
     sys.exit(code)
 
 
-def run_cmd(cmd):
+def run(cmd):
     try:
-        result = subprocess.run(cmd,
-                                capture_output=True,
-                                text=True,
-                                timeout=checks['timeout'])
-        if result and result.returncode == 0:
-            return result
+        _stdout = subprocess.run(cmd,
+                                 capture_output=True,
+                                 text=True,
+                                 timeout=checks['timeout'])
+        if _stdout and _stdout.returncode == 0:
+            return _stdout
     except subprocess.TimeoutExpired:
-        log_msg("Command timed out")
+        log("Command timed out")
     except Exception as e:
-        log_msg(f"Failed to run command {cmd}: {e}", logging.ERROR)
+        log(f"Failed to run command {cmd}: {e}", logging.ERROR)
     return None
 
 
 def check_wsl():
-    log_msg("Checking WSL installation...")
-    result = run_cmd(checks['wsl'])
+    result = run(checks['wsl'])
     if result and result.stdout:
-        version_line = result.stdout.split('\n')[0]
-        truncated_version = version_line.split(':', 1)[1].strip()
-        if truncated_version:
-            log_msg(f"Detected WSL version: {truncated_version}")
+        text = result.stdout.split('\n')[0].split(':', 1)[1].strip()
+        if text:
+            log(f"Detected WSL version: {text}")
             return True
-    log_msg("WSL not installed or failed to detect WSL version.")
-    exit_script("WSL not available. Install WSL. Try: 'wsl --install'")
+    exit("WSL not available. Install WSL. Try: 'wsl --install'")
+
+
+def check_cuda():
+    result = run(f"{path['wsl_cmd']} \"{checks['cuda']}\"")
+    if result and result.stdout:
+        log(f"Detected CUDA version: {result.stdout.strip()}")
+        for line in result.stdout.split('\n'):
+            if "release" in line:
+                version = line.split()[-1]
+                if version >= cuda_version:
+                    log(f"CUDA version {version} is compatible.")
+                    return True
+                else:
+                    exit(f"CUDA version {version} is not compatible. "
+                         f"Required version: {cuda_version}")
+    exit("CUDA not available. Install CUDA.")
 
 
 def check_sys():
     check_wsl()
-    log_msg("System check passed.")
+    check_cuda()
+    log("System check passed.")
 
 
-def download():
-    if not os.path.exists(paths['models']):
-        os.makedirs(paths['models'])
-        log_msg(f"Creating models dir at {paths['models']}")
-    log_msg("Checking if models need download from Hugging Face Hub...")
+def dl():
+    if not os.path.exists(path['models']):
+        os.makedirs(path['models'])
     try:
-        model_path = hf_hub_download(repo_id=paths['repo'],
-                                     filename=paths['model'],
-                                     local_dir=paths['models'])
-        log_msg(f"Model downloaded and saved to {model_path}")
+        file_path = hf_hub_download(repo_id=path['repo'],
+                                    filename=path['model'],
+                                    local_dir=path['models'])
+        log(f"Model downloaded to {file_path}")
     except Exception as e:
-        exit_script(f"Failed to download model: {e}")
+        exit(f"Failed to download model: {e}")
 
 
-def run_llama():
-    parser = argparse.ArgumentParser(
-        description="Run LLaMA with llama.cpp and CUDA")
+def run_llama_cpp():
+    parser = P(description="Run LLaMA with llama.cpp and CUDA")
     parser.add_argument('--check', action='store_true', help="Check system")
-    parser.add_argument('--bypass',
-                        action='store_true',
-                        help="Bypass system check")
-
     args = parser.parse_args()
 
     global is_check
     is_check = args.check
-
-    if not args.bypass:
-        log_msg("Checking system...")
-        check_sys()
-
+    log("Checking system...")
+    check_sys()
     if is_check:
-        log_msg("System checks completed successfully.")
+        log("System checks completed successfully.")
         return
 
-    log_msg("Checking for models and downloading if needed...")
-    download()
-
-    wsl_command_clean = f"{paths['wsl_cmd']} \"{cmd['make_clean']}\""
-    wsl_command_run = f"{paths['wsl_cmd']} \"{cmd['run_llama']}\""
-    log_msg(f"Executing WSL make clean command: {wsl_command_clean}")
-    result_clean = run_cmd(wsl_command_clean)
-
+    log("Checking for models and downloading if needed...")
+    dl()
+    result_clean = run(f"{path['wsl_cmd']} \"{cmd['make_clean']}\"")
     if result_clean:
-        log_msg(f"Executing WSL run command: {wsl_command_run}")
-        result_run = run_cmd(wsl_command_run)
+        result_run = run(f"{path['wsl_cmd']} \"{cmd['run_llama']}\"")
         if not result_run:
-            exit_script("Failed to run LLaMA command.")
+            exit("Failed to run LLaMA command.")
     else:
-        exit_script("Failed to clean and build LLaMA.")
+        exit("Failed to clean and build LLaMA.")
 
 
 if __name__ == "__main__":
-    run_llama()
+    run_llama_cpp()
