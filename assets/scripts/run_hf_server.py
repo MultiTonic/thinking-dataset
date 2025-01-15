@@ -1,8 +1,8 @@
-# @file assets/scripts/run_hf_serve.py
+# @file run_hf_server.py
 # @description Simple HTTP server that handles only JSON
-# @version 1.0.1
+# @version 1.0.4
 # @license MIT
-# flake8: qa
+# flake8: noqa
 
 import sys, subprocess, traceback, importlib  # noqa
 from rich.console import Console
@@ -10,11 +10,13 @@ from rich.console import Console
 app = None
 console = Console()
 
-packages = {'py': ['flask', 'tqdm', 'requests', 'huggingface_hub']}
-
 cmd = {
-    'install_pkgs':
-    f"{sys.executable} -m pip install {' '.join(packages['py'])}"
+    'install_flask':
+    f"{sys.executable} -m pip install flask",
+    'install_transformers':
+    f"{sys.executable} -m pip install transformers",
+    'install_torch':
+    f"{sys.executable} -m pip install torch --index-url https://download.pytorch.org/whl/cu124"
 }
 
 
@@ -65,35 +67,70 @@ def dynamic_import(package_name):
         raise
 
 
-def install_pkgs():
-    log("[green]Starting installation of required Python packages[/green]")
+def install_flask():
+    log("[green]Starting installation of Flask[/green]")
     try:
-        run(cmd['install_pkgs'])
-        log("[green]Installation of required Python "
-            "packages completed successfully[/green]")
+        run(cmd['install_flask'])
+        log("[green]Installation of Flask completed successfully[/green]")
     except Exception as e:
-        return error(f"Failed to install Python packages: {e}")
+        return error(f"Failed to install Flask: {e}")
+
+
+def install_transformers():
+    log("[green]Starting installation of Transformers[/green]")
+    try:
+        run(cmd['install_transformers'])
+        log("[green]Installation of Transformers completed successfully[/green]"
+            )
+    except Exception as e:
+        return error(f"Failed to install Transformers: {e}")
+
+
+def install_torch():
+    log("[green]Starting installation of torch[/green]")
+    try:
+        run(cmd['install_torch'])
+        log("[green]Installation of torch completed successfully[/green]")
+    except Exception as e:
+        return error(f"Failed to install torch: {e}")
+
+
+def initialize():
+    install_flask()
+    install_transformers()
+    install_torch()
+
+    flask = dynamic_import('flask')
+    global Flask, request, jsonify
+    Flask = flask.Flask
+    request = flask.request
+    jsonify = flask.jsonify
+
+    transformers = dynamic_import('transformers')
+    global pipeline
+    pipeline = transformers.pipeline
+
+    # Create an instance of the pipeline and test text completion
+    pipe = pipeline("text-generation",
+                    model="meta-llama/Llama-3.1-8B-Instruct")
+
+    messages = [
+        {
+            "role": "user",
+            "content": "Who are you?"
+        },
+    ]
+
+    response = pipe(messages)
+    print(response)
+
+    global app
+    app = Flask(__name__)
 
 
 if __name__ == "__main__":
     try:
-        install_pkgs()
-
-        flask = dynamic_import('flask')
-        global Flask, request, jsonify
-        Flask = flask.Flask
-        request = flask.request
-        jsonify = flask.jsonify
-
-        app = Flask(__name__)
-
-        @app.route('/install_pkgs', methods=['POST'])
-        def install_pkgs_route():
-            result = install_pkgs()
-            if "error" in result:
-                return jsonify(result), 500
-            return jsonify({"status": "success"})
-
+        initialize()
         app.run(host='0.0.0.0', port=5000)
     except Exception as e:
         error(f"Failed to start server: {e}")
