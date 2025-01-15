@@ -1,6 +1,6 @@
 # @file config/config.yaml
 # @description Configuration for the Cablegate PDF Dataset Project
-# @version 1.0.6
+# @version 1.0.7
 # @license MIT
 
 dataset:
@@ -8,6 +8,7 @@ dataset:
   type: "parquet"
 paths:
   root: "."
+  assets: "./assets"
   data: "./data"
   raw: "./data/raw"
   process: "./data/process"
@@ -15,6 +16,7 @@ paths:
   export: "./data/export"
   processed_data: "processed_data"
   processed_data_train: "{{paths.processed_data}}/train"
+  templates: "{{paths.assets}}/templates"
 database:
   env: "development"
   name: "thinking-dataset"
@@ -126,3 +128,18 @@ pipelines:
           repo_type: "dataset"
           remote_path: "{{paths.processed_data_train}}"
           dry_run: False
+- pipeline:
+    name: "generate"
+    description: "Generate synthetic data pipeline"
+    config:
+      limit: 1
+    pipes:
+    - pipe:
+        type: "LoadTemplatesPipe"
+        config:
+          template: "{{paths.templates}}/generate_cable.json"
+    - pipe:
+        type: "SeedTemplatePipe"
+        config:
+          table: "your_table_name"
+          seed_amount: 3
