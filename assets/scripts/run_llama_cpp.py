@@ -11,6 +11,7 @@ from rich.console import Console
 import signal
 import os
 from huggingface_hub import hf_hub_download
+import llama_cpp
 
 console = Console()
 
@@ -100,6 +101,7 @@ def download_model():
         console.print(f"[green]Model downloaded to {file_path}[/green]")
     except Exception as e:
         error(f"Failed to download model: {e}")
+    return file_path
 
 
 def signal_handler(sig, frame):
@@ -112,6 +114,13 @@ if __name__ == "__main__":
     try:
         install_py_pkgs()
         install_llama_cpp_python()
-        download_model()
+        model_path = download_model()
+
+        # Basic usage example
+        model = llama_cpp.Llama(model_path=model_path)
+        print(
+            model("The quick brown fox jumps ",
+                  stop=["."])["choices"][0]["text"])
+
     except Exception as e:
         error(e)
