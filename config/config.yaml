@@ -14,6 +14,7 @@ paths:
   process: "./data/process"
   database: "./data/db"
   export: "./data/export"
+  generate: "./data/generate"
   processed_data: "processed_data"
   processed_data_train: "{{paths.processed_data}}/train"
   templates: "{{paths.assets}}/templates"
@@ -409,4 +410,8 @@ pipelines:
           seed_offset: 0
           limit: 3
           batch_size: 1000000
+          shard_size: 4096
           offset: 0
+          save: True
+          save_path: "{{paths.generate}}"
+          save_file: "seed-templates-pipe-{batch_info}.{{dataset.type}}"

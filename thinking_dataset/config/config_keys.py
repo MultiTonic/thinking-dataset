@@ -24,6 +24,7 @@ class ConfigKeys(Enum):
     RAW_PATH = "raw"
     PROCESS_PATH = "process"
     EXPORT_PATH = "export"
+    GENERATE_PATH = "generate"
     DATABASE_PATH = "database"
     PROCESSED_DATA_PATH = "processed_data"
     PROCESSED_DATA_TRAIN_PATH = "processed_data/train"

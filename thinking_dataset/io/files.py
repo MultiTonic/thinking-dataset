@@ -55,20 +55,17 @@ class Files:
     @staticmethod
     def make_dir(path):
         os.makedirs(path, exist_ok=True)
-        Log.info(f"Made directory: {path}")
 
     @staticmethod
     def remove_dir(path):
         abs_path = os.path.abspath(path)
         if Files.exists(abs_path):
             shutil.rmtree(abs_path)
-            Log.info(f"Removed directory: {abs_path}")
 
     @staticmethod
     def remove_file(path):
         if Files.exists(path):
             os.remove(path)
-            Log.info(f"Removed file: {path}")
 
     @staticmethod
     def list(dir_path, file_extension=None):

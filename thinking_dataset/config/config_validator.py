@@ -33,6 +33,8 @@ class ConfigValidator:
             missing.append("process")
         if not config.export:
             missing.append("export")
+        if not config.export:
+            missing.append("generate")
         if not config.database:
             missing.append("database")
         if not config.include_files:

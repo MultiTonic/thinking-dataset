@@ -34,6 +34,8 @@ class ConfigAttr:
         obj.raw = config.get('paths', {}).get('raw', './data/raw')
         obj.process = config.get('paths', {}).get('process', './data/process')
         obj.export = config.get('paths', {}).get('export', './data/export')
+        obj.generate = config.get('paths', {}).get('generate',
+                                                   './data/generate')
         obj.database = config.get('paths', {}).get('database', './data/db')
         obj.include_files = config.get('files', {}).get('include', [])
         obj.exclude_files = config.get('files', {}).get('exclude', [])
