@@ -22,5 +22,4 @@ if __name__ == "__main__":
     ]
 
     for command in commands:
-        print(f"Running command: {command}")
         run_command(command)

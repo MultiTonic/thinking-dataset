@@ -12,12 +12,12 @@ from ..pipeworks.pipelines.pipeline import Pipeline
 @click.command()
 @exceptions
 def generate():
-    Log.info("Starting the gen command.")
+    Log.info("Starting the generate command.")
 
     pipeline = Pipeline("generate")
     pipeline.open(skip_files=True)
 
-    Log.info("Gen command completed successfully.")
+    Log.info("Generate command completed successfully.")
 
 
 if __name__ == "__main__":

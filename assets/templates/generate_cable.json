@@ -41,11 +41,7 @@
             "output": "[Your final, concise answer to the query. This is the only part that will be shown to the user.]"
         }
     },
-    "inspiration": [
-        "{{seed1}}",
-        "{{seed2}}",
-        "{{seed3}}"
-    ],
+    "inspiration": "{{inject_seeds}}",
     "example": {
         "objective": "To secure favorable terms in a bilateral trade agreement.",
         "arguments": [

@@ -1,6 +1,6 @@
 # @file thinking_dataset/db/operations/get_session.py
 # @description Handles getting a database session.
-# @version 1.0.0
+# @version 1.0.1
 # @license MIT
 
 from .database_operation import DatabaseOperation
@@ -15,8 +15,8 @@ class GetSession(DatabaseOperation):
 
     def __init__(self, database):
         super().__init__(database)
-        self.log = Log._setup(self.__class__.__name__)
         self.session_store = DatabaseSession(database.engine)
+        Log.info("GetSession initialized successfully")
 
     def __enter__(self):
         return self.session_store.get()
@@ -24,7 +24,7 @@ class GetSession(DatabaseOperation):
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type:
             self.session_store.rollback()
-            Log.error(self.log, f"Session error: {exc_val}")
+            Log.error(f"Session error: {exc_val}")
         else:
             self.session_store.commit()
 
@@ -33,4 +33,4 @@ class GetSession(DatabaseOperation):
             with self:
                 pass
         except Exception as e:
-            Log.error(self.log, f"Failed to get session: {e}")
+            Log.error(f"Failed to get session: {e}")

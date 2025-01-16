@@ -1,6 +1,6 @@
 # @file thinking_dataset/db/operations/fetch.py
 # @description Defines a concrete class for fetching data from the database.
-# @version 1.0.0
+# @version 1.0.1
 # @license MIT
 
 from sqlalchemy import text
@@ -16,7 +16,6 @@ class Fetch(DatabaseOperation):
     def __init__(self, database, query: str):
         super().__init__(database)
         self.query = query
-        self.log = Log.setup(self.__class__.__name__)
 
     def execute(self):
         try:
@@ -25,5 +24,5 @@ class Fetch(DatabaseOperation):
                 Log.info("Query executed successfully")
                 return result
         except Exception as e:
-            Log.error(self.log, f"Error fetching data: {e}")
+            Log.error(f"Error fetching data: {e}")
             return []

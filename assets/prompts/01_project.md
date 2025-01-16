@@ -115,46 +115,47 @@ This template provides guidelines and best practices for working on the project.
 
 ```
 thinking-dataset/
-├── config/                 # Configuration files
-├── assets/                 # Assets directory for external resources
-│   ├── prompts/            # Prompts templates for development
+├── config/                 # Config files
+├── assets/                 # External resources
+│   ├── prompts/            # Markdown templates
 │   ├── scripts/            # Utility scripts
 │   ├── resources/          # External project data
-├── config/                 # Configuration directory for local settings
+│   ├── templates/          # JSON prompt templates
+├── config/                 # Local settings
 ├── data/                   # Data directory
-├── docs/                   # Project documentation
+├── docs/                   # Documentation
 ├── prompts/                # Prompt templates
 ├── reports/                # Generated reports
 ├── tests/                  # Test files
 ├── thinking_dataset/       # Core project code
 │   ├── commands/           # CLI command implementations
 │   ├── connectors/         # Data connectors
-│   ├── config/             # Configuration loaders and management
-│   ├── datasets/           # Dataset definitions and processing
-│   │   ├── operations/     # Data operations and transformations
+│   ├── config/             # Configuration management
+│   ├── datasets/           # Dataset processing
+│   │   ├── operations/     # Data transformations
 │   ├── db/                 # Database support
-│   │   ├── operations/     # Database operations and transactions
+│   │   ├── operations/     # Database ops and transactions
 │   ├── io/                 # File I/O operations
-│   ├── pipeworks/          # Pipelines and pipes for data processing
-│   │   ├── pipelines/      # Pipeline management and control
-│   │   ├── pipes/          # Pipes used for data frame processing
+│   ├── pipeworks/          # Data pipelines and processing
+│   │   ├── pipelines/      # Pipeline management
+│   │   ├── pipes/          # Data frame processing pipes
 │   ├── tonics/             # Data utility functions and helpers
 │   ├── utilities/          # General-purpose utility helpers
 │   ├── main.py             # Main execution file
 └── setup.py                # Project setup
-└── .env                    # Private Environment variables file
+└── .env                    # Private Environment variables
 ```
 
 ### 7. Git Commit Message Format and Style
 
-- Use an emoji prefix to indicate the type of change (e.g., ✨ for features, 🐛 for bug fixes).
+- Use an emoji prefix to indicate the type of change (e.g., ✨ for features, 🐛 for bug fixes, etc.).
 - Follow with a brief, descriptive title.
 - Include a detailed description of the changes made, organized into bullet points if necessary.
 
 **Example:**
 
 ```
-✨feat: Enhance dataset management with config improvements and error handling
+✨ feat: Enhance dataset management with config improvements and error handling
 
 - Refactored dataset management commands to utilize configuration from `dataset_config.yaml`.
 - Consolidated ROOT_DIR, DATA_DIR, and DB_DIR into `paths` section in `dataset_config.yaml`.
@@ -182,6 +183,10 @@ Co-authored-by: Microsoft Copilot <copilot@microsoft.com>
 - **Foundation of Facts**: Ensure all responses are based on verified and credible information.
 - **Avoid Speculation**: Refrain from providing speculative or unverified answers.
 - **Prioritize Accuracy**: Focus on delivering accurate and reliable information in all responses.
+- **Advanced Rationale**: Always think about what you will do before doing it and afterwhich reflect on your thoughts.
+- **Thought Formatting**: Never return your thoughts or reflections to the user.
+- **Thoughtful Responses**: Only return response using your own thoughts and reflections.
+
 
 ### 10. Signify All Clear
 

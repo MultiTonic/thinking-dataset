@@ -1,6 +1,6 @@
 # @file thinking_dataset/db/operations/query.py
 # @description Defines a concrete class for executing a query on the database.
-# @version 1.0.0
+# @version 1.0.1
 # @license MIT
 
 from sqlalchemy import text
@@ -16,7 +16,7 @@ class Query(DatabaseOperation):
     def __init__(self, database, query: str):
         super().__init__(database)
         self.query = query
-        self.log = Log._setup(self.__class__.__name__)
+        Log.info("Query initialized successfully")
 
     def execute(self):
         try:
@@ -25,4 +25,4 @@ class Query(DatabaseOperation):
                 connection.commit()
                 Log.info("Query executed successfully")
         except Exception as e:
-            Log.error(self.log, f"Error executing query: {e}")
+            Log.error(f"Error executing query: {e}")

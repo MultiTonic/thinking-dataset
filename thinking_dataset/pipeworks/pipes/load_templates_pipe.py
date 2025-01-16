@@ -1,6 +1,6 @@
 # @file thinking_dataset/pipeworks/pipes/load_templates_pipe.py
 # @description Pipe for loading templates.
-# @version 1.0.10
+# @version 1.0.16
 # @license MIT
 
 import pandas as pd
@@ -11,53 +11,39 @@ from thinking_dataset.template.template_schema import TemplateSchema
 
 
 class LoadTemplatesPipe(Pipe):
-    """
-    Pipe to load templates from the specified path.
-    """
 
     def __init__(self, config):
         super().__init__(config)
         self.template_schema = TemplateSchema.GENERATE_CABLE
 
-    def _create_df(self):
-        """
-        Private method to create the DataFrame with the necessary columns.
-        """
-        columns = ['template']
+    def _create_df(self) -> pd.DataFrame:
+        columns = ['id', 'query']
         df = pd.DataFrame(columns=columns)
-        df.loc[0] = [None]
+        df.loc[0] = [None, None]
         return df
 
-    def _get_template_path(self):
-        """
-        Private method to retrieve the template path from the configuration.
-        """
+    def _get_template_path(self) -> str:
         template = self.config.get("template")
-        Log.info(f"Config template path: {template}")
+        Log.info(f"Template path: {template}")
 
         if template is None:
             raise ValueError("Template path is not set in the configuration")
 
         return template
 
-    def _load_template(self, template_path):
-        """
-        Private method to load the template from the specified path.
-        """
+    def _load_template(self, template_path: str) -> str:
         loader = TemplateLoader(template_path, self.template_schema)
         template = loader.load()
         return template
 
-    def _populate_template(self, df):
-        """
-        Private method to populate the DataFrame with the loaded template.
-        """
-        template_path = self._get_template_path()
-        template = self._load_template(template_path)
-        df['template'] = [template] * len(df)
+    def _populate_template(self, df: pd.DataFrame) -> pd.DataFrame:
+        path = self._get_template_path()
+        template = self._load_template(path)
+        df['query'] = [template] * len(df)
+        df['id'] = range(1, len(df) + 1)
         return df
 
-    def flow(self, df, **kwargs):
+    def flow(self, df: pd.DataFrame, **kwargs) -> pd.DataFrame:
         Log.info("Starting LoadTemplatesPipe")
 
         flush = self.config.get("flush", True)

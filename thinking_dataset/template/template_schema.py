@@ -1,6 +1,6 @@
 # @file thinking_dataset/template/template_schema.py
 # @description Defines the schema for templates.
-# @version 1.0.0
+# @version 1.1.2
 # @license MIT
 
 

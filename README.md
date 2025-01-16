@@ -108,6 +108,7 @@ thinking-dataset/
 │   ├── prompts/            # Prompt templates
 │   ├── scripts/            # Utility scripts
 │   ├── resources/          # External project data
+│   ├── templates/          # JSON prompt templates
 ├── data/                   # Data directory
 ├── docs/                   # Project documentation
 ├── reports/                # Generated reports

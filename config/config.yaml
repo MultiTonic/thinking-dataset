@@ -131,8 +131,7 @@ pipelines:
 - pipeline:
     name: "generate"
     description: "Generate synthetic data pipeline"
-    config:
-      limit: 1
+    config: {}
     pipes:
     - pipe:
         type: "LoadTemplatesPipe"
@@ -142,5 +141,11 @@ pipelines:
     - pipe:
         type: "SeedTemplatesPipe"
         config:
-          table: "train-00000-of-00001"
-          seed_amount: 3
+          tables:
+          - table: "train-00000-of-00001"
+            columns: [ "cable" ]
+          seed_length: 1000
+          seed_offset: 0
+          limit: 3
+          batch_size: 100
+          offset: 0

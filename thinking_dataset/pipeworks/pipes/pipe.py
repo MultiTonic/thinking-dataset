@@ -1,6 +1,6 @@
 # @file thinking_dataset/pipeworks/pipes/pipe.py
 # @description Defines BasePipe class for preprocessing tasks with logging.
-# @version 1.1.2
+# @version 1.1.4
 # @license MIT
 
 import time
@@ -12,6 +12,8 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from thinking_dataset.utils.log import Log
 from thinking_dataset.utils.command_utils import CommandUtils as utils
+import signal
+import sys
 
 
 class Pipe(ABC):
@@ -19,8 +21,11 @@ class Pipe(ABC):
     Base class for preprocessing tasks.
     """
 
+    abort_flag = threading.Event()
+
     def __init__(self, config: dict):
         self.config = config
+        signal.signal(signal.SIGINT, self.signal_handler)  # Handle Ctrl+C
 
     @abstractmethod
     def flow(self, df, **args):
@@ -78,3 +83,9 @@ class Pipe(ABC):
 
         return pd.Series([future.result() for future in results],
                          index=series.index)
+
+    @staticmethod
+    def signal_handler(sig, frame):
+        Log.error("Process aborted by user.")
+        Pipe.abort_flag.set()
+        sys.exit(0)
