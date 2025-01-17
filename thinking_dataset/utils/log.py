@@ -42,7 +42,7 @@ class Log:
                         handlers=[log.StreamHandler(sys.stdout)])
 
         logger = log.getLogger('sqlalchemy.engine')
-        logger.setLevel(Log._level)
+        logger.setLevel(Log.ERROR)
         logger.propagate = False
 
         Log._instance = log.getLogger("thinking-dataset")

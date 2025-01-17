@@ -403,15 +403,13 @@ pipelines:
     - pipe:
         type: "SeedTemplatesPipe"
         config:
-          tables:
+          input:
           - table: "train-00000-of-00001"
             columns: [ "cable" ]
+          output:
+          - table: "cables"
+            columns: [ "query" ]
+          seed_amount: 3
           seed_length: 10000
           seed_offset: 0
-          limit: 3
           batch_size: 1000000
-          shard_size: 4096
-          offset: 0
-          save: True
-          save_path: "{{paths.generate}}"
-          save_file: "seed-templates-pipe-{batch_info}.{{dataset.type}}"
