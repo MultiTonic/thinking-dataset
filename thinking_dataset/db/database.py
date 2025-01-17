@@ -1,6 +1,6 @@
 # @file thinking_dataset/db/database.py
 # @description Implementation of the Database class.
-# @version 1.1.6
+# @version 1.1.7
 # @license MIT
 
 import os
@@ -14,6 +14,7 @@ from .operations.query import Query
 from .operations.fetch import Fetch
 from .database_session import DatabaseSession as Session
 from thinking_dataset.utils.log import Log
+import logging
 
 CK = keys.ConfigKeys
 
@@ -47,7 +48,13 @@ class Database:
             pool_size=conf.get_value(CK.POOL_SIZE),
             max_overflow=conf.get_value(CK.MAX_OVERFLOW),
             connect_args={'timeout': conf.get_value(CK.CONNECT_TIMEOUT)},
-            echo=conf.get_value(CK.LOG_QUERIES))
+            echo=False,
+            logging_name="database")
+
+        logging.getLogger("sqlalchemy.engine.Engine.database").setLevel(
+            logging.CRITICAL)
+        logging.getLogger("sqlalchemy.pool").setLevel(logging.CRITICAL)
+        logging.getLogger("sqlalchemy.dialects").setLevel(logging.CRITICAL)
 
         Log.info("Database engine created successfully.")
 

@@ -41,10 +41,6 @@ class Log:
                         datefmt='%Y.%m.%d:%H:%M:%S',
                         handlers=[log.StreamHandler(sys.stdout)])
 
-        logger = log.getLogger('sqlalchemy.engine')
-        logger.setLevel(Log.ERROR)
-        logger.propagate = False
-
         Log._instance = log.getLogger("thinking-dataset")
         Log._instance.setLevel(Log._level)
 
@@ -59,7 +55,7 @@ class Log:
         Log._level = level
         if Log._instance:
             Log._instance.setLevel(Log._level)
-            logger = log.getLogger('sqlalchemy.engine')
+            logger = log.getLogger('thinking-dataset')
             logger.setLevel(Log._level)
 
     @staticmethod
