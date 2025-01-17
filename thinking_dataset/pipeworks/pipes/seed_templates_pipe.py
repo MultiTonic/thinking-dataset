@@ -1,92 +1,88 @@
 # @file thinking_dataset/pipeworks/pipes/seed_templates_pipe.py
 # @description Pipe for seeding templates with specific values using database.
-# @version 1.3.0
+# @version 1.6.1
 # @license MIT
 
-import json, re, pandas as pd  # noqa
-from sqlalchemy import select, Table, MetaData, func
+import json, random, re, pandas as pd  # noqa
+from sqlalchemy import select, Table, MetaData, inspect
 from typing import List, Dict
 from tqdm import tqdm
 from .pipe import Pipe
 from thinking_dataset.utils.log import Log
 from thinking_dataset.db.database import Database
-from datetime import datetime
-import random
 
 
 class SeedTemplatesPipe(Pipe):
 
-    def _fetch_single_random_seed(self, session, table_name: str,
-                                  columns: List[str],
-                                  offset: int) -> Dict[str, any]:
-        table = Table(table_name, MetaData(), autoload_with=session.bind)
-        query = select(*[table.c[col]
-                         for col in columns]).offset(offset).limit(1)
-        result = session.execute(query).first()
-        return dict(zip(columns, result))
-
-    def _fetch_random_seeds(self, session, table_name: str, columns: List[str],
+    def _fetch_random_seeds(self, column_data_df: pd.DataFrame,
                             seed_amount: int,
-                            offsets: List[int]) -> List[Dict[str, any]]:
-        return [
-            self._fetch_single_random_seed(session, table_name, columns,
-                                           offsets[i])
-            for i in range(seed_amount)
-        ]
+                            total_count: int) -> List[Dict[str, any]]:
+        return [{
+            'cable':
+            column_data_df.iloc[random.randint(0, total_count - 1)]['cable']
+        } for _ in range(seed_amount)]
 
     def _inject_seeds(self, template: str, seeds: List[Dict[str, any]]) -> str:
         return re.sub(r'\{\{\s*seeds\s*\}\}', json.dumps(seeds), template)
 
-    def _process(self, session, config: Dict[str, any],
-                 df: pd.DataFrame) -> pd.DataFrame:
-        table_name, columns = config["input"][0]["table"], config["input"][0][
-            "columns"]
-        timestamp = datetime.now()
-        queries = []
-
-        Log.info("Starting generation loop")
-
-        total_count = session.execute(
-            select(func.count()).select_from(
-                Table(table_name, MetaData(),
-                      autoload_with=session.bind))).scalar()
-        offsets = [
-            random.randint(0, total_count - 1)
-            for _ in range(config["seed_amount"] * config["batch_size"])
+    def _get_next_table_name(self, session, base_name: str = "cable") -> str:
+        Log.info("Fetching tables from the database")
+        inspector = inspect(session.bind)
+        tables = [
+            table_name for table_name in inspector.get_table_names()
+            if table_name.startswith(base_name)
+            and re.match(r'.*-\d{5}$', table_name)
         ]
+        Log.info(f"Found tables: {tables}")
+        tables.sort()
+        Log.info(f"Sorted tables: {tables}")
+        if tables:
+            last_table = tables[-1]
+            Log.info(f"Last table in sequence: {last_table}")
+            last_id = int(last_table.split('-')[-1])
+            new_id = last_id + 1
+            next_table_name = f"{base_name}-{new_id:05d}"
+            Log.info(f"Next table name: {next_table_name}")
+            return next_table_name
+        next_table_name = f"{base_name}-00001"
+        Log.info(f"Starting new table sequence: {next_table_name}")
+        return next_table_name
 
-        Log.info(f"Generated {len(offsets)} random offsets for seeding.")
+    def _process(self, session, config: Dict[str, any],
+                 results: pd.DataFrame) -> pd.DataFrame:
+        table_name = config["input"][0]["table"]
+        table = Table(table_name, MetaData(), autoload_with=session.bind)
+        columns = config["input"][0]["columns"]
+        column_data_df = pd.read_sql(select(table.c[columns[0]]), session.bind)
+        row_count = len(column_data_df)
+        Log.info(f"Total rows in the selected column: {row_count}")
 
-        for i in tqdm(range(config["batch_size"]),
+        templates = []
+
+        for _ in tqdm(range(config["batch_size"]),
                       desc="Generating Queries",
                       total=config["batch_size"],
                       unit="query"):
-            seed_offsets = offsets[i * config["seed_amount"]:(i + 1) *
-                                   config["seed_amount"]]
-            seeds = self._fetch_random_seeds(session, table_name, columns,
-                                             config["seed_amount"],
-                                             seed_offsets)
-            queries.append(self._inject_seeds(df["query"].iloc[0], seeds))
+            seeds = self._fetch_random_seeds(column_data_df,
+                                             config["seed_amount"], row_count)
+            templates.append(
+                self._inject_seeds(results["query"].iloc[0], seeds))
 
-        Log.info("Inserting generated queries into the database")
-        pd.DataFrame({
+        results = pd.DataFrame({
             "id": range(1, config["batch_size"] + 1),
-            config["output"][0]["columns"][0]: queries
-        }).to_sql(config["output"][0]["table"],
-                  session.bind,
-                  if_exists='replace',
-                  index=False)
-
-        return pd.DataFrame({
-            "table_name": [config["output"][0]["table"]],
-            "generation_timestamp": [timestamp.isoformat()],
-            "pipeline_config_hash": [hash(str(config))],
-            "template_used": [self.config.get("template")],
-            "data_source": [table_name],
-            "generation_count": [config["batch_size"]],
-            "execution_duration":
-            [(datetime.now() - timestamp).total_seconds()]
+            config["output"][0]["columns"][0]: templates
         })
+
+        next_table_name = self._get_next_table_name(session)
+        results.to_sql(next_table_name,
+                       session.bind,
+                       if_exists='replace',
+                       index=False)
+
+        Log.info(
+            f"Inserted {len(templates)} rows into '{next_table_name}' table")
+
+        return results
 
     def flow(self, df: pd.DataFrame, **kwargs) -> pd.DataFrame:
         Log.info("Starting SeedTemplatesPipe")
