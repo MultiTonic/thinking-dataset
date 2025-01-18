@@ -396,12 +396,7 @@ pipelines:
     config: {}
     pipes:
     - pipe:
-        type: "LoadTemplatesPipe"
-        config:
-          flush: True
-          template: "{{paths.templates}}/generate_cable.json"
-    - pipe:
-        type: "SeedTemplatesPipe"
+        type: "QueryGenerationPipe"
         config:
           input:
           - table: "train-00000-of-00001"
@@ -413,4 +408,6 @@ pipelines:
           seed_length: 10000
           seed_offset: 0
           batch_size: 10000
-          if_exists: "append"
+          if_exists: "replace"
+          flush: True
+          template: "{{paths.templates}}/generate_cable.json"

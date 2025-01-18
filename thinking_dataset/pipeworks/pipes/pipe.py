@@ -1,6 +1,6 @@
 # @file thinking_dataset/pipeworks/pipes/pipe.py
 # @description Defines BasePipe class for preprocessing tasks with logging.
-# @version 1.1.4
+# @version 1.1.5
 # @license MIT
 
 import time
@@ -25,7 +25,7 @@ class Pipe(ABC):
 
     def __init__(self, config: dict):
         self.config = config
-        signal.signal(signal.SIGINT, self.signal_handler)  # Handle Ctrl+C
+        signal.signal(signal.SIGINT, self.signal_handler)
 
     @abstractmethod
     def flow(self, df, **args):
@@ -89,3 +89,12 @@ class Pipe(ABC):
         Log.error("Process aborted by user.")
         Pipe.abort_flag.set()
         sys.exit(0)
+
+    def flush(self, df, column_name):
+        flush = self.config.get("flush", True)
+        if flush:
+            columns = ['id', column_name]
+            df = pd.DataFrame(columns=columns)
+            df.loc[0] = [None, None]
+            Log.info("Flush enabled. Reset DataFrame.")
+        return df
