@@ -16,8 +16,9 @@ def run_command(command):
 
 if __name__ == "__main__":
     commands = [
-        "thinking-dataset download", "thinking-dataset process",
-        "thinking-dataset load", "thinking-dataset export",
+        "thinking-dataset clean", "thinking-dataset download",
+        "thinking-dataset process", "thinking-dataset load",
+        "thinking-dataset generate", "thinking-dataset export",
         "thinking-dataset upload"
     ]
 
