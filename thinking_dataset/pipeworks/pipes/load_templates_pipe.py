@@ -1,6 +1,6 @@
 # @file thinking_dataset/pipeworks/pipes/load_templates_pipe.py
 # @description Pipe for loading templates.
-# @version 1.0.16
+# @version 1.0.17
 # @license MIT
 
 import pandas as pd
@@ -15,15 +15,16 @@ class LoadTemplatesPipe(Pipe):
     def __init__(self, config):
         super().__init__(config)
         self.template_schema = TemplateSchema.GENERATE_CABLE
+        self.column_name = "template"
 
     def _create_df(self) -> pd.DataFrame:
-        columns = ['id', 'query']
+        columns = ['id', self.column_name]
         df = pd.DataFrame(columns=columns)
         df.loc[0] = [None, None]
         return df
 
     def _get_template_path(self) -> str:
-        template = self.config.get("template")
+        template = self.config.get(self.column_name)
         Log.info(f"Template path: {template}")
 
         if template is None:
@@ -39,7 +40,7 @@ class LoadTemplatesPipe(Pipe):
     def _populate_template(self, df: pd.DataFrame) -> pd.DataFrame:
         path = self._get_template_path()
         template = self._load_template(path)
-        df['query'] = [template] * len(df)
+        df[self.column_name] = [template] * len(df)
         df['id'] = range(1, len(df) + 1)
         return df
 
