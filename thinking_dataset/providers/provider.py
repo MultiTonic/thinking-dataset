@@ -1,10 +1,10 @@
-# @file provider.py
+# @file thinking_dataset/providers/provider.py
 # @description Base class for providers
-# @version 1.1.0
+# @version 1.1.1
 # @license MIT
 
-from abc import ABC, abstractmethod
 from typing import Dict, Any
+from abc import ABC, abstractmethod
 
 
 class Provider(ABC):

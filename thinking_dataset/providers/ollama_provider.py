@@ -1,12 +1,12 @@
-# @file ollama_provider.py
+# @file thinking_dataset/providers/ollama_provider.py
 # @description Ollama provider class
-# @version 1.1.0
+# @version 1.1.1
 # @license MIT
 
+import ollama
+import asyncio
 from typing import Dict, Any
 from .provider import Provider
-import asyncio
-import ollama
 from tenacity import retry, wait_fixed, stop_after_attempt
 from thinking_dataset.dto.generate_cable_dto import GenerateCableSchema
 
