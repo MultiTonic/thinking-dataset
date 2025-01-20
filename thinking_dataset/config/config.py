@@ -1,6 +1,6 @@
 # @file thinking_dataset/config/config.py
 # @description Defines DatasetConfig class for storing dataset configuration.
-# @version 1.1.2
+# @version 1.1.3
 # @license MIT
 
 import thinking_dataset.config as conf
@@ -32,7 +32,8 @@ class Config:
             'paths': self.config.get('paths', {}),
             'database': self.config.get('database', {}),
             'files': self.config.get('files', {}),
-            'pipelines': self.config.get('pipelines', [])
+            'pipelines': self.config.get('pipelines', []),
+            'providers': self.config.get('providers', [])
         }
 
         config = conf.get_dict_resolver()(config, config)

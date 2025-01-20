@@ -1,6 +1,6 @@
-# @file generate_cable_dto.py
+# @file thinking_dataset/dto/generate_cable_dto.py
 # @description Data Transfer Object (DTO) for Generate Cable Schema
-# @version 1.0.1
+# @version 1.0.2
 # @license MIT
 
 from pydantic import BaseModel

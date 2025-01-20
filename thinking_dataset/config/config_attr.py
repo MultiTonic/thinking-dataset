@@ -1,6 +1,6 @@
 # @file thinking_dataset/config/config_attr.py
 # @description Defines ConfigAttr class for attribute initialization.
-# @version 1.0.0
+# @version 1.0.1
 # @license MIT
 
 
@@ -42,3 +42,4 @@ class ConfigAttr:
         obj.load_patterns = config.get('files', {}).get(
             'load', ['{file_root}_prepare{file_ext}'])
         obj.pipelines = config.get('pipelines', [])
+        obj.providers = config.get('providers', [])

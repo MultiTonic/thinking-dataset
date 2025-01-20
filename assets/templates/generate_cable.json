@@ -40,7 +40,11 @@
     ],
     "output": {
         "thinking": {
-            "initial_thought": "<Initial thought process>"
+            "initial_thought": "<Initial thought process>",
+            "thoughts": [
+                "<First thought>",
+                "<Second thought>"
+            ]
         },
         "reasoning": {
             "rationales": [

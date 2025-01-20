@@ -1,6 +1,6 @@
 # @file thinking_dataset/config/config_keys.py
 # @description Defines keys used in the dataset configuration.
-# @version 1.0.1
+# @version 1.0.2
 # @license MIT
 
 from enum import Enum
@@ -32,6 +32,7 @@ class ConfigKeys(Enum):
     EXCLUDE_FILES = "exclude_files"
     LOAD_PATTERNS = "load_patterns"
     PIPELINES = "pipelines"
+    PROVIDERS = "providers"
     HF_READ_TOKEN = "HF_READ_TOKEN"
     HF_WRITE_TOKEN = "HF_WRITE_TOKEN"
     HF_ORG = "HF_ORG"

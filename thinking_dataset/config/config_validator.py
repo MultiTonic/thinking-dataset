@@ -1,6 +1,6 @@
 # @file thinking_dataset/config/config_validator.py
 # @description Defines class for validating dataset configuration.
-# @version 1.0.1
+# @version 1.1.1
 # @license MIT
 
 from thinking_dataset.utils.log import Log
@@ -23,7 +23,7 @@ class ConfigValidator:
             missing.append("database_url")
         if not config.root:
             missing.append("root")
-        if not config.root:
+        if not config.templates:
             missing.append("templates")
         if not config.data:
             missing.append("data")
@@ -33,7 +33,7 @@ class ConfigValidator:
             missing.append("process")
         if not config.export:
             missing.append("export")
-        if not config.export:
+        if not config.generate:
             missing.append("generate")
         if not config.database:
             missing.append("database")
@@ -45,6 +45,8 @@ class ConfigValidator:
             missing.append("load_patterns")
         if not config.pipelines:
             missing.append("pipelines")
+        if not config.providers:
+            missing.append("providers")
 
         if missing:
             raise ValueError(
@@ -68,5 +70,25 @@ class ConfigValidator:
             raise ValueError(
                 "Environment must be 'development', 'testing', or 'production'"
             )
+
+        for provider in config.providers:
+            provider_config = provider.get('provider', {})
+            if not provider_config.get('name'):
+                missing.append("provider.name")
+            if not provider_config.get('type'):
+                missing.append("provider.type")
+            if not provider_config.get('url'):
+                missing.append("provider.url")
+            provider_inner_config = provider_config.get('config', {})
+            if not provider_inner_config.get('model'):
+                missing.append("provider.config.model")
+            if 'stream' not in provider_inner_config:
+                missing.append("provider.config.stream")
+            if not provider_inner_config.get('format'):
+                missing.append("provider.config.format")
+
+        if missing:
+            raise ValueError(
+                f"Missing required configuration: {', '.join(missing)}")
 
         Log.info("Configuration validated successfully.")

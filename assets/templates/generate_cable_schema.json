@@ -11,10 +11,17 @@
                     "properties": {
                         "initial_thought": {
                             "type": "string"
+                        },
+                        "thoughts": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
                         }
                     },
                     "required": [
-                        "initial_thought"
+                        "initial_thought",
+                        "thoughts"
                     ]
                 },
                 "reasoning": {
