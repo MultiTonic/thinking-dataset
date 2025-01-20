@@ -1,0 +1,196 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Generate Cable Schema",
+    "type": "object",
+    "properties": {
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "purpose": {
+                    "type": "string"
+                },
+                "agent": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "purpose",
+                "agent",
+                "version"
+            ]
+        },
+        "output": {
+            "type": "object",
+            "properties": {
+                "thinking": {
+                    "type": "object",
+                    "properties": {
+                        "initial_thought": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "initial_thought"
+                    ]
+                },
+                "reasoning": {
+                    "type": "object",
+                    "properties": {
+                        "rationales": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "step_1": {
+                                        "type": "string"
+                                    },
+                                    "step_2": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "step_1",
+                                    "step_2"
+                                ]
+                            }
+                        }
+                    },
+                    "required": [
+                        "rationales"
+                    ]
+                },
+                "reflections": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "reflection_1": {
+                                "type": "string"
+                            },
+                            "reflection_2": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "reflection_1",
+                            "reflection_2"
+                        ]
+                    }
+                },
+                "response": {
+                    "type": "object",
+                    "properties": {
+                        "metadata": {
+                            "type": "object",
+                            "properties": {
+                                "purpose": {
+                                    "type": "string"
+                                },
+                                "agent": {
+                                    "type": "string"
+                                },
+                                "version": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "purpose",
+                                "agent",
+                                "version"
+                            ]
+                        },
+                        "objective": {
+                            "type": "string"
+                        },
+                        "arguments": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "action_requested": {
+                            "type": "string"
+                        },
+                        "background_information": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "classification": {
+                            "type": "string"
+                        },
+                        "distribution_list": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "closing": {
+                            "type": "string"
+                        },
+                        "stakeholders": {
+                            "type": "object",
+                            "properties": {
+                                "government_officials": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "ngos": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "private_sector": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "international_bodies": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "required": [
+                                "government_officials",
+                                "ngos",
+                                "private_sector",
+                                "international_bodies"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "metadata",
+                        "objective",
+                        "arguments",
+                        "action_requested",
+                        "background_information",
+                        "classification",
+                        "distribution_list",
+                        "closing",
+                        "stakeholders"
+                    ]
+                }
+            },
+            "required": [
+                "thinking",
+                "reasoning",
+                "reflections",
+                "response"
+            ]
+        }
+    },
+    "required": [
+        "metadata",
+        "output"
+    ]
+}

@@ -1,6 +1,6 @@
 # @file config/config.yaml
 # @description Configuration for the Cablegate PDF Dataset Project
-# @version 1.0.7
+# @version 1.0.8
 # @license MIT
 
 dataset:
@@ -36,6 +36,20 @@ files:
   - "cleaned_data.{{dataset.type}}"
   load:
   - "{{paths.process}}/{file_name}"
+providers:
+- provider:
+    name: "localhost"
+    type: "ollama"
+    url: "http://localhost:11434"
+    config:
+      model: "llama3.1"
+      stream: False
+      format: "json"
+      options:
+        num_ctx: 16384
+        temperature: 0.8
+        repeat_penalty: 1.2
+        num_thread: 8
 pipelines:
 - pipeline:
     name: "process"
