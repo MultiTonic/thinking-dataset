@@ -61,38 +61,38 @@
             }
         ],
         "response": {
-            "objective": "",
+            "objective": "<Summarize the main goal or intention of the cable.>",
             "arguments": [
-                "",
-                ""
+                "<Present the first supporting argument.>",
+                "<Present the second supporting argument.>"
             ],
-            "action_requested": "",
+            "action_requested": "<Clearly state the action or decision being requested.>",
             "background_information": [
-                "",
-                ""
+                "<Provide relevant background information for context.>",
+                "<Include additional background details if necessary.>"
             ],
-            "classification": "",
+            "classification": "<Specify the classification level (e.g., Confidential, Secret).>",
             "distribution_list": [
-                "",
-                ""
+                "<List the primary recipients of the cable.>",
+                "<Include any additional recipients.>"
             ],
-            "closing": "",
+            "closing": "<End with a suitable closing statement.>",
             "stakeholders": {
                 "government_officials": [
-                    "",
-                    ""
+                    "<Identify relevant government officials.>",
+                    "<List any other involved officials.>"
                 ],
-                "ngos": [
-                    "",
-                    ""
+                "organizations": [
+                    "<Mention the relevant organizations involved.>",
+                    "<Include any additional organizations.>"
                 ],
                 "private_sector": [
-                    "",
-                    ""
+                    "<Specify private sector stakeholders.>",
+                    "<List any other private sector entities.>"
                 ],
                 "international_bodies": [
-                    "",
-                    ""
+                    "<Identify relevant international bodies.>",
+                    "<Include any additional international entities.>"
                 ]
             }
         }

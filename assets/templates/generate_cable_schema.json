@@ -141,7 +141,7 @@
                                         "type": "string"
                                     }
                                 },
-                                "ngos": {
+                                "organizations": {
                                     "type": "array",
                                     "items": {
                                         "type": "string"
@@ -162,7 +162,7 @@
                             },
                             "required": [
                                 "government_officials",
-                                "ngos",
+                                "organizations",
                                 "private_sector",
                                 "international_bodies"
                             ]
