@@ -80,18 +80,6 @@ Using a database like SQLite offers numerous advantages for the Thinking Dataset
     - Uses indexes to optimize query performance.
     - Efficiently retrieves data, even with complex queries.
 
-## Disadvantages of Using a Database
-
-While a database offers many benefits, it also has some drawbacks:
-
-1. **Setup and Maintenance**:
-    - Requires initial setup and ongoing maintenance.
-    - May require database management skills.
-
-2. **Complexity**:
-    - Adding a database layer introduces complexity to the system.
-    - Requires careful schema design and management.
-
 ## Comparison with Direct Parquet File Usage
 
 While using parquet files directly has its benefits, there are also drawbacks, especially for projects requiring structured data management and complex querying capabilities.

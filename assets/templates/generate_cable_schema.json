@@ -3,25 +3,6 @@
     "title": "Generate Cable Schema",
     "type": "object",
     "properties": {
-        "metadata": {
-            "type": "object",
-            "properties": {
-                "purpose": {
-                    "type": "string"
-                },
-                "agent": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "purpose",
-                "agent",
-                "version"
-            ]
-        },
         "output": {
             "type": "object",
             "properties": {
@@ -44,16 +25,15 @@
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "step_1": {
-                                        "type": "string"
-                                    },
-                                    "step_2": {
-                                        "type": "string"
+                                    "steps": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
                                     }
                                 },
                                 "required": [
-                                    "step_1",
-                                    "step_2"
+                                    "steps"
                                 ]
                             }
                         }
@@ -67,41 +47,21 @@
                     "items": {
                         "type": "object",
                         "properties": {
-                            "reflection_1": {
-                                "type": "string"
-                            },
-                            "reflection_2": {
-                                "type": "string"
+                            "reflection_steps": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
                             }
                         },
                         "required": [
-                            "reflection_1",
-                            "reflection_2"
+                            "reflection_steps"
                         ]
                     }
                 },
                 "response": {
                     "type": "object",
                     "properties": {
-                        "metadata": {
-                            "type": "object",
-                            "properties": {
-                                "purpose": {
-                                    "type": "string"
-                                },
-                                "agent": {
-                                    "type": "string"
-                                },
-                                "version": {
-                                    "type": "string"
-                                }
-                            },
-                            "required": [
-                                "purpose",
-                                "agent",
-                                "version"
-                            ]
-                        },
                         "objective": {
                             "type": "string"
                         },
@@ -169,7 +129,6 @@
                         }
                     },
                     "required": [
-                        "metadata",
                         "objective",
                         "arguments",
                         "action_requested",
@@ -190,7 +149,6 @@
         }
     },
     "required": [
-        "metadata",
         "output"
     ]
 }

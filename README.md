@@ -121,6 +121,7 @@ thinking-dataset/
 │   │   ├── operations/     # Data operations and transformations
 │   ├── db/                 # Database support
 │   │   ├── operations/     # Database operations and transactions
+│   ├── dto/                # Data Transfer Objects (DTO)
 │   ├── io/                 # File I/O operations
 │   ├── pipeworks/          # Pipelines and pipes for data processing
 │   │   ├── pipelines/      # Pipeline management and control
