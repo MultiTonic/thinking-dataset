@@ -1,0 +1,90 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Final Cable Schema",
+    "type": "object",
+    "properties": {
+        "final_cable": {
+            "type": "object",
+            "properties": {
+                "objective": {
+                    "type": "string"
+                },
+                "arguments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "action_requested": {
+                    "type": "string"
+                },
+                "background_information": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "classification": {
+                    "type": "string"
+                },
+                "distribution_list": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "closing": {
+                    "type": "string"
+                },
+                "stakeholders": {
+                    "type": "object",
+                    "properties": {
+                        "government_officials": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "organizations": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "private_sector": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "international_bodies": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "required": [
+                        "government_officials",
+                        "organizations",
+                        "private_sector",
+                        "international_bodies"
+                    ]
+                }
+            },
+            "required": [
+                "objective",
+                "arguments",
+                "action_requested",
+                "background_information",
+                "classification",
+                "distribution_list",
+                "closing",
+                "stakeholders"
+            ]
+        }
+    },
+    "required": [
+        "final_cable"
+    ]
+}
