@@ -1,14 +1,12 @@
 # @file thinking_dataset/providers/ollama_provider.py
 # @description Ollama provider class
-# @version 1.1.1
+# @version 1.1.5
 # @license MIT
 
 import ollama
-import asyncio
-from typing import Dict, Any
+from typing import Dict, Any, Callable
 from .provider import Provider
 from tenacity import retry, wait_fixed, stop_after_attempt
-from thinking_dataset.dto.generate_cable_dto import GenerateCableSchema
 
 
 class OllamaProvider(Provider):
@@ -24,16 +22,13 @@ class OllamaProvider(Provider):
         return cls(config)
 
     @retry(wait=wait_fixed(2), stop=stop_after_attempt(5))
-    async def process_async_request(self, prompt: str) -> Any:
+    async def process_request_async(self, prompt: str,
+                                    validator: Callable[[str], Any]) -> Any:
         client = ollama.AsyncClient()
         response = await client.generate(model=self.model,
                                          prompt=prompt,
                                          format=self.format,
                                          options=self.options)
 
-        validated_response = GenerateCableSchema.model_validate_json(
-            response['response'])
-        return validated_response
-
-    def run(self, prompt: str) -> Any:
-        return asyncio.run(self.process_async_request(prompt))
+        response = validator(response['response'])
+        return response
