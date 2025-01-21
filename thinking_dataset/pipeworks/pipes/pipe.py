@@ -91,10 +91,8 @@ class Pipe(ABC):
         sys.exit(0)
 
     def flush(self, df, column_name):
-        flush = self.config.get("flush", True)
-        if flush:
-            columns = ['id', column_name]
-            df = pd.DataFrame(columns=columns)
-            df.loc[0] = [None, None]
-            Log.info("Flush enabled. Reset DataFrame.")
+        columns = ['id', column_name]
+        df = pd.DataFrame(columns=columns)
+        df.loc[0] = [None, None]
+        Log.info("DataFrame Flushed!")
         return df

@@ -1,9 +1,12 @@
 # @file thinking_dataset/pipeworks/pipes/query_generation_pipe.py
 # @description Pipe for generating queries from templates and seeds.
-# @version 1.0.8
+# @version 1.1.1
 # @license MIT
 
-import json, random, re, pandas as pd  # noqa
+import json
+import random
+import re
+import pandas as pd  # noqa
 from tqdm import tqdm
 from .pipe import Pipe
 from typing import List, Dict
@@ -12,14 +15,12 @@ from sqlalchemy import select, Table, MetaData
 from thinking_dataset.db.database import Database
 from tenacity import retry, stop_after_attempt, wait_fixed
 from thinking_dataset.template.template_loader import TemplateLoader
-from thinking_dataset.template.template_schema import TemplateSchema
 
 
 class QueryGenerationPipe(Pipe):
 
     def __init__(self, config):
         super().__init__(config)
-        self.template_schema = TemplateSchema.GENERATE_CABLE
         self.template_column = "template"
 
     def _get_seeds(self, seeds: pd.DataFrame, amount: int, size: int,
@@ -69,38 +70,44 @@ class QueryGenerationPipe(Pipe):
         Log.info(f"Total seeds in {table_name}.{in_column}: {len(seeds)}")
         return seeds
 
-    def _prepare_dataframe(self, df: pd.DataFrame,
-                           template: str) -> pd.DataFrame:
-        df = self.flush(df, self.template_column)
+    def _prepare_dataframe(self, df: pd.DataFrame, template: str,
+                           flush_df: bool) -> pd.DataFrame:
+        if flush_df:
+            df = self.flush(df, self.template_column)
         df[self.template_column] = [template] * len(df)
-        df['id'] = range(1, len(df) + 1)
+        df['id'] = df.get('id', range(1, len(df) + 1))
         return df
 
-    def _load_template(self, config: Dict[str, any]) -> str:
-        template_path = config.get(self.template_column)
-        if template_path is None:
-            raise ValueError("Template path is not set in the configuration")
+    def _load_template(self, template_path: str, schema_path: str) -> str:
+        if template_path is None or schema_path is None:
+            raise ValueError(
+                "Template or schema path is not set in the configuration")
         Log.info(f"Template path: {template_path}")
-        return TemplateLoader(template_path, self.template_schema).load()
+        Log.info(f"Schema path: {schema_path}")
+        return TemplateLoader(template_path, schema_path).load()
 
     def _process(self, session, config: Dict[str, any],
                  df: pd.DataFrame) -> pd.DataFrame:
         in_config = config["input"][0]
         out_config = config["output"][0]
-        template = self._load_template(config)
-        df = self._prepare_dataframe(df, template)
-        seeds = self._fetch_seeds(session, in_config["table"],
-                                  in_config["columns"][0])
+        table_name = in_config["table"]
+        in_column = in_config["columns"][0]
+        out_table = out_config["table"]
+        out_column = out_config["columns"][0]
+        template_path = config["prompt"]["template"]
+        schema_path = config["prompt"]["schema"]
+        flush_df = config["flush"]
+
+        template = self._load_template(template_path, schema_path)
+
+        df = self._prepare_dataframe(df, template, flush_df)
+        seeds = self._fetch_seeds(session, table_name, in_column)
         queries = self._generate_queries(df, seeds, config["seed_amount"],
                                          config["seed_length"],
                                          config["seed_offset"],
                                          config["batch_size"])
-        df = pd.DataFrame({
-            "id": range(1, config["batch_size"] + 1),
-            out_config["columns"][0]: queries
-        })
-        self._write_to_db(df, session, out_config["table"],
-                          config["if_exists"])
+        df = pd.DataFrame({"id": df['id'], out_column: queries})
+        self._write_to_db(df, session, out_table, config["if_exists"])
         return df
 
     def flow(self, df: pd.DataFrame, **kwargs) -> pd.DataFrame:
