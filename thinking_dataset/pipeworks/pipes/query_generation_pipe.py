@@ -20,14 +20,12 @@ class QueryGenerationPipe(Pipe):
 
     def _get_seeds(self, seeds: pd.DataFrame, amount: int, size: int,
                    offset: int) -> List[str]:
-        seed_texts = []
-        count = len(seeds)
-        if count == 0:
+        if len(seeds) == 0:
             raise ValueError("No seeds available to generate.")
-        for _ in range(amount):
-            index = random.randint(0, count - 1)
-            seed = seeds.iloc[index].values[0]
-            seed_texts.append(seed[offset:offset + size])
+        indices = random.sample(range(len(seeds)), amount)
+        seed_texts = [
+            seeds.iloc[idx].values[0][offset:offset + size] for idx in indices
+        ]
         return seed_texts
 
     def _get_query(self, template: str, seeds: List[str]) -> str:
@@ -35,8 +33,12 @@ class QueryGenerationPipe(Pipe):
         return re.sub(r'{{\s*seeds\s*}}', value, template)
 
     def _validate(self, df: pd.DataFrame, column: str):
-        if column not in df.columns or df[column].iloc[0] is None:
-            raise ValueError(f"DataFrame '{column}' column is invalid")
+        if df.empty:
+            raise ValueError("DataFrame is empty.")
+        if column not in df.columns:
+            raise ValueError(f"Column '{column}' not found in DataFrame.")
+        if df[column].isnull().all():
+            raise ValueError(f"All values in column '{column}' are null.")
 
     @retry(stop=stop_after_attempt(5), wait=wait_fixed(2), reraise=True)
     def _write_to_db(self, df: pd.DataFrame, session, out_table: str,
