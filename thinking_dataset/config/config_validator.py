@@ -82,10 +82,6 @@ class ConfigValidator:
             provider_inner_config = provider_config.get('config', {})
             if not provider_inner_config.get('model'):
                 missing.append("provider.config.model")
-            if 'stream' not in provider_inner_config:
-                missing.append("provider.config.stream")
-            if not provider_inner_config.get('format'):
-                missing.append("provider.config.format")
 
         if missing:
             raise ValueError(

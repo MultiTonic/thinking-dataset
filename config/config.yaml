@@ -162,7 +162,7 @@ pipelines:
           batch_size: 1
           if_exists: "replace"
           prompt:
-            template: "{{paths.templates}}/thinking.json"
+            template: "{{paths.templates}}/thinking.md"
     - pipe:
         type: "ResponseGenerationPipe"
         config:
@@ -175,4 +175,4 @@ pipelines:
           provider: "localhost"
           if_exists: "replace"
           prompt:
-            template: "{{paths.templates}}/thinking.json"
+            template: "{{paths.templates}}/thinking.md"
