@@ -9,8 +9,8 @@ from typing import Dict, Any
 class ProviderUtils:
 
     @staticmethod
-    def get_config(config: Dict[str, Any],
-                   provider_name: str) -> Dict[str, Any]:
+    def get_provider_config(config: Dict[str, Any],
+                            provider_name: str) -> Dict[str, Any]:
         provider_config = next((provider
                                 for provider in config.get("providers", [])
                                 if provider["name"] == provider_name), None)

@@ -1,12 +1,11 @@
 # @file thinking_dataset/pipeworks/pipes/query_generation_pipe.py
 # @description Pipe for generating queries from templates and seeds.
-# @version 1.1.1
+# @version 1.1.11
 # @license MIT
 
-import json
-import random
 import re
-import pandas as pd  # noqa
+import random
+import pandas as pd
 from tqdm import tqdm
 from .pipe import Pipe
 from typing import List, Dict
@@ -14,14 +13,10 @@ from thinking_dataset.utils.log import Log
 from sqlalchemy import select, Table, MetaData
 from thinking_dataset.db.database import Database
 from tenacity import retry, stop_after_attempt, wait_fixed
-from thinking_dataset.template.template_loader import TemplateLoader
+from thinking_dataset.templates.template_loader import TemplateLoader
 
 
 class QueryGenerationPipe(Pipe):
-
-    def __init__(self, config):
-        super().__init__(config)
-        self.template_column = "template"
 
     def _get_seeds(self, seeds: pd.DataFrame, amount: int, size: int,
                    offset: int) -> List[str]:
@@ -36,8 +31,8 @@ class QueryGenerationPipe(Pipe):
         return seed_texts
 
     def _get_query(self, template: str, seeds: List[str]) -> str:
-        value = ', '.join(json.dumps(seed) for seed in seeds)
-        return re.sub(r'"{{\s*seeds\s*}}"', value, template)
+        value = '\n' + '\n'.join(f'{seed}\n' for seed in seeds)
+        return re.sub(r'{{\s*seeds\s*}}', value, template)
 
     def _validate(self, df: pd.DataFrame, column: str):
         if column not in df.columns or df[column].iloc[0] is None:
@@ -50,16 +45,16 @@ class QueryGenerationPipe(Pipe):
         Log.info(f"Inserted {len(df)} rows into '{out_table}' table")
 
     def _generate_queries(self, df: pd.DataFrame, seeds: pd.DataFrame,
-                          amount: int, size: int, offset: int,
-                          batch_size: int) -> List[str]:
-        self._validate(df, self.template_column)
+                          amount: int, size: int, offset: int, batch_size: int,
+                          out_column: str) -> List[str]:
+        self._validate(df, out_column)
         queries = [
-            self._get_query(df[self.template_column].iloc[0],
+            self._get_query(df.at[idx, out_column],
                             self._get_seeds(seeds, amount, size, offset))
-            for _ in tqdm(range(batch_size),
-                          desc="Generating Queries",
-                          total=batch_size,
-                          unit="q")
+            for idx in tqdm(range(batch_size),
+                            desc="Generating Queries",
+                            total=batch_size,
+                            unit="q")
         ]
         return queries
 
@@ -70,21 +65,21 @@ class QueryGenerationPipe(Pipe):
         Log.info(f"Total seeds in {table_name}.{in_column}: {len(seeds)}")
         return seeds
 
-    def _prepare_dataframe(self, df: pd.DataFrame, template: str,
-                           flush_df: bool) -> pd.DataFrame:
-        if flush_df:
-            df = self.flush(df, self.template_column)
-        df[self.template_column] = [template] * len(df)
-        df['id'] = df.get('id', range(1, len(df) + 1))
+    def _prepare_df(self, df: pd.DataFrame, template: str,
+                    out_column: str) -> pd.DataFrame:
+        if out_column not in df.columns:
+            df[out_column] = [template] * len(df)
+        else:
+            df[out_column] = df[out_column].fillna(template)
+        if 'id' not in df.columns:
+            df['id'] = range(1, len(df) + 1)
         return df
 
-    def _load_template(self, template_path: str, schema_path: str) -> str:
-        if template_path is None or schema_path is None:
-            raise ValueError(
-                "Template or schema path is not set in the configuration")
-        Log.info(f"Template path: {template_path}")
-        Log.info(f"Schema path: {schema_path}")
-        return TemplateLoader(template_path, schema_path).load()
+    def _load_template(self, path: str) -> str:
+        if path is None:
+            raise ValueError("Template path is not set in the configuration")
+        Log.info(f"Template path: {path}")
+        return TemplateLoader(path).load()
 
     def _process(self, session, config: Dict[str, any],
                  df: pd.DataFrame) -> pd.DataFrame:
@@ -95,17 +90,15 @@ class QueryGenerationPipe(Pipe):
         out_table = out_config["table"]
         out_column = out_config["columns"][0]
         template_path = config["prompt"]["template"]
-        schema_path = config["prompt"]["schema"]
-        flush_df = config["flush"]
 
-        template = self._load_template(template_path, schema_path)
+        template = self._load_template(template_path)
 
-        df = self._prepare_dataframe(df, template, flush_df)
+        df = self._prepare_df(df, template, out_column)
         seeds = self._fetch_seeds(session, table_name, in_column)
         queries = self._generate_queries(df, seeds, config["seed_amount"],
                                          config["seed_length"],
                                          config["seed_offset"],
-                                         config["batch_size"])
+                                         config["batch_size"], out_column)
         df = pd.DataFrame({"id": df['id'], out_column: queries})
         self._write_to_db(df, session, out_table, config["if_exists"])
         return df

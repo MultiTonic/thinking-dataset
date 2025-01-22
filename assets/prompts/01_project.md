@@ -139,6 +139,7 @@ thinking-dataset/
 │   ├── pipeworks/          # Data pipelines and processing
 │   │   ├── pipelines/      # Pipeline management
 │   │   ├── pipes/          # Data frame processing pipes
+│   ├── templates/          # Prompt template management
 │   ├── tonics/             # Data utility functions and helpers
 │   ├── utilities/          # General-purpose utility helpers
 │   ├── main.py             # Main execution file

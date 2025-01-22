@@ -44,7 +44,6 @@ providers:
     config:
       model: "llama3.1"
       stream: False
-      format: "json"
       options:
         num_ctx: 32384
         temperature: 0.8
@@ -158,14 +157,12 @@ pipelines:
           - table: "cables"
             columns: [ "query" ]
           seed_amount: 3
-          seed_length: 5000
+          seed_length: 50000
           seed_offset: 0
           batch_size: 1
           if_exists: "replace"
-          flush: True
           prompt:
             template: "{{paths.templates}}/thinking.json"
-            schema: "{{paths.templates}}/thinking_schema.json"
     - pipe:
         type: "ResponseGenerationPipe"
         config:
@@ -179,4 +176,3 @@ pipelines:
           if_exists: "replace"
           prompt:
             template: "{{paths.templates}}/thinking.json"
-            schema: "{{paths.templates}}/thinking_schema.json"
