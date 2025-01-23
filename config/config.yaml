@@ -154,7 +154,7 @@ pipelines:
           shard_size: 1000000
           pattern: "{{dataset.name}}-{split_name}-{split_info}.{{dataset.type}}"
           path: "{{paths.export}}/{{paths.processed_data_train}}"
-          schema: [ "id", "cable" ]
+          schema: [ "id", "query", "thinking" ]
           drop_columns: True
           fill_value: "null"
 - pipeline:
