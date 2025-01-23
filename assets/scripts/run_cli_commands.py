@@ -1,6 +1,6 @@
 # @file run_cli_commands.py
 # @description Run workflow: clean, download, process, load, export.
-# @version 1.0.4
+# @version 1.0.5
 # @license MIT
 
 import subprocess
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         "thinking-dataset load",
         "thinking-dataset generate",
         "thinking-dataset export",
-        "thinking-dataset upload",
+        # "thinking-dataset upload",
     ]
 
     for command in commands:
