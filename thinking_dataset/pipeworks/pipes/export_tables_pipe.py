@@ -17,7 +17,14 @@ CK = keys.ConfigKeys
 
 class ExportTablesPipe(Pipe):
     """
-    Pipe to export tables to the specified output directory.
+    A pipe for exporting database tables to files.
+
+    This pipe handles:
+    - Table data extraction from database
+    - Column selection and alignment
+    - Data merging from multiple tables
+    - File output in various formats
+    - Data sharding for large datasets
     """
 
     def _fetch_all_tables(self, db: Database) -> list:
@@ -78,14 +85,12 @@ class ExportTablesPipe(Pipe):
 
     def _merge_dataframes(self, dfs: list, schema: list, drop_columns: bool,
                           fill_value) -> pd.DataFrame:
-        conformed_dfs = [
-            self._remap_columns(df, schema, drop_columns) for df in dfs
-        ]
-        if not drop_columns:
-            conformed_dfs = [
-                self._align_columns(df, schema, fill_value)
-                for df in conformed_dfs
-            ]
+        conformed_dfs = []
+        for df in dfs:
+            if not drop_columns:
+                df = self._align_columns(df, schema, fill_value)
+            conformed_dfs.append(df)
+
         merged_df = pd.concat(conformed_dfs, ignore_index=True)
         return merged_df
 
@@ -122,15 +127,32 @@ class ExportTablesPipe(Pipe):
         Files.make_dir(path=out_path)
 
         dfs = []
-        for table in tables:
-            df = self._fetch_data_from_database(table, db)
-            if "auto" in columns:
-                columns = self._fetch_table_columns(table, db)
-            df = df[columns] if columns != ["auto"] else df
-            dfs.append(df)
+        if "auto" in columns:
+            for table in tables:
+                df = self._fetch_data_from_database(table, db)
+                dfs.append(df)
+        else:
+            for table in tables:
+                df = self._fetch_data_from_database(table, db)
+                table_columns = self._fetch_table_columns(table, db)
+                valid_columns = [
+                    col for col in columns if col in table_columns
+                ]
+                if not valid_columns:
+                    Log.warning(f"No valid columns found in table {table}")
+                    continue
+                df = df[valid_columns]
+                dfs.append(df)
 
-        combined_df = self._merge_dataframes(dfs, expected_schema,
-                                             drop_columns, fill_value)
+        if not dfs:
+            raise ValueError(
+                "No data frames were created - check column configuration")
+
+        if len(dfs) > 1:
+            combined_df = self._merge_dataframes(dfs, expected_schema,
+                                                 drop_columns, fill_value)
+        else:
+            combined_df = dfs[0]
 
         total_shards = (len(combined_df) + shard_size - 1) // shard_size
         for shard_num in range(total_shards):
