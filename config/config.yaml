@@ -18,6 +18,13 @@ paths:
   processed_data: "processed_data"
   processed_data_train: "{{paths.processed_data}}/train"
   templates: "{{paths.assets}}/templates"
+files:
+  include:
+  - "train-00000-of-00001.{{dataset.type}}"
+  exclude:
+  - "cleaned_data.{{dataset.type}}"
+  load:
+  - "{{paths.process}}/{file_name}"
 database:
   env: "development"
   name: "thinking-dataset"
@@ -29,13 +36,6 @@ database:
     connect_timeout: 30
     read_timeout: 30
     log_queries: True
-files:
-  include:
-  - "train-00000-of-00001.{{dataset.type}}"
-  exclude:
-  - "cleaned_data.{{dataset.type}}"
-  load:
-  - "{{paths.process}}/{file_name}"
 providers:
 - provider:
     name: "localhost"
@@ -48,7 +48,7 @@ providers:
         num_ctx: 32384
         temperature: 0.8
         repeat_penalty: 1.2
-        num_thread: 8
+        num_thread: 16
 pipelines:
 - pipeline:
     name: "process"
@@ -107,42 +107,6 @@ pipelines:
           min_chunk_size: 500
           max_chunk_size: 5000
 - pipeline:
-    name: "export"
-    description: "Default export pipeline"
-    config: {}
-    pipes:
-    - pipe:
-        type: "ExportTablesPipe"
-        config:
-          tables: [ "all" ]
-          columns: [ "auto" ]
-          shard_size: 1000000
-          pattern: "{{dataset.name}}-{split_name}-{split_info}.{{dataset.type}}"
-          path: "{{paths.export}}/{{paths.processed_data_train}}"
-          schema: [ "id", "cable" ]
-          drop_columns: True
-          fill_value: "null"
-- pipeline:
-    name: "upload"
-    description: "Default upload pipeline"
-    config: {}
-    pipes:
-    - pipe:
-        type: "FileExtractorPipe"
-        config:
-          path: "{{paths.export}}/{{paths.processed_data_train}}"
-          filter: "{{dataset.type}}"
-    - pipe:
-        type: "FileUploadHfApiPipe"
-        config:
-          org: "${HF_ORG}"
-          user: "${HF_USER}"
-          token: "${HF_WRITE_TOKEN}"
-          dataset: "{{dataset.name}}"
-          repo_type: "dataset"
-          remote_path: "{{paths.processed_data_train}}"
-          dry_run: False
-- pipeline:
     name: "generate"
     description: "Generate synthetic data pipeline"
     config: {}
@@ -176,3 +140,39 @@ pipelines:
           if_exists: "replace"
           prompt:
             template: "{{paths.templates}}/thinking.md"
+- pipeline:
+    name: "export"
+    description: "Default export pipeline"
+    config: {}
+    pipes:
+    - pipe:
+        type: "ExportTablesPipe"
+        config:
+          tables: [ "cables" ]
+          columns: [ "auto" ]
+          shard_size: 1000000
+          pattern: "{{dataset.name}}-{split_name}-{split_info}.{{dataset.type}}"
+          path: "{{paths.export}}/{{paths.processed_data_train}}"
+          schema: [ "id", "cable" ]
+          drop_columns: True
+          fill_value: "null"
+- pipeline:
+    name: "upload"
+    description: "Default upload pipeline"
+    config: {}
+    pipes:
+    - pipe:
+        type: "FileExtractorPipe"
+        config:
+          path: "{{paths.export}}/{{paths.processed_data_train}}"
+          filter: "{{dataset.type}}"
+    - pipe:
+        type: "FileUploadHfApiPipe"
+        config:
+          org: "${HF_ORG}"
+          user: "${HF_USER}"
+          token: "${HF_WRITE_TOKEN}"
+          dataset: "{{dataset.name}}"
+          repo_type: "dataset"
+          remote_path: "{{paths.processed_data_train}}"
+          dry_run: False
