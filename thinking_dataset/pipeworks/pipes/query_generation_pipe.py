@@ -114,7 +114,7 @@ class QueryGenerationPipe(Pipe):
         queries = self._generate_queries(seeds, seed_amount, seed_length,
                                          seed_offset, template, batch_size)
 
-        Log.info(f"Prepared DataFrame: {df.head()}")
+        Log.info(f"Prepared DataFrame: \n{df.head()}")
         Log.info(f"Shape: {df.shape}")
         Log.info(f"Queries Generated: {len(queries)}")
         Log.info(f"ID Column Length: {len(df['id'])}")
