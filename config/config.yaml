@@ -138,6 +138,7 @@ pipelines:
             columns: [ "thinking" ]
           provider: "localhost"
           if_exists: "replace"
+          max_workers: 4
           prompt:
             template: "{{paths.templates}}/thinking.md"
 - pipeline:

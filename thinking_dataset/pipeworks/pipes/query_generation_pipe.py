@@ -17,6 +17,25 @@ from thinking_dataset.decorators.with_db_session import with_db_session
 
 
 class QueryGenerationPipe(Pipe):
+    """
+    Pipe for generating queries by combining templates with seed text samples.
+
+    This pipe:
+    1. Fetches seed texts from a specified database table/column
+    2. Randomly samples multiple seeds of configured length
+    3. Combines seeds with a template to generate queries
+    4. Writes generated queries to output database table
+
+    Config:
+        input (list): Source table and column config for seeds
+        output (list): Target table and column config for queries
+        seed_amount (int): Number of seeds to use per query
+        seed_length (int): Length of each seed text
+        seed_offset (int): Offset into seed text to start from
+        batch_size (int): Number of queries to generate
+        if_exists (str): How to handle existing output table
+        prompt (dict): Template configuration
+    """
 
     def _get_seeds(self, seeds: pd.DataFrame, amount: int, size: int,
                    offset: int) -> List[str]:

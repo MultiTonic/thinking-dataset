@@ -22,6 +22,7 @@ if __name__ == "__main__":
         "thinking-dataset load",
         "thinking-dataset generate",
         "thinking-dataset export",
+        "thinking-dataset upload",
     ]
 
     for command in commands:

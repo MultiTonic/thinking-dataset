@@ -7,13 +7,22 @@ import pandas as pd
 from .pipe import Pipe
 from thinking_dataset.utils.log import Log
 from thinking_dataset.io.files import Files
-from thinking_dataset.utils.text_utils import TextUtils as text
+from thinking_dataset.utils.text_utils import TextUtils as utils
 
 
 class FileExtractorPipe(Pipe):
     """
-    Pipe to extract files from a specified directory based on a filter
-    and return a DataFrame.
+    Pipe for extracting files from a directory with filtering.
+
+    This pipe:
+    1. Recursively scans specified directory path
+    2. Filters files based on extension configuration
+    3. Creates DataFrame with file information
+    4. Assigns unique IDs to each file
+
+    Config:
+        path (str): Directory path to scan
+        filter (str): File extension to filter by
     """
 
     def flow(self, df: None, **args) -> pd.DataFrame:
@@ -45,6 +54,6 @@ class FileExtractorPipe(Pipe):
         for _, row in df.iterrows():
             file_id = row["id"]
             file_path = row["file_path"]
-            Log.info(f"Row: {file_id} - {text.shorten_path(file_path, 100)}")
+            Log.info(f"Row: {file_id} - {utils.shorten_path(file_path, 100)}")
 
         return df

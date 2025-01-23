@@ -21,7 +21,23 @@ from thinking_dataset.utils.command_utils import CommandUtils as utils
 
 class FileUploadHfApiPipe(Pipe):
     """
-    Pipe to upload files to the HF API dataset based on the DataFrame.
+    Pipe for uploading files to Hugging Face datasets via API.
+
+    This pipe:
+    1. Authenticates with Hugging Face API
+    2. Processes DataFrame containing file paths
+    3. Uploads files to specified dataset repository
+    4. Tracks upload progress with timing information
+    5. Handles upload retries and interruptions
+
+    Config:
+        org (str): Hugging Face organization name
+        user (str): Hugging Face username
+        token (str): Hugging Face API token
+        dataset (str): Target dataset name
+        repo_type (str): Repository type (dataset/model)
+        remote_path (str): Target path in repository
+        dry_run (bool): Test mode without actual uploads
     """
 
     def flow(self, df: pd.DataFrame, **args) -> pd.DataFrame:
