@@ -384,7 +384,7 @@ pipelines:
           seed_amount: 3
           seed_length: 50000
           seed_offset: 0
-          batch_size: 1
+          batch_size: 100
           if_exists: "replace"
           prompt:
             template: "{{paths.templates}}/thinking.md"
