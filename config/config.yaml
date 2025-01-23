@@ -42,7 +42,7 @@ providers:
     type: "ollama"
     url: "http://localhost:11434"
     config:
-      model: "llama3.1"
+      model: "deepseek-r1:8b"
       stream: False
       options:
         num_ctx: 32384
