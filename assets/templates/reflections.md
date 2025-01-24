@@ -1,5 +1,15 @@
+<!-- @template-type: diplomatic-reflections -->
+<!-- @version: 1.0.3 -->
+<!-- @purpose: Synthesize cross-stage insights and patterns -->
+<!-- @flow: ideation -> thinking -> reasoning -> reflection -> generation -->
+<!-- @context: Professional diplomatic meta-analysis -->
+<!-- @constraints: Earth-based, no real entities -->
+<!-- @output-format: XML structured reflections -->
+
 # Stage 3: Diplomatic Reflection Analysis
 ---
+<!-- @section: context -->
+<!-- @purpose: Define input parameters and constraints -->
 ## Inspirations Context
 > **CRITICAL**: Use these inputs for reflections:
 - **Random** samples (40k-100k chars) from diplomatic cables
@@ -16,6 +26,9 @@
   - Use real details
   - Combine inspirations
 
+<!-- @section: thinking-context -->
+<!-- @purpose: Define thought integration requirements -->
+<!-- @dependency: thinking.md output -->
 ## Thinking Context
 > **CRITICAL**: Use previous thinking outputs:
 - **Build on** previous analysis
@@ -23,6 +36,9 @@
 - **Maintain** coherence
 - **Identify** key elements
 
+<!-- @section: reasoning-context -->
+<!-- @purpose: Define reasoning integration requirements -->
+<!-- @dependency: reasoning.md output -->
 ## Reasoning Context
 > **CRITICAL**: Use previous reasoning outputs:
 - **Incorporate** frameworks
@@ -30,20 +46,31 @@
 - **Maintain** consistency
 - **Extract** key elements
 
+<!-- @section: data-sources -->
+<!-- @purpose: Define input data sources -->
+<!-- @validation: Must have valid data from all stages -->
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
 <thinking>{{thinking}}</thinking>
 <reasoning>{{reasoning}}</reasoning>
 ---
 
+<!-- @section: metadata -->
+<!-- @purpose: Template configuration and processing hints -->
 <metadata>
+  <!-- @hint: Version control for template processing -->
   <version>1.0.3</version>
+  <!-- @hint: Current stage in pipeline -->
   <stage>reflection</stage>
+  <!-- @hint: Processing flow control -->
   <last>reasoning</last>
   <next>generation</next>
+  <!-- @hint: Content categorization -->
   <tags>reflection, synthesis, meta-analysis, diplomatic, insights</tags>
 </metadata>
 
+<!-- @section: overview -->
+<!-- @purpose: Define core objectives and methods -->
 <overview>
 ### Primary Objectives
 - **PURPOSE**: Synthesize cross-stage insights
@@ -52,6 +79,10 @@
 - **METHOD**: Systematic insight synthesis
 </overview>
 
+<!-- @section: output-format -->
+<!-- @purpose: Define expected output structure -->
+<!-- @validation: Must follow exact XML schema -->
+<!-- @requirements: All fields must be fictional -->
 <output-format>
 ### Structure Requirements
 [GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
@@ -121,6 +152,9 @@
 </final-reflection>
 </output-format>
 
+<!-- @section: process -->
+<!-- @purpose: Define reflection methodology -->
+<!-- @visibility: Internal only, not for output -->
 <reflection-process>
 ### Creation Method
 1. **Review**:
@@ -133,6 +167,10 @@
    > Ensure insight depth and alignment
 </reflection-process>
 
+<!-- @section: instructions -->
+<!-- @purpose: Critical rules and constraints -->
+<!-- @priority: Highest -->
+<!-- @enforcement: Strict -->
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
@@ -174,3 +212,10 @@
 - ***Close the `</output>` node***
 - ***ONLY return XML; NO explain.***
 </critical-instruction>
+
+<!-- @section: response -->
+<!-- @purpose: Begin LLM response generation -->
+<!-- @type: XML structured output -->
+<!-- @format: Diplomatic reflection -->
+<!-- @validation: Must follow template exactly -->
+<begin_response />

@@ -1,5 +1,15 @@
+<!-- @template-type: diplomatic-reasoning -->
+<!-- @version: 1.0.4 -->
+<!-- @purpose: Transform thoughts into structured analytical framework -->
+<!-- @flow: ideation -> thinking -> reasoning -> reflection -> generation -->
+<!-- @context: Professional diplomatic analysis -->
+<!-- @constraints: Earth-based, no real entities -->
+<!-- @output-format: XML structured analysis -->
+
 # Stage 2: Diplomatic Reasoning Analysis
 ---
+<!-- @section: context -->
+<!-- @purpose: Define input parameters and constraints -->
 ## Inspirations Context
 > **CRITICAL**: Use these inputs for reasoning:
 - **Random** samples (40k-100k chars) from diplomatic cables
@@ -15,6 +25,9 @@
   - Use real details
   - Combine inspirations
 
+<!-- @section: thinking-context -->
+<!-- @purpose: Define previous stage inputs -->
+<!-- @dependency: thinking.md output -->
 ## Thinking Context
 > **CRITICAL**: Use previous thinking outputs:
 - **Build on** previous analysis
@@ -22,19 +35,30 @@
 - **Maintain** coherence
 - **Identify** key elements
 
+<!-- @section: data-sources -->
+<!-- @purpose: Input data references -->
+<!-- @validation: Must have valid data -->
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
 <thinking>{{thinking}}</thinking>
 ---
 
+<!-- @section: metadata -->
+<!-- @purpose: Template configuration and processing hints -->
 <metadata>
+  <!-- @hint: Version control for template processing -->
   <version>1.0.3</version>
+  <!-- @hint: Current stage in pipeline -->
   <stage>reasoning</stage>
+  <!-- @hint: Processing flow control -->
   <last>ideation</last>
   <next>reflection</next>
+  <!-- @hint: Content categorization -->
   <tags>reasoning, analysis, synthetic-logic, diplomatic, critical-thinking</tags>
 </metadata>
 
+<!-- @section: overview -->
+<!-- @purpose: Define core objectives and methods -->
 <overview>
 ### Primary Objectives
 - **PURPOSE**: Construct logical analysis framework
@@ -43,6 +67,10 @@
 - **METHOD**: Sequential analytical decomposition
 </overview>
 
+<!-- @section: output-format -->
+<!-- @purpose: Define expected output structure -->
+<!-- @validation: Must follow exact XML schema -->
+<!-- @requirements: All fields must be fictional -->
 <output-format>
 ### Structure Requirements
 [GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
@@ -112,6 +140,9 @@
 </final-analysis>
 </output-format>
 
+<!-- @section: process -->
+<!-- @purpose: Define analytical methodology -->
+<!-- @visibility: Internal only, not for output -->
 <reasoning-process>
 ### Creation Method
 1. **Input**:
@@ -124,6 +155,10 @@
    > Confirm rigor and coherence
 </reasoning-process>
 
+<!-- @section: instructions -->
+<!-- @purpose: Critical rules and constraints -->
+<!-- @priority: Highest -->
+<!-- @enforcement: Strict -->
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
@@ -165,3 +200,10 @@
 - ***Close the `</output>` node***
 - ***ONLY return XML; NO explain.***
 </critical-instruction>
+
+<!-- @section: response -->
+<!-- @purpose: Begin LLM response generation -->
+<!-- @type: XML structured output -->
+<!-- @format: Diplomatic analysis -->
+<!-- @validation: Must follow template exactly -->
+<begin_response />

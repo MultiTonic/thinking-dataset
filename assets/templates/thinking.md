@@ -1,5 +1,15 @@
+<!-- @template-type: diplomatic-thinking -->
+<!-- @version: 1.0.6 -->
+<!-- @purpose: Generate synthetic diplomatic narratives -->
+<!-- @flow: ideation -> thinking -> reasoning -> reflection -> generation -->
+<!-- @context: Professional diplomatic communication -->
+<!-- @constraints: Earth-based, no real entities -->
+<!-- @output-format: XML structured narrative -->
+
 # Stage 1: Diplomatic Narrative Thinking
 ---
+<!-- @section: context -->
+<!-- @purpose: Define input parameters and constraints -->
 ## Inspirations Context
 > **CRITICAL**: Use these inputs for reasoning:
 - **Random** samples (40k-100k chars) from diplomatic cables
@@ -19,14 +29,22 @@
 <inspirations>{{seeds}}</inspirations>
 ---
 
+<!-- @section: metadata -->
+<!-- @purpose: Template configuration and processing hints -->
 <metadata>
+  <!-- @hint: Version control for template processing -->
   <version>1.0.6</version>
+  <!-- @hint: Current stage in pipeline -->
   <stage>ideation</stage>
+  <!-- @hint: Processing flow control -->
   <last>generation</last>
   <next>reasoning</next>
+  <!-- @hint: Content categorization -->
   <tags>ideation, synthetic-content, diplomatic, narrative, analysis</tags>
 </metadata>
 
+<!-- @section: overview -->
+<!-- @purpose: Define core objectives and methods -->
 <overview>
 ### Primary Objectives
 - **PURPOSE**: Generate synthetic diplomatic narratives
@@ -35,6 +53,10 @@
 - **METHOD**: Systematic narrative construction
 </overview>
 
+<!-- @section: output-format -->
+<!-- @purpose: Define expected output structure -->
+<!-- @validation: Must follow exact XML schema -->
+<!-- @requirements: All fields must be fictional -->
 <output-format>
 ### Structure Requirements
 [GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
@@ -130,6 +152,9 @@
 </final-synthesis>
 </output-format>
 
+<!-- @section: process -->
+<!-- @purpose: Define creation methodology -->
+<!-- @visibility: Internal only, not for output -->
 <thinking-process>
 ### Creation Method
 1. **Review**: Study formats and patterns
@@ -140,6 +165,10 @@
 6. **Check**: Final compliance review
 </thinking-process>
 
+<!-- @section: instructions -->
+<!-- @purpose: Critical rules and constraints -->
+<!-- @priority: Highest -->
+<!-- @enforcement: Strict -->
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
@@ -182,3 +211,10 @@
 - ***Close the `</output>` node***
 - ***ONLY return XML; NO explain.***
 </critical-instruction>
+
+<!-- @section: response -->
+<!-- @purpose: Begin LLM response generation -->
+<!-- @type: XML structured output -->
+<!-- @format: Diplomatic narrative -->
+<!-- @validation: Must follow template exactly -->
+<begin_response />

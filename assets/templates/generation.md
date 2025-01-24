@@ -1,5 +1,15 @@
+<!-- @template-type: diplomatic-generation -->
+<!-- @version: 1.0.5 -->
+<!-- @purpose: Transform all prior inputs into formal diplomatic cable -->
+<!-- @flow: ideation -> thinking -> reasoning -> reflection -> generation -->
+<!-- @context: Professional diplomatic cable creation -->
+<!-- @constraints: Earth-based, no real entities -->
+<!-- @output-format: XML structured cable -->
+
 # Stage 4: Diplomatic Cable Generation
 ---
+<!-- @section: context -->
+<!-- @purpose: Define input parameters and constraints -->
 ## Inspirations Context
 > **CRITICAL**: Use these inputs for cable generation:
 - **Random** samples (40k-100k chars) from diplomatic cables
@@ -17,6 +27,9 @@
   - Use real details
   - Combine inspirations
 
+<!-- @section: thinking-context -->
+<!-- @purpose: Define thought integration requirements -->
+<!-- @dependency: thinking.md output -->
 ## Thinking Context
 > **CRITICAL**: Use previous thinking outputs:
 - **Build on** previous analysis
@@ -24,6 +37,9 @@
 - **Maintain** coherence
 - **Identify** key elements
 
+<!-- @section: reasoning-context -->
+<!-- @purpose: Define reasoning integration requirements -->
+<!-- @dependency: reasoning.md output -->
 ## Reasoning Context
 > **CRITICAL**: Use previous reasoning outputs:
 - **Incorporate** frameworks
@@ -31,6 +47,9 @@
 - **Maintain** coherence
 - **Extract** key elements
 
+<!-- @section: reflection-context -->
+<!-- @purpose: Define reflection integration requirements -->
+<!-- @dependency: reflections.md output -->
 ## Reflection Context
 > **CRITICAL**: Use previous reflections:
 - **Integrate** insights
@@ -38,6 +57,9 @@
 - **Maintain** depth
 - **Incorporate** key elements
 
+<!-- @section: data-sources -->
+<!-- @purpose: Define all input data sources -->
+<!-- @validation: Must have valid data from all stages -->
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
 <thinking>{{thinking}}</thinking>
@@ -45,14 +67,22 @@
 <reflections>{{reflections}}</reflections>
 ---
 
+<!-- @section: metadata -->
+<!-- @purpose: Template configuration and processing hints -->
 <metadata>
+  <!-- @hint: Version control for template processing -->
   <version>1.0.5</version>
+  <!-- @hint: Current stage in pipeline -->
   <stage>generation</stage>
+  <!-- @hint: Processing flow control -->
   <last>reflection</last>
   <next>ideation</next>
+  <!-- @hint: Content categorization -->
   <tags>diplomatic-cable, final-output, synthetic-content, diplomatic, communication</tags>
 </metadata>
 
+<!-- @section: overview -->
+<!-- @purpose: Define core objectives and methods -->
 <overview>
 ### Primary Objectives
 - **PURPOSE**: Transform inputs into diplomatic cable
@@ -61,6 +91,10 @@
 - **METHOD**: Systematic diplomatic translation
 </overview>
 
+<!-- @section: output-format -->
+<!-- @purpose: Define expected output structure -->
+<!-- @validation: Must follow exact cable format -->
+<!-- @requirements: All fields must be fictional -->
 <output-format>
 ### Structure Requirements
 [GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
@@ -167,6 +201,9 @@
 </final-cable>
 </output-format>
 
+<!-- @section: process -->
+<!-- @purpose: Define cable generation methodology -->
+<!-- @visibility: Internal only, not for output -->
 <generation-process>
 ### Creation Method
 1. **Analyze**:
@@ -179,6 +216,10 @@
    > Ensure compliance and completeness
 </generation-process>
 
+<!-- @section: instructions -->
+<!-- @purpose: Critical rules and constraints -->
+<!-- @priority: Highest -->
+<!-- @enforcement: Strict -->
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
@@ -213,10 +254,18 @@
 
 ---
 **Your response only for this query in following order:**
-- ***display the `<output>` node***
-- ***include complete initial-draft***
-- ***include complete cable-components***
-- ***include complete final-cable***
-- ***close the `</output>` node***
+- ***Display the `<output>` node***
+- ***Include complete initial-draft***
+- ***Include complete cable-components***
+- ***Include complete final-cable***
+- ***Close the `</output>` node***
 - ***ONLY return XML; NO explain.***
 </critical-instruction>
+
+<!-- @section: response -->
+<!-- @purpose: Begin LLM response generation -->
+<!-- @type: XML structured output -->
+<!-- @format: Diplomatic cable -->
+<!-- @validation: Must follow exact cable format -->
+<!-- @schema: Standard diplomatic cable structure -->
+<begin_response />

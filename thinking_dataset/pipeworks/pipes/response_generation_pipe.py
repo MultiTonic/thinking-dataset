@@ -1,16 +1,19 @@
 # @file thinking_dataset/pipeworks/pipes/response_generation_pipe.py
 # @description Pipe for generating responses from inspirations.
-# @version 1.0.25
+# @version 1.1.0
 # @license MIT
 
 import asyncio
 import pandas as pd
-from .pipe import Pipe
-from thinking_dataset.utils.log import Log
+
+from sqlalchemy import DDL, MetaData, Table, event, select, update
 from tenacity import retry, stop_after_attempt, wait_fixed
-from sqlalchemy import select, Table, MetaData, update, DDL, event
-from thinking_dataset.providers.ollama_provider import OllamaProvider
+
+from .pipe import Pipe
+from thinking_dataset.db.models.thoughts import Thoughts
 from thinking_dataset.decorators.with_db_session import with_db_session
+from thinking_dataset.providers.ollama_provider import OllamaProvider
+from thinking_dataset.utils.log import Log
 
 
 class ResponseGenerationPipe(Pipe):
@@ -35,79 +38,6 @@ class ResponseGenerationPipe(Pipe):
     def __init__(self, config):
         super().__init__(config)
         self.max_workers = self.config.get("max_workers", 4)
-
-    async def _generate_response(self, query: str,
-                                 provider: OllamaProvider) -> str:
-        return await provider.process_request_async(prompt=query)
-
-    def _fetch_queries(self, session, table_name: str,
-                       in_column: str) -> pd.DataFrame:
-        table = Table(table_name, MetaData(), autoload_with=session.bind)
-
-        # Include id column in select
-        query = select(table.c.id, table.c[in_column])
-        result = session.execute(query)
-        rows = result.fetchall()
-
-        # Include both id and content columns
-        queries = pd.DataFrame(rows, columns=['id', in_column])
-        Log.info(f"Total Queries in {table_name}.{in_column}: {len(queries)}")
-        return queries
-
-    async def _ensure_column_exists(self, session, table, out_column):
-        if (out_column) not in table.columns:
-            Log.info(f"Column '{out_column}' does not exist "
-                     f"in table '{table.name}', adding it.")
-
-            # Use SQLAlchemy's DDL construct to add the column
-            ddl = DDL(f'ALTER TABLE {table.name} ADD COLUMN {out_column} TEXT')
-            event.listen(table, 'after_create',
-                         ddl.execute_if(dialect='sqlite'))
-            session.execute(ddl)
-
-            # Reflect the table again to include the new column
-            table = Table(table.name, MetaData(), autoload_with=session.bind)
-        return table
-
-    @retry(stop=stop_after_attempt(5), wait=wait_fixed(2), reraise=True)
-    async def _update_db(self, session, out_table: str, row_id: int,
-                         response: str, out_column: str):
-        table = Table(out_table, MetaData(), autoload_with=session.bind)
-        Log.info(f"Updating table '{out_table}' for "
-                 f"row id {row_id} with "
-                 f"column '{out_column}'")
-        Log.info(f"Table columns: {[col.name for col in table.columns]}")
-
-        table = await self._ensure_column_exists(session, table, out_column)
-
-        stmt = update(table).where(table.c.id == row_id).values(
-            {out_column: response})
-        session.execute(stmt)
-        session.commit()
-        Log.info(f"Updated row with id {row_id} in '{out_table}' table")
-
-    async def _process_queries(self, session, queries, provider, out_table,
-                               out_column, in_column):
-
-        # Create semaphore to limit concurrent requests
-        semaphore = asyncio.Semaphore(self.max_workers)
-
-        async def process_with_semaphore(row):
-            async with semaphore:
-                return await self._process_single_query(
-                    session, row, provider, out_table, out_column, in_column)
-
-        # Create tasks for all queries
-        tasks = [process_with_semaphore(row) for _, row in queries.iterrows()]
-
-        # Execute tasks with concurrent limit
-        await asyncio.gather(*tasks)
-
-    async def _process_single_query(self, session, row, provider, out_table,
-                                    out_column, in_column):
-        response = await self._generate_response(row[in_column], provider)
-        await self._update_db(session, out_table, row['id'], response,
-                              out_column)
 
     @with_db_session
     def flow(self, df: pd.DataFrame, session=None, **kwargs) -> pd.DataFrame:
@@ -134,3 +64,72 @@ class ResponseGenerationPipe(Pipe):
         asyncio.run(process())
         Log.info("Finished ResponseGenerationPipe")
         return df
+
+    # Database operations
+    async def _ensure_column_exists(self, session, table, out_column):
+        if (out_column) not in table.columns:
+            Log.info(f"Column '{out_column}' does not exist "
+                     f"in table '{table.name}', adding it.")
+
+            ddl = DDL(f'ALTER TABLE {table.name} ADD COLUMN {out_column} TEXT')
+            event.listen(table, 'after_create',
+                         ddl.execute_if(dialect='sqlite'))
+            session.execute(ddl)
+
+            table = Table(table.name, MetaData(), autoload_with=session.bind)
+        return table
+
+    def _fetch_queries(self, session, table_name: str,
+                       in_column: str) -> pd.DataFrame:
+        table = Table(table_name, MetaData(), autoload_with=session.bind)
+
+        query = select(table.c.id, table.c[in_column])
+        result = session.execute(query)
+        rows = result.fetchall()
+
+        queries = pd.DataFrame(rows, columns=['id', in_column])
+        Log.info(f"Total Queries in {table_name}.{in_column}: {len(queries)}")
+        return queries
+
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(2), reraise=True)
+    async def _update_db(self, session, out_table: str, row_id: int,
+                         response: str, out_column: str):
+        Thoughts.__table__.create(session.bind, checkfirst=True)
+        Log.info("Ensured thoughts table exists")
+
+        table = Table(out_table, MetaData(), autoload_with=session.bind)
+        Log.info(f"Updating table '{out_table}' for "
+                 f"row id {row_id} with "
+                 f"column '{out_column}'")
+        Log.info(f"Table columns: {[col.name for col in table.columns]}")
+
+        table = await self._ensure_column_exists(session, table, out_column)
+
+        stmt = update(table).where(table.c.id == row_id).values(
+            {out_column: response})
+        session.execute(stmt)
+        session.commit()
+        Log.info(f"Updated row with id {row_id} in '{out_table}' table")
+
+    # Processing operations
+    async def _generate_response(self, query: str,
+                                 provider: OllamaProvider) -> str:
+        return await provider.process_request_async(prompt=query)
+
+    async def _process_queries(self, session, queries, provider, out_table,
+                               out_column, in_column):
+        semaphore = asyncio.Semaphore(self.max_workers)
+
+        async def process_with_semaphore(row):
+            async with semaphore:
+                return await self._process_single_query(
+                    session, row, provider, out_table, out_column, in_column)
+
+        tasks = [process_with_semaphore(row) for _, row in queries.iterrows()]
+        await asyncio.gather(*tasks)
+
+    async def _process_single_query(self, session, row, provider, out_table,
+                                    out_column, in_column):
+        response = await self._generate_response(row[in_column], provider)
+        await self._update_db(session, out_table, row['id'], response,
+                              out_column)
