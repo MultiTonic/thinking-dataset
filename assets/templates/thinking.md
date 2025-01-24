@@ -37,8 +37,8 @@
 <initial-thought>
   <scenario>[Core diplomatic situation or crisis]</scenario>
   <context>
-    <location>[Fictional geographical setting]</location>
-    <timeline>[Relevant timeframe]</timeline>
+    <location>[Fictional geographical setting on Earth]</location>
+    <timeline>[Year 2025]</timeline>
     <atmosphere>[Political/social climate]</atmosphere>
   </context>
   <direction>
@@ -142,6 +142,7 @@
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
+- **SETTING**: All scenarios must take place on Earth in the year 2025
 - Create **100% fictional** content
 - **NO** real organizations/places
 - **NO** real persons/events

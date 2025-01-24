@@ -1,5 +1,5 @@
 # Stage 2: Diplomatic Reasoning Analysis
-
+---
 ## Inspiration Context
 > **CRITICAL**: Use these inputs for reasoning:
 - `RANDOM` and **unrelated** samples
@@ -12,6 +12,7 @@
 - **NEVER** copy real content directly
 - **NEVER** connect or combine inspirations
 - Generate **100% unique** reasoning
+- **SETTING**: All scenarios must take place on Earth in the year 2025
 
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
@@ -117,6 +118,7 @@
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
+- **SETTING**: All scenarios must take place on Earth in the year 2025
 - Create **100% fictional** reasoning
 - **NO** real organizations/places
 - **NO** real persons/events
@@ -144,12 +146,3 @@
 </final-analysis>
 </output>
 </critical-instruction>
-
----
-**Your response only for this query in following order:**
-- ***display the `<output>` node***
-- ***include complete initial-analysis***
-- ***include complete unique-analysis***
-- ***include complete final-analysis***
-- ***close the `</output>` node***
-- ***ONLY return XML; NO explain.***

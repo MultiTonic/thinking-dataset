@@ -14,6 +14,7 @@
 - **NEVER** copy real content directly
 - **NEVER** connect or combine inspirations
 - Generate **100% synthetic** cable 
+- **SETTING**: All scenarios must take place on Earth in the year 2025
 
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
@@ -158,6 +159,7 @@
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
+- **SETTING**: All scenarios must take place on Earth in the year 2025
 - Use diplomatic cable format
 - Use all previous stages as context
 - Include comprehensive content
@@ -191,12 +193,3 @@
 </final-cable>
 </output>
 </critical-instruction>
-
----
-**Your response only for this query in following order:**
-- ***display the `<output>` node***
-- ***include complete initial-draft***
-- ***include complete cable-components***
-- ***include complete final-cable***
-- ***close the `</output>` node***
-- ***ONLY return XML; NO explain.***

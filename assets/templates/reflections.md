@@ -1,5 +1,5 @@
 # Stage 3: Diplomatic Reflection Analysis
-
+---
 ## Inspiration Context
 > **CRITICAL**: Use these inputs for reflections:
 - `RANDOM` and **unrelated** samples
@@ -13,6 +13,7 @@
 - **NEVER** copy real content directly
 - **NEVER** connect or combine inspirations
 - Generate **100% unique** reflections 
+- **SETTING**: All scenarios must take place on Earth in the year 2025
 
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
@@ -119,6 +120,7 @@
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
+- **SETTING**: All scenarios must take place on Earth in the year 2025
 - Create **100% fictional** reflections
 - **NO** real organizations/places
 - **NO** real persons/events
@@ -146,12 +148,3 @@
 </final-reflection>
 </output>
 </critical-instruction>
-
----
-**Your response only for this query in following order:**
-- ***display the `<output>` node***
-- ***include complete initial-reflection***
-- ***include complete unique-reflections***
-- ***include complete final-reflection***
-- ***close the `</output>` node***
-- ***ONLY return XML; NO explain.***
