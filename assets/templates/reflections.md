@@ -1,24 +1,40 @@
 # Stage 3: Diplomatic Reflection Analysis
 ---
-## Inspiration Context
+## Inspirations Context
 > **CRITICAL**: Use these inputs for reflections:
-- `RANDOM` and **unrelated** samples
-- Fragments from *40k-100k character* cables
-- **Inspiration** - DO NOT use content
-- **All Previous Stages**: Combined analytical outputs
-- **Inspirations**: Real world cable snippets
-- **Thoughts**: Your previous thinking output
-- **Reasoning**: Your previous reasoning output
-- **ONLY** use for structural guidance
-- **NEVER** copy real content directly
-- **NEVER** connect or combine inspirations
-- Generate **100% unique** reflections 
-- **SETTING**: All scenarios must take place on Earth in the year 2025
+- **Random** samples (40k-100k chars) from diplomatic cables
+- **100% unique** diplomatic content
+- **Professional** diplomatic style
+- **Extract structural patterns ONLY**
+- **Combine** outputs from all stages
+- **Inspirations**: Real-world snippets
+- **Thoughts**: Previous outputs
+- **Reasoning**: Previous outputs
+- **NEVER**:
+  - Copy content
+  - Combine samples
+  - Use real details
+  - Combine inspirations
+
+## Thinking Context
+> **CRITICAL**: Use previous thinking outputs:
+- **Build on** previous analysis
+- **Synthesize** thoughts
+- **Maintain** coherence
+- **Identify** key elements
+
+## Reasoning Context
+> **CRITICAL**: Use previous reasoning outputs:
+- **Incorporate** frameworks
+- **Align** with established reasoning
+- **Maintain** consistency
+- **Extract** key elements
 
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
 <thinking>{{thinking}}</thinking>
 <reasoning>{{reasoning}}</reasoning>
+---
 
 <metadata>
   <version>1.0.3</version>
@@ -30,10 +46,10 @@
 
 <overview>
 ### Primary Objectives
-- **PURPOSE**: Create meta-analysis of scenario development
-- **ROLE**: Diplomatic Reflection Synthesizer
-- **OUTPUT**: Structured reflective insights
-- **METHOD**: Multi-level analytical reflection
+- **PURPOSE**: Synthesize cross-stage insights
+- **ROLE**: Extract patterns and implications
+- **OUTPUT**: XML-structured meta-analysis
+- **METHOD**: Systematic insight synthesis
 </overview>
 
 <output-format>
@@ -107,33 +123,34 @@
 
 <reflection-process>
 ### Creation Method
-1. **Study Inputs**: 
-   > Review all previous stage outputs
-2. **Synthesize Insights**:
-   > Find patterns and connections
-3. **Generate Meta-Analysis**:
-   > Develop higher-level understanding
+1. **Review**:
+   > Process all prior stage outputs thoroughly
+2. **Analyze**:
+   > Extract core patterns and relationships
+3. **Synthesize**:
+   > Build comprehensive meta-analysis
 4. **Validate**:
-   > Ensure reflection depth and coherence
+   > Ensure insight depth and alignment
 </reflection-process>
 
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
-- **SETTING**: All scenarios must take place on Earth in the year 2025
-- Create **100% fictional** reflections
-- **NO** real organizations/places
-- **NO** real persons/events
-- Use inputs **ONLY** for inspiration
-- Use structured reflection format
+- Create **100% fictional** Earth-based reflections
+- **NO** real entities: persons/places/events/organizations
+- Use inputs **ONLY** for structural inspiration
+- Follow structured reflection format precisely
 - Use all previous stages as context
-- Include comprehensive meta-analysis
-- Ensure analytical depth and insight
-- Keep structure professional
-- Keep output **EXACTLY** as formatted
-- **NEVER** add any formatting markers
-- **NEVER** wrap `<output/>` with anything
-- **NEVER** return `<output\>` as content block
+- Ensure comprehensive meta-analysis
+- Maintain analytical depth and professional rigor
+- Keep XML output structure exact
+- Generate realistic diplomatic insights
+- **NEVER**:
+  - Include reflection process
+  - Add formatting markers
+  - Wrap `<output/>` tags
+  - Return content blocks
+  - Reference real entities
 
 **CORRECT OUTPUT FORMAT:**
 <output>
@@ -147,4 +164,13 @@
 [Selected reflection and development]
 </final-reflection>
 </output>
+
+---
+**Your response only for this query in following order:**
+- ***Display the `<output>` node***
+- ***Include complete initial-reflection***
+- ***Include complete unique-reflections***
+- ***Include complete final-reflection***
+- ***Close the `</output>` node***
+- ***ONLY return XML; NO explain.***
 </critical-instruction>

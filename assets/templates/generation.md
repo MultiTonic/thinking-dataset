@@ -1,26 +1,49 @@
 # Stage 4: Diplomatic Cable Generation
 ---
-## Inspiration Context
+## Inspirations Context
 > **CRITICAL**: Use these inputs for cable generation:
-- `RANDOM` and **unrelated** samples
-- Fragments from *40k-100k character* cables
-- **Inspiration** - DO NOT use content
-- **All Previous Stages**: Combined analytical outputs
-- **Inspirations**: Real world cable snippets
-- **Thoughts**: Your previous thinking output
-- **Reasoning**: Your previous reasoning output
-- **Reflections**: Generated reflections output
-- **ONLY** use for structural guidance
-- **NEVER** copy real content directly
-- **NEVER** connect or combine inspirations
-- Generate **100% synthetic** cable 
-- **SETTING**: All scenarios must take place on Earth in the year 2025
+- **Random** samples (40k-100k chars) from diplomatic cables
+- **100% unique** diplomatic content
+- **Professional** diplomatic style
+- **Extract structural patterns ONLY**
+- **Combine** outputs from all stages
+- **Inspirations**: Real-world snippets
+- **Thoughts**: Previous outputs
+- **Reasoning**: Previous outputs
+- **Reflections**: Generated reflections
+- **NEVER**:
+  - Copy content
+  - Combine samples
+  - Use real details
+  - Combine inspirations
+
+## Thinking Context
+> **CRITICAL**: Use previous thinking outputs:
+- **Build on** previous analysis
+- **Synthesize** ideas
+- **Maintain** coherence
+- **Identify** key elements
+
+## Reasoning Context
+> **CRITICAL**: Use previous reasoning outputs:
+- **Incorporate** frameworks
+- **Align** with established reasoning
+- **Maintain** coherence
+- **Extract** key elements
+
+## Reflection Context
+> **CRITICAL**: Use previous reflections:
+- **Integrate** insights
+- **Ensure** alignment
+- **Maintain** depth
+- **Incorporate** key elements
 
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
 <thinking>{{thinking}}</thinking>
 <reasoning>{{reasoning}}</reasoning>
 <reflections>{{reflections}}</reflections>
+---
 
 <metadata>
   <version>1.0.5</version>
@@ -32,10 +55,10 @@
 
 <overview>
 ### Primary Objectives
-- **PURPOSE**: Generate complete fictional diplomatic cable
-- **ROLE**: Diplomatic Cable Creator
-- **OUTPUT**: Professional diplomatic communication
-- **METHOD**: Structured cable composition
+- **PURPOSE**: Transform inputs into diplomatic cable
+- **ROLE**: Convert narrative into formal communication
+- **OUTPUT**: XML-structured cable document
+- **METHOD**: Systematic diplomatic translation
 </overview>
 
 <output-format>
@@ -146,39 +169,34 @@
 
 <generation-process>
 ### Creation Method
-1. **Study Format**: 
-   > Analyze cable structures
-2. **Extract Elements**:
-   > Identify key components
-3. **Create Content**:
-   > Develop fictional cable
-4. **Validate**:
-   > Ensure professional tone
+1. **Analyze**:
+   > Review cable requirements and format specifications
+2. **Structure**:
+   > Map required sections and components
+3. **Generate**:
+   > Create professional diplomatic cable
+4. **Verify**:
+   > Ensure compliance and completeness
 </generation-process>
 
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
-- **SETTING**: All scenarios must take place on Earth in the year 2025
-- Use diplomatic cable format
+- Create **100% fictional** Earth-based cables
+- **NO** real entities: persons/places/events/organizations
+- Use inputs **ONLY** for structural inspiration
+- Follow diplomatic cable format precisely
 - Use all previous stages as context
-- Include comprehensive content
-- Ensure professional style
-- Keep structure professional
-- Create varied diplomatic routing patterns
-- Use diverse global diplomatic entities
-- Maintain proper cable header format
+- Ensure comprehensive, professional content
+- Keep XML output structure exact
 - Generate realistic diplomatic channels
-- Keep output **EXACTLY** as formatted
-- Output must be XML content only
-- Create **100% fictional** content
-- **NO** real organizations/places
-- **NO** real persons/events
-- Use inspirations **ONLY** for inspiration
-- **NEVER** include generation process
-- **NEVER** add any formatting markers
-- **NEVER** wrap `<output/>` with anything
-- **NEVER** return `<output\>` as content block
+- Create varied routing patterns
+- **NEVER**:
+  - Include generation process
+  - Add formatting markers
+  - Wrap `<output/>` tags
+  - Return content blocks
+  - Reference real entities
 
 **CORRECT OUTPUT FORMAT:**
 <output>
@@ -192,4 +210,13 @@
 [Official signature block and administrative data]
 </final-cable>
 </output>
+
+---
+**Your response only for this query in following order:**
+- ***display the `<output>` node***
+- ***include complete initial-draft***
+- ***include complete cable-components***
+- ***include complete final-cable***
+- ***close the `</output>` node***
+- ***ONLY return XML; NO explain.***
 </critical-instruction>

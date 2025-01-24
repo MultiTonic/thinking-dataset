@@ -1,22 +1,31 @@
 # Stage 2: Diplomatic Reasoning Analysis
 ---
-## Inspiration Context
+## Inspirations Context
 > **CRITICAL**: Use these inputs for reasoning:
-- `RANDOM` and **unrelated** samples
-- Fragments from *40k-100k character* cables
-- **Inspiration** - DO NOT use content
-- **All Previous Stages**: Combined analytical outputs
-- **Inspirations**: Real world cable snippets
-- **Thoughts**: Your previous thinking output
-- **ONLY** use for structural guidance
-- **NEVER** copy real content directly
-- **NEVER** connect or combine inspirations
-- Generate **100% unique** reasoning
-- **SETTING**: All scenarios must take place on Earth in the year 2025
+- **Random** samples (40k-100k chars) from diplomatic cables
+- **100% unique** diplomatic content
+- **Professional** diplomatic style
+- **Extract structural patterns ONLY**
+- **Combine** outputs from all stages
+- **Inspirations**: Real-world snippets
+- **Thoughts**: Previous outputs
+- **NEVER**:
+  - Copy content
+  - Combine samples
+  - Use real details
+  - Combine inspirations
+
+## Thinking Context
+> **CRITICAL**: Use previous thinking outputs:
+- **Build on** previous analysis
+- **Synthesize** thoughts
+- **Maintain** coherence
+- **Identify** key elements
 
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
 <thinking>{{thinking}}</thinking>
+---
 
 <metadata>
   <version>1.0.3</version>
@@ -28,10 +37,10 @@
 
 <overview>
 ### Primary Objectives
-- **PURPOSE**: Create logical reasoning for fictional scenario
-- **ROLE**: Diplomatic Logic Analyzer
-- **OUTPUT**: Structured analytical reasoning
-- **METHOD**: Step-by-step logical analysis
+- **PURPOSE**: Construct logical analysis framework
+- **ROLE**: Process inputs into structured reasoning
+- **OUTPUT**: XML-structured analytical content
+- **METHOD**: Sequential analytical decomposition
 </overview>
 
 <output-format>
@@ -105,33 +114,34 @@
 
 <reasoning-process>
 ### Creation Method
-1. **Review Inputs**: 
-   > Study thinking output carefully
-2. **Structure Logic**:
-   > Build argument framework
-3. **Develop Rationales**:
-   > Create supporting arguments
-4. **Validate**:
-   > Ensure logical consistency
+1. **Input**:
+   > Review scope and gather key parameters
+2. **Structure**:
+   > Build core analytical framework
+3. **Build**:
+   > Develop supporting logic chain
+4. **Verify**:
+   > Confirm rigor and coherence
 </reasoning-process>
 
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
-- **SETTING**: All scenarios must take place on Earth in the year 2025
-- Create **100% fictional** reasoning
-- **NO** real organizations/places
-- **NO** real persons/events
-- Use inputs **ONLY** for inspiration
-- Use structured reasoning format
-- Use previous stages as context
-- Include comprehensive analysis
-- Ensure logical depth and rigor
-- Keep structure professional
-- Keep output **EXACTLY** as formatted
-- **NEVER** add any formatting markers
-- **NEVER** wrap `<output/>` with anything
-- **NEVER** return `<output\>` as content block
+- **Generate** 100% fictional Earth-based reasoning
+- **NO** real entities: persons/places/events/organizations
+- **Use inputs only** for structural inspiration
+- **Follow** structured analytical format precisely
+- **Incorporate** prior stage contexts
+- **Ensure** comprehensive, professional content
+- **Maintain** logical depth and rigor
+- **Keep** XML output structure exact
+- **Generate** realistic analytical outcomes
+- **NEVER**:
+  - Include reasoning process
+  - Add formatting markers
+  - Wrap `<output/>` tags
+  - Return content blocks
+  - Reference real entities
 
 **CORRECT OUTPUT FORMAT:**
 <output>
@@ -145,4 +155,13 @@
 [Selected analysis and development]
 </final-analysis>
 </output>
+
+---
+**Your response only for this query in following order:**
+- ***Display the `<output>` node***
+- ***Include complete initial-analysis***
+- ***Include complete unique-analysis***
+- ***Include complete final-analysis***
+- ***Close the `</output>` node***
+- ***ONLY return XML; NO explain.***
 </critical-instruction>
