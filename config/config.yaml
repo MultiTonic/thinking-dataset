@@ -42,7 +42,8 @@ providers:
     type: "ollama"
     url: "http://localhost:11434"
     config:
-      model: "llama3.2:3b"
+      model: "deepseek-r1:8b"
+      # model: "llama3.1:8b"
       stream: False
       options:
         num_ctx: 32384
@@ -382,9 +383,9 @@ pipelines:
           - table: "cables"
             columns: [ "query" ]
           seed_amount: 3
-          seed_length: 5000
+          seed_length: 2500
           seed_offset: 0
-          batch_size: 100
+          batch_size: 10
           if_exists: "replace"
           prompt:
             template: "{{paths.templates}}/thinking.md"
