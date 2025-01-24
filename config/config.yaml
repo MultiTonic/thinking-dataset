@@ -396,7 +396,7 @@ pipelines:
           provider: "localhost"
           if_exists: "replace"
           max_workers: 4
-          mock: True
+          mock: False
           input:
           - table: "cables"
             columns: [ "query" ]
