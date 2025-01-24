@@ -1,6 +1,6 @@
-# Stage 3: Diplomatic Reflection Analysis >> Stage 4: Cable Generation
+# Stage 3: Diplomatic Reflection Analysis
 
-## Seed Context
+## Inspiration Context
 > **CRITICAL**: Use these inputs for reflections:
 - `RANDOM` and **unrelated** samples
 - Fragments from *40k-100k character* cables
@@ -11,7 +11,7 @@
 - **Reasoning**: Your previous reasoning output
 - **ONLY** use for structural guidance
 - **NEVER** copy real content directly
-- **NEVER** connect or combine seeds
+- **NEVER** connect or combine inspirations
 - Generate **100% unique** reflections 
 
 ## Data Sources
@@ -22,6 +22,7 @@
 <metadata>
   <version>1.0.3</version>
   <stage>reflection</stage>
+  <last>reasoning</last>
   <next>generation</next>
   <tags>reflection, synthesis, meta-analysis, diplomatic, insights</tags>
 </metadata>
@@ -35,29 +36,72 @@
 </overview>
 
 <output-format>
-### Required Structure
+### Structure Requirements
+[GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
 
-<deep-reflect>
-[Internal reflection process - not final content]
-</deep-reflect>
+<initial-reflection>
+  <framework>
+    <methodology>[Analysis approach]</methodology>
+    <scope>[Reflection boundaries]</scope>
+    <objectives>[Meta-analysis goals]</objectives>
+  </framework>
+  <foundation>
+    <context>[Analytical background]</context>
+    <patterns>[Initial observations]</patterns>
+    <connections>[Cross-stage links]</connections>
+  </foundation>
+</initial-reflection>
 
-**Reflection Header:**
-- **Context**: `Overall analytical context`
-- **Focus**: `Core reflection points`
-- **Scope**: `Reflection boundaries`
+<unique-reflections>
+  <reflection>
+    <concept>
+      <core>[Central insight]</core>
+      <context>[Situational frame]</context>
+      <significance>[Strategic importance]</significance>
+    </concept>
+    <elements>
+      <narrative>
+        <arc>[Story development]</arc>
+        <themes>[Key messages]</themes>
+        <resonance>[Impact factors]</resonance>
+      </narrative>
+      <analytical>
+        <logic>[Reasoning patterns]</logic>
+        <evidence>[Supporting elements]</evidence>
+        <validity>[Strength assessment]</validity>
+      </analytical>
+      <thematic>
+        <trends>[Recurring elements]</trends>
+        <parallels>[Pattern matches]</parallels>
+        <divergences>[Unique aspects]</divergences>
+      </thematic>
+    </elements>
+    <synthesis>
+      <insights>[Key learnings]</insights>
+      <implications>[Future impacts]</implications>
+      <applications>[Practical uses]</applications>
+    </synthesis>
+  </reflection>
+  <!-- Generate 2-3 more reflections -->
+</unique-reflections>
 
-**Reflection Body:**
-- **Patterns**: `Emerging thematic elements`
-- **Connections**: `Cross-stage relationships`
-- **Implications**: `Deeper meaning analysis`
-- **Synthesis**: `Integrated understanding`
-- **Meta-view**: `Higher-level perspective`
-
-**Reflection Footer:**
-- **Insights**: `Key takeaways`
-- **Integration**: `Cross-stage connections`
-- **Direction**: `Forward-looking thoughts`
-
+<final-reflection>
+  <meta-analysis>
+    <overview>[Comprehensive view]</overview>
+    <patterns>[System-level trends]</patterns>
+    <significance>[Strategic importance]</significance>
+  </meta-analysis>
+  <integration>
+    <synthesis>[Combined insights]</synthesis>
+    <connections>[Cross-cutting themes]</connections>
+    <implications>[Overall impact]</implications>
+  </integration>
+  <recommendations>
+    <strategic>[Long-term direction]</strategic>
+    <tactical>[Immediate actions]</tactical>
+    <development>[Growth areas]</development>
+  </recommendations>
+</final-reflection>
 </output-format>
 
 <reflection-process>
@@ -88,14 +132,26 @@
 - **NEVER** add any formatting markers
 - **NEVER** wrap `<output/>` with anything
 - **NEVER** return `<output\>` as content block
+
+**CORRECT OUTPUT FORMAT:**
+<output>
+<initial-reflection>
+[First reflective framework]
+</initial-reflection>
+<unique-reflections>
+[Array of distinct reflection paths]
+</unique-reflections>
+<final-reflection>
+[Selected reflection and development]
+</final-reflection>
+</output>
 </critical-instruction>
 
 ---
-
 **Your response only for this query in following order:**
 - ***display the `<output>` node***
-- ***include complete reflection header***
-- ***include complete reflection body***
-- ***include complete reflection footer***
+- ***include complete initial-reflection***
+- ***include complete unique-reflections***
+- ***include complete final-reflection***
 - ***close the `</output>` node***
 - ***ONLY return XML; NO explain.***

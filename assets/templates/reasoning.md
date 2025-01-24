@@ -1,6 +1,6 @@
-# Stage 2: Diplomatic Reasoning Analysis >> Stage 3: Reflection Analysis
+# Stage 2: Diplomatic Reasoning Analysis
 
-## Seed Context
+## Inspiration Context
 > **CRITICAL**: Use these inputs for reasoning:
 - `RANDOM` and **unrelated** samples
 - Fragments from *40k-100k character* cables
@@ -10,7 +10,7 @@
 - **Thoughts**: Your previous thinking output
 - **ONLY** use for structural guidance
 - **NEVER** copy real content directly
-- **NEVER** connect or combine seeds
+- **NEVER** connect or combine inspirations
 - Generate **100% unique** reasoning
 
 ## Data Sources
@@ -20,7 +20,8 @@
 <metadata>
   <version>1.0.3</version>
   <stage>reasoning</stage>
-  <next>reflection</stage>
+  <last>ideation</last>
+  <next>reflection</next>
   <tags>reasoning, analysis, synthetic-logic, diplomatic, critical-thinking</tags>
 </metadata>
 
@@ -33,29 +34,72 @@
 </overview>
 
 <output-format>
-### Required Structure
+### Structure Requirements
+[GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
 
-<deep-reason>
-[Internal reasoning process - not final content]
-</deep-reason>
+<initial-analysis>
+  <framework>
+    <approach>[Analysis methodology]</approach>
+    <scope>[Analysis boundaries]</scope>
+    <focus>[Core analytical elements]</focus>
+  </framework>
+  <base>
+    <situation>[Current state]</situation>
+    <context>[Key background]</context>
+    <factors>[Critical variables]</factors>
+  </base>
+</initial-analysis>
 
-**Reasoning Header:**
-- **Context**: `Analysis framework`
-- **Scope**: `Reasoning boundaries`
-- **Focus**: `Key analytical points`
+<unique-analysis>
+  <analysis>
+    <premise>
+      <core>[Central argument]</core>
+      <assumptions>[Key premises]</assumptions>
+      <constraints>[Limiting factors]</constraints>
+    </premise>
+    <elements>
+      <logical>
+        <structure>[Argument framework]</structure>
+        <flow>[Reasoning chain]</flow>
+        <validity>[Logic strength]</validity>
+      </logical>
+      <factual>
+        <evidence>[Supporting data]</evidence>
+        <verification>[Proof points]</verification>
+        <reliability>[Data quality]</reliability>
+      </factual>
+      <contextual>
+        <environment>[Situational factors]</environment>
+        <influences>[External forces]</influences>
+        <dynamics>[Changing elements]</dynamics>
+      </contextual>
+    </elements>
+    <implications>
+      <direct>[Immediate effects]</direct>
+      <indirect>[Secondary impacts]</indirect>
+      <long-term>[Future consequences]</long-term>
+    </implications>
+  </analysis>
+  <!-- Generate 2-3 more analyses -->
+</unique-analysis>
 
-**Reasoning Body:**
-- **Premise**: `Main logical foundation`
-- **Arguments**: `Supporting rationales`
-- **Evidence**: `Fictional supporting elements`
-- **Analysis**: `Critical examination`
-- **Logic**: `Reasoning chain`
-
-**Reasoning Footer:**
-- **Synthesis**: `Combined conclusions`
-- **Implications**: `Key outcomes`
-- **Direction**: `Next analytical steps`
-
+<final-analysis>
+  <selected-logic>
+    <path>[Chosen reasoning chain]</path>
+    <justification>[Selection rationale]</justification>
+    <impact>[Expected outcomes]</impact>
+  </selected-logic>
+  <synthesis>
+    <integration>[Combined elements]</integration>
+    <patterns>[Identified trends]</patterns>
+    <insights>[Key discoveries]</insights>
+  </synthesis>
+  <recommendations>
+    <strategic>[Long-term actions]</strategic>
+    <tactical>[Immediate steps]</tactical>
+    <contingencies>[Alternative plans]</contingencies>
+  </recommendations>
+</final-analysis>
 </output-format>
 
 <reasoning-process>
@@ -86,14 +130,26 @@
 - **NEVER** add any formatting markers
 - **NEVER** wrap `<output/>` with anything
 - **NEVER** return `<output\>` as content block
+
+**CORRECT OUTPUT FORMAT:**
+<output>
+<initial-analysis>
+[First analytical framework]
+</initial-analysis>
+<unique-analysis>
+[Array of distinct reasoning paths]
+</unique-analysis>
+<final-analysis>
+[Selected analysis and development]
+</final-analysis>
+</output>
 </critical-instruction>
 
 ---
-
 **Your response only for this query in following order:**
 - ***display the `<output>` node***
-- ***include complete reasoning header***
-- ***include complete reasoning body***
-- ***include complete reasoning footer***
+- ***include complete initial-analysis***
+- ***include complete unique-analysis***
+- ***include complete final-analysis***
 - ***close the `</output>` node***
 - ***ONLY return XML; NO explain.***
