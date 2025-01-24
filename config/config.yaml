@@ -1,6 +1,6 @@
 # @file config/config.yaml
 # @description Configuration for the Cablegate PDF Dataset Project
-# @version 1.0.8
+# @version 1.0.9
 # @license MIT
 
 dataset:
@@ -43,13 +43,14 @@ providers:
     url: "http://localhost:11434"
     config:
       model: "deepseek-r1:8b"
+      # model: "llama3.2:3b"
       # model: "llama3.1:8b"
       stream: False
       options:
-        num_ctx: 32384
+        num_ctx: 64768
         temperature: 0.8
         repeat_penalty: 1.2
-        num_thread: 16
+        num_thread: 64
 pipelines:
 - pipeline:
     name: "process"
@@ -60,7 +61,7 @@ pipelines:
     - pipe:
         type: "SubsetPipe"
         config:
-          rows: [ 0, 100 ]
+          rows: [ 0, 2500 ]
           columns: [ "all" ]
     - pipe:
         type: "AddIdPipe"
@@ -367,7 +368,7 @@ pipelines:
         config:
           columns: [ "cable" ]
           min_chunk_size: 500
-          max_chunk_size: 5000
+          max_chunk_size: 2500
 - pipeline:
     name: "generate"
     description: "Generate synthetic data pipeline"
@@ -385,22 +386,23 @@ pipelines:
           seed_amount: 3
           seed_length: 2500
           seed_offset: 0
-          batch_size: 10
+          batch_size: 250
           if_exists: "replace"
           prompt:
             template: "{{paths.templates}}/thinking.md"
     - pipe:
         type: "ResponseGenerationPipe"
         config:
+          provider: "localhost"
+          if_exists: "replace"
+          max_workers: 4
+          mock: True
           input:
           - table: "cables"
             columns: [ "query" ]
           output:
           - table: "cables"
             columns: [ "thinking" ]
-          provider: "localhost"
-          if_exists: "replace"
-          max_workers: 4
           prompt:
             template: "{{paths.templates}}/thinking.md"
 - pipeline:

@@ -1,12 +1,10 @@
 # @file thinking_dataset/db/models/thoughts.py
 # @description Defines the Thoughts model.
-# @version 1.0.1
+# @version 1.0.2
 # @license MIT
 
 from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from .cables import Base
 
 
 class Thoughts(Base):
@@ -38,17 +36,12 @@ class Thoughts(Base):
     content = Column(String, nullable=False)
     table_name = Column(String, nullable=False)
 
-    # Foreign key relationship
-    cable_id = Column(Integer, ForeignKey('cables.id'), nullable=True)
+    # Foreign key relationship to Cables model
+    cable_id = Column(Integer,
+                      ForeignKey('cables.id', ondelete='CASCADE'),
+                      nullable=True)
 
-    def __init__(self,
-                 table_id,
-                 thought_id,
-                 content,
-                 table_name,
-                 cable_id=None):
-        self.table_id = table_id
-        self.thought_id = thought_id
-        self.content = content
-        self.table_name = table_name
-        self.cable_id = cable_id
+    def __repr__(self):
+        return (f"<Thought(id={self.id}, "
+                f"table_id={self.table_id}, "
+                f"thought_id={self.thought_id})>")

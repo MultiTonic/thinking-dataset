@@ -9,7 +9,7 @@ setup(
         'requests', 'rich', 'sqlite-utils', 'pytest', 'pytest-html',
         'pytest-cov', 'loguru', 'pandas', 'numpy', 'scikit-learn',
         'sqlalchemy', 'tqdm', 'pydantic', 'python-statemachine', 'jsonschema',
-        'ollama', 'tenacity'
+        'ollama', 'tenacity', 'lorem-text'
     ],
     entry_points={
         'console_scripts': [
