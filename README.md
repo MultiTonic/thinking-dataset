@@ -39,7 +39,7 @@ For more details, see the [Overview](docs/00_OVERVIEW.md).
 - **Database Operations**: Modularized SQL database operations with a finite state machine for session management.
 - **Parquet File Processing**: Tooling for working with parquet files and ingesting them into database tables.
 
-## Installation
+## Quick Start
 
 ### Prerequisites
 
@@ -88,6 +88,8 @@ For more details, see the [Overview](docs/00_OVERVIEW.md).
 
 ## Usage
 
+For detailed usage instructions, please refer to the [Usage](docs/05_USAGE.md) in the `docs` directory.
+
 ### Running the Download Command
 
 To download all parquet files from the Cablegate dataset using Hugging Face CLI:
@@ -101,42 +103,6 @@ To execute all CLI commands for the project:
 ```bash
 python assets/scripts/run_cli_commands.py
 ```
-
-For detailed usage instructions, please refer to the [Usage](docs/05_USAGE.md) in the `docs` directory.
-
-## Quick Start
-
-1. **Clone the repository and navigate to the project directory:**
-
-    ```bash
-    git clone https://github.com/MultiTonic/thinking-dataset.git
-    cd thinking-dataset
-    ```
-
-2. **Install dependencies:**
-
-    ```bash
-    pip install uv
-    uv install -f thinking-dataset.toml
-    ```
-
-3. **Set up environment variables:**
-
-    ```bash
-    cp .env.sample .env
-    ```
-
-4. **Run the download command:**
-
-    ```bash
-    thinking-dataset download
-    ```
-
-5. **Run all CLI commands:**
-
-    ```bash
-    python assets/scripts/run_cli_commands.py
-    ```
 
 ## Project Structure
 
