@@ -61,7 +61,7 @@ pipelines:
     - pipe:
         type: "SubsetPipe"
         config:
-          rows: [ 0, 2500 ]
+          rows: [ 0, 100 ]
           columns: [ "all" ]
     - pipe:
         type: "AddIdPipe"
@@ -386,7 +386,7 @@ pipelines:
           seed_amount: 3
           seed_length: 2500
           seed_offset: 0
-          batch_size: 250
+          batch_size: 1
           if_exists: "replace"
           prompt:
             template: "{{paths.templates}}/thinking.md"

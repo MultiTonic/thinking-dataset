@@ -47,7 +47,7 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>1.0.3</version>
+  <version>1.0.4</version>
   <!-- @hint: Current stage in pipeline -->
   <stage>reasoning</stage>
   <!-- @hint: Processing flow control -->
@@ -162,21 +162,54 @@
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
-- **Generate** 100% fictional Earth-based reasoning
-- **NO** real entities: persons/places/events/organizations
-- **Use inputs only** for structural inspiration
-- **Follow** structured analytical format precisely
-- **Incorporate** prior stage contexts
-- **Ensure** comprehensive, professional content
-- **Maintain** logical depth and rigor
-- **Keep** XML output structure exact
-- **Generate** realistic analytical outcomes
-- **NEVER**:
-  - Include reasoning process
-  - Add formatting markers
-  - Wrap `<output/>` tags
-  - Return content blocks
-  - Reference real entities
+
+**CONSTRAINTS**: {
+  "spatial": [
+    - EARTH_ONLY: true
+    - REAL_LOCATIONS: true
+    - FICTIONAL_PLACES: false
+    - SPACE_CONTEXT: terrestrial
+  ],
+  "temporal": [
+    - START_YEAR: 2015
+    - END_YEAR: 2025
+    - ALTERNATE_HISTORY: false
+    - TECH_LEVEL: contemporary
+  ],
+  "content": [
+    - TYPE: fictional
+    - STYLE: diplomatic
+    - ENTITIES: fictional
+    - SCOPE: comprehensive
+    - DEPTH: high
+    - REALISM: high
+    - META_ANALYSIS: required
+    - RIGOR: high
+    - INSIGHTS: diplomatic
+  ],
+  "format": [
+    - XML_STRUCTURE: exact
+    - LANGUAGE: en-us
+    - STAGE: reasoning
+  ],
+  "context": [
+    - PREVIOUS_STAGES: true
+    - STRUCTURAL_INSPIRATION: true
+    - PROFESSIONAL_TONE: true
+    - STAGES_COHERENCE: high
+  ],
+  "prohibited": [
+    - PROCESS_INCLUSION: false
+    - FORMAT_MARKERS: false
+    - OUTPUT_WRAPPING: false
+    - CONTENT_BLOCKS: false
+    - REAL_REFERENCES: false
+    - NON_EARTH: false
+    - FUTURE_TECH: false
+    - REAL_ENTITIES: false
+    - PROCESS_LEAKAGE: false
+  ]
+}
 
 **CORRECT OUTPUT FORMAT:**
 <output>
