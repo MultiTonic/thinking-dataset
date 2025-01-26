@@ -4,34 +4,33 @@
 <!-- @context: Professional diplomatic cable creation -->
 <!-- @spatial: Earth-based -->
 <!-- @temporal: 2020 to 2030 -->
-
-# Stage 4: Diplomatic Cable Composition
 ---
+# Stage 4: Diplomatic Cable Composition
+
 <!-- @section: context -->
 <!-- @purpose: Define input parameters and constraints -->
 ## Input Configuration
-**REQUIREMENTS**: {
-  **inputs**: [
-    {"SOURCE": "diplomatic cables"},
-    {"SAMPLE SIZE": "20k-100k chars"},
-    {"TYPE": "random selection"},
-    {"STYLE": "professional diplomatic"}
-  ],
-  **content**: [
-    {"UNIQUENESS": "100%"},
-    {"EXTRACTION": "structural patterns only"},
-    {"COMBINATION": "all stage outputs"},
-    {"INSPIRATION": "real world snippets"}
-  ],
-  **prohibited**: [
-    {"CONTENT COPYING": False},
-    {"SAMPLE COMBINING": False},
-    {"REAL DETAILS": False},
-    {"INSPIRATION COMBINING": False},
-    {"SCI-FI ELEMENTS": False},
-    {"FUTURISTIC CONTENT": False}
-  ]
-}
+[REQUIREMENTS]
+> @inputs:
+- SOURCE: diplomatic cables
+- SAMPLE SIZE: 20k-100k chars
+- TYPE: random selection
+- STYLE: professional diplomatic
+
+> @content:
+- UNIQUENESS: 100%
+- EXTRACTION: structural patterns only
+- COMBINATION: all stage outputs
+- INSPIRATION: real world snippets
+
+> @prohibited:
+- CONTENT COPYING: false
+- SAMPLE COMBINING: false
+- REAL DETAILS: false
+- INSPIRATION COMBINING: false
+- SCI-FI ELEMENTS: false
+- FUTURISTIC CONTENT: false
+[END]
 
 <!-- @section: data-sources -->
 <!-- @purpose: Input data references -->
@@ -71,108 +70,6 @@
 - **METHOD**: Systematic diplomatic translation
 </overview>
 
-<!-- @section: output-format -->
-<!-- @purpose: Define expected output structure -->
-<!-- @validation: Must follow exact cable format -->
-<!-- @requirements: All fields must be fictional -->
-<output-format>
-### Structure Requirements
-[GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
-<initial-draft>
-  <header>
-    <precedence>IMMEDIATE/PRIORITY/ROUTINE</precedence>
-    <classification>
-      <primary>[Main Classification Level]</primary>
-      <addendum>[Additional Restrictions]</addendum>
-      <channels>[Distribution Channels]</channels>
-    </classification>
-    <origin>
-      <mission>[Embassy/Consulate/Delegation]</mission>
-      <office>[Specific Office Code]</office>
-      <location>[City, Fictional Country]</location>
-    </origin>
-    <routing>
-      <to>[Primary Recipient(s)]</to>
-      <info>[Information Recipients - OPTIONAL]</info>
-      <attention>[Specific Desk/Office - OPTIONAL]</attention>
-    </routing>
-    <identifiers>
-      <reference>[Cable Reference Numbers]</reference>
-      <tags>[TAGS: Policy Categories]</tags>
-      <subject>SUBJECT: [Clear Topic Title]</subject>
-    </identifiers>
-  </header>
-</initial-draft>
-<cable-components>
-  <summary>
-    <classification>[Section Classification]</classification>
-    <overview>1. [Executive Summary]</overview>
-    <key-points>
-      <point>[Main Point A]</point>
-      <point>[Main Point B]</point>
-      <point>[Main Point C]</point>
-    </key-points>
-  </summary>
-  <main-content>
-    <background>
-      <classification>[Section Classification]</classification>
-      <context>2. [Historical/Situational Context]</context>
-      <details>[Supporting Background Information]</details>
-    </background>
-    <analysis>
-      <classification>[Section Classification]</classification>
-      <discussion>3. [Primary Analysis]</discussion>
-      <points>
-        <major>[Key Analytical Points]</major>
-        <supporting>[Evidence and Details]</supporting>
-        <implications>[Direct Consequences]</implications>
-      </points>
-    </analysis>
-    <comment>
-      <classification>[Section Classification]</classification>
-      <assessment>4. COMMENT: [Post Analysis]</assessment>
-      <strategic>[Strategic Implications]</strategic>
-      <recommendations>[Suggested Actions]</recommendations>
-    </comment>
-    <action>
-      <classification>[Section Classification]</classification>
-      <requests>5. ACTION REQUEST: [Required Steps]</requests>
-      <timeline>[Implementation Schedule]</timeline>
-      <coordination>[Required Coordination]</coordination>
-    </action>
-  </main-content>
-</cable-components>
-<final-cable>
-  <signature>
-    <post>[Embassy/Mission Name]</post>
-    <drafted>
-      <by>[Drafting Officer(s)]</by>
-      <office>[Office Code]</office>
-      <date>[Draft Date]</date>
-    </drafted>
-    <cleared>
-      <by>[Clearing Officer(s)]</by>
-      <office>[Office Code]</office>
-    </cleared>
-    <approved>
-      <by>[Approving Authority]</by>
-      <title>[Official Title]</title>
-    </approved>
-  </signature>
-  <administrative>
-    <classification>
-      <authority>[Classification Authority]</authority>
-      <reason>[EO Section Reference]</reason>
-      <declassification>[Declassification Instructions]</declassification>
-    </classification>
-    <dissemination>
-      <restrictions>[Special Handling Requirements]</restrictions>
-      <distribution>[Distribution Limitations]</distribution>
-    </dissemination>
-  </administrative>
-</final-cable>
-</output-format>
-
 <!-- @section: process -->
 <!-- @purpose: Define cable composing methodology -->
 <!-- @visibility: Internal only, not for output -->
@@ -194,58 +91,57 @@
 <!-- @enforcement: Strict -->
 <critical-instruction>
 ### CRITICAL RULES
-> **IMPORTANT**:
-***CONSTRAINTS***: {
-  **spatial**: [
-    {"EARTH ONLY": True},
-    {"REAL LOCATIONS": True},
-    {"FICTIONAL PLACES": False},
-    {"SPACE CONTEXT": "terrestrial"}
-  ],
-  **temporal**: [
-    {"START YEAR": 2020},
-    {"END YEAR": 2030},
-    {"ALTERNATE HISTORY": False},
-    {"TECH LEVEL": "contemporary"},
-    {"FUTURE CONTENT": False}
-  ],
-  **content**: [
-    {"TYPE": "fictional"},
-    {"STYLE": "diplomatic"},
-    {"ENTITIES": "fictional"},
-    {"SCOPE": "comprehensive"},
-    {"DEPTH": "high"},
-    {"REALISM": "high"},
-    {"META ANALYSIS": "required"},
-    {"RIGOR": "high"},
-    {"INSIGHTS": "diplomatic"},
-    {"SCI-FI ELEMENTS": False}
-  ],
-  **format**: [
-    {"XML STRUCTURE": "exact"},
-    {"LANGUAGE": "en-us"},
-    {"STAGE": "composing"}
-  ],
-  **context**: [
-    {"PREVIOUS STAGES": True},
-    {"STRUCTURAL INSPIRATION": True},
-    {"PROFESSIONAL TONE": True},
-    {"STAGES COHERENCE": "high"}
-  ],
-  **prohibited**: [
-    {"PROCESS INCLUSION": False},
-    {"FORMAT MARKERS": False},
-    {"OUTPUT WRAPPING": False},
-    {"CONTENT BLOCKS": False},
-    {"REAL REFERENCES": False},
-    {"NON-EARTH": False},
-    {"FUTURE-TECH": False},
-    {"REAL ENTITIES": False},
-    {"PROCESS LEAKAGE": False},
-    {"SCI-FI ELEMENTS": False},
-    {"FUTURISTIC CONTENT": False}
-  ]
-}
+***IMPORTANT***
+[CONSTRAINTS]
+> @spatial:
+- EARTH ONLY: True
+- REAL LOCATIONS: True
+- FICTIONAL PLACES: False
+- SPACE CONTEXT: "terrestrial"
+
+> @temporal:
+- START YEAR: 2020
+- END YEAR: 2030
+- ALTERNATE HISTORY: False
+- TECH LEVEL: "contemporary"
+- FUTURE CONTENT: False
+
+> @content:
+- TYPE: "fictional"
+- STYLE: "diplomatic"
+- ENTITIES: "fictional"
+- SCOPE: "comprehensive"
+- DEPTH: "high"
+- REALISM: "high"
+- META ANALYSIS: "required"
+- RIGOR: "high"
+- INSIGHTS: "diplomatic"
+- SCI-FI ELEMENTS: False
+
+> @format:
+- XML STRUCTURE: "exact"
+- LANGUAGE: "en-us"
+- STAGE: "composing"
+
+> @context:
+- PREVIOUS STAGES: True
+- STRUCTURAL INSPIRATION: True
+- PROFESSIONAL TONE: True
+- STAGES COHERENCE: "high"
+
+> @prohibited:
+- PROCESS INCLUSION: False
+- FORMAT MARKERS: False
+- OUTPUT WRAPPING: False
+- CONTENT BLOCKS: False
+- REAL REFERENCES: False
+- NON-EARTH: False
+- FUTURE-TECH: False
+- REAL ENTITIES: False
+- PROCESS LEAKAGE: False
+- SCI-FI ELEMENTS: False
+- FUTURISTIC CONTENT: False
+[END]
 
 <!-- @section: validation -->
 <!-- @purpose: Define validation rules -->
@@ -273,17 +169,113 @@ stage = composing
 [END]
 </validation-rules>
 
+<!-- @section: output-format -->
+<!-- @purpose: Define expected output structure -->
 **CORRECT OUTPUT FORMAT:**
 <!ELEMENT output (initial-draft, cable-components, final-cable)>
 <!ELEMENT initial-draft (header)>
-[Standard cable header section]
+[Standard cable header structure]
 <!ELEMENT cable-components (summary, main-content)>
-[Numbered main paragraphs with clear subject breaks]
+[Numbered main paragraphs]
 <!ELEMENT final-cable (signature, administrative)>
-[Official signature block and administrative data]
+[Official cable completion]
+
+<!-- @section: output-example -->
+<!-- @purpose: Define expected output structure -->
+<!-- @validation: Must follow exact XML schema -->
+<!-- @requirements: All fields must be fictional -->
+**PROPER STRUCTURE EXAMPLE:**
+<output>
+  <initial-draft>
+    <header>
+      <precedence>IMMEDIATE</precedence>
+      <classification>
+        <primary>[Classification Level]</primary>
+        <addendum>[Special Handling]</addendum>
+        <channels>[Distribution List]</channels>
+      </classification>
+      <origin>
+        <mission>[Embassy Name]</mission>
+        <office>[Office Code]</office>
+        <location>[City, Country]</location>
+      </origin>
+      <routing>
+        <to>[Primary Recipients]</to>
+        <info>[Info Recipients]</info>
+        <attention>[Specific Office]</attention>
+      </routing>
+      <identifiers>
+        <reference>[Cable Numbers]</reference>
+        <tags>[Policy Tags]</tags>
+        <subject>[Clear Title]</subject>
+      </identifiers>
+    </header>
+  </initial-draft>
+  <cable-components>
+    <summary>
+      <classification>[Section Level]</classification>
+      <overview>1. [Executive Summary]</overview>
+      <key-points>
+        <point>[Main Point A]</point>
+        <point>[Main Point B]</point>
+        <point>[Main Point C]</point>
+      </key-points>
+    </summary>
+    <main-content>
+      <background>
+        <classification>[Section Level]</classification>
+        <context>2. [Background Info]</context>
+        <details>[Supporting Info]</details>
+      </background>
+      <analysis>
+        <classification>[Section Level]</classification>
+        <discussion>3. [Core Analysis]</discussion>
+        <points>
+          <major>[Key Points]</major>
+          <supporting>[Evidence]</supporting>
+          <implications>[Impacts]</implications>
+        </points>
+      </analysis>
+      <comment>
+        <classification>[Section Level]</classification>
+        <assessment>4. [Post Analysis]</assessment>
+        <strategic>[Strategic View]</strategic>
+        <recommendations>[Actions]</recommendations>
+      </comment>
+    </main-content>
+  </cable-components>
+  <final-cable>
+    <signature>
+      <post>[Embassy Name]</post>
+      <drafted>
+        <by>[Drafting Officers]</by>
+        <office>[Office Code]</office>
+        <date>[Date]</date>
+      </drafted>
+      <cleared>
+        <by>[Clearing Officers]</by>
+        <office>[Office Code]</office>
+      </cleared>
+      <approved>
+        <by>[Authority]</by>
+        <title>[Title]</title>
+      </approved>
+    </signature>
+    <administrative>
+      <classification>
+        <authority>[Class Authority]</authority>
+        <reason>[Reason Code]</reason>
+        <declassification>[Declass Info]</declassification>
+      </classification>
+      <dissemination>
+        <restrictions>[Handling Notes]</restrictions>
+        <distribution>[Distro Limits]</distribution>
+      </dissemination>
+    </administrative>
+  </final-cable>
+</output>
 
 ---
-
 **Your response only for this query in following order:**
 - ***Display the `<output>` node***
 - ***Include complete initial-draft***
@@ -291,7 +283,6 @@ stage = composing
 - ***Include complete final-cable***
 - ***Close the `</output>` node***
 - ***ONLY return XML; NO explain.***
-
 </critical-instruction>
 
 <!-- @section: response -->

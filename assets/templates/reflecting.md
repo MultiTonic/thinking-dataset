@@ -10,28 +10,27 @@
 <!-- @section: context -->
 <!-- @purpose: Define input parameters and constraints -->
 ## Input Configuration
-**REQUIREMENTS**: {
-  **inputs**: [
-    {"SOURCE": "diplomatic cables"},
-    {"SAMPLE SIZE": "20k-100k chars"},
-    {"TYPE": "random selection"},
-    {"STYLE": "professional diplomatic"}
-  ],
-  **content**: [
-    {"UNIQUENESS": "100%"},
-    {"EXTRACTION": "structural patterns only"},
-    {"COMBINATION": "all stage outputs"},
-    {"INSPIRATION": "real world snippets"}
-  ],
-  **prohibited**: [
-    {"CONTENT COPYING": False},
-    {"SAMPLE COMBINING": False},
-    {"REAL-WORLD": False},
-    {"INSPIRATION COMBINING": False},
-    {"SCI-FI ELEMENTS": False},
-    {"FUTURISTIC CONTENT": False}
-  ]
-}
+[REQUIREMENTS]
+> @inputs:
+- SOURCE: diplomatic cables
+- SAMPLE SIZE: 20k-100k chars
+- TYPE: random selection
+- STYLE: professional diplomatic
+
+> @content:
+- UNIQUENESS: 100%
+- EXTRACTION: structural patterns only
+- COMBINATION: all stage outputs
+- INSPIRATION: real world snippets
+
+> @prohibited:
+- CONTENT COPYING: false
+- SAMPLE COMBINING: false
+- REAL DETAILS: false
+- INSPIRATION COMBINING: false
+- SCI-FI ELEMENTS: false
+- FUTURISTIC CONTENT: false
+[END]
 
 <!-- @section: data-sources -->
 <!-- @purpose: Input data references -->
@@ -69,76 +68,6 @@
 - **METHOD**: Systematic insight synthesis
 </overview>
 
-<!-- @section: output-format -->
-<!-- @purpose: Define expected output structure -->
-<!-- @validation: Must follow exact XML schema -->
-<!-- @requirements: All fields must be fictional -->
-<output-format>
-### Structure Requirements
-[GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
-<initial-reflection>
-  <framework>
-    <methodology>[Analysis approach]</methodology>
-    <scope>[Reflection boundaries]</scope>
-    <objectives>[Meta-analysis goals]</objectives>
-  </framework>
-  <foundation>
-    <context>[Analytical background]</context>
-    <patterns>[Initial observations]</patterns>
-    <connections>[Cross-stage links]</connections>
-  </foundation>
-</initial-reflection>
-<unique-reflections>
-  <reflection>
-    <concept>
-      <core>[Central insight]</core>
-      <context>[Situational frame]</context>
-      <significance>[Strategic importance]</significance>
-    </concept>
-    <elements>
-      <narrative>
-        <arc>[Story development]</arc>
-        <themes>[Key messages]</themes>
-        <resonance>[Impact factors]</resonance>
-      </narrative>
-      <analytical>
-        <logic>[Reasoning patterns]</logic>
-        <evidence>[Supporting elements]</evidence>
-        <validity>[Strength assessment]</validity>
-      </analytical>
-      <thematic>
-        <trends>[Recurring elements]</trends>
-        <parallels>[Pattern matches]</parallels>
-        <divergences>[Unique aspects]</divergences>
-      </thematic>
-    </elements>
-    <synthesis>
-      <insights>[Key learnings]</insights>
-      <implications>[Future impacts]</implications>
-      <applications>[Practical uses]</applications>
-    </synthesis>
-  </reflection>
-  <!-- Generate 2 - 3 more reflections -->
-</unique-reflections>
-<final-reflection>
-  <meta-analysis>
-    <overview>[Comprehensive view]</overview>
-    <patterns>[System-level trends]</patterns>
-    <significance>[Strategic importance]</significance>
-  </meta-analysis>
-  <integration>
-    <synthesis>[Combined insights]</synthesis>
-    <connections>[Cross-cutting themes]</connections>
-    <implications>[Overall impact]</implications>
-  </integration>
-  <recommendations>
-    <strategic>[Long-term direction]</strategic>
-    <tactical>[Immediate actions]</tactical>
-    <development>[Growth areas]</development>
-  </recommendations>
-</final-reflection>
-</output-format>
-
 <!-- @section: process -->
 <!-- @purpose: Define reflecting methodology -->
 <!-- @visibility: Internal only, not for output -->
@@ -160,58 +89,57 @@
 <!-- @enforcement: Strict -->
 <critical-instruction>
 ### CRITICAL RULES
-> **IMPORTANT**:
->***CONSTRAINTS***: {
-  **spatial**: [
-    {"EARTH ONLY": True},
-    {"REAL LOCATIONS": True},
-    {"FICTIONAL PLACES": False},
-    {"SPACE CONTEXT": "terrestrial"}
-  ],
-  **temporal**: [
-    {"START YEAR": 2020},
-    {"END YEAR": 2030},
-    {"ALTERNATE HISTORY": False},
-    {"TECH LEVEL": "contemporary"},
-    {"FUTURE CONTENT": False}
-  ],
-  **content**: [
-    {"TYPE": "fictional"},
-    {"STYLE": "diplomatic"},
-    {"ENTITIES": "fictional"},
-    {"SCOPE": "comprehensive"},
-    {"DEPTH": "high"},
-    {"REALISM": "high"},
-    {"META ANALYSIS": "required"},
-    {"RIGOR": "high"},
-    {"INSIGHTS": "diplomatic"},
-    {"SCI-FI ELEMENTS": False}
-  ],
-  **format**: [
-    {"XML STRUCTURE": "exact"},
-    {"LANGUAGE": "en-us"},
-    {"STAGE": "reflection"}
-  ],
-  **context**: [
-    {"PREVIOUS STAGES": True},
-    {"STRUCTURAL INSPIRATION": True},
-    {"PROFESSIONAL TONE": True},
-    {"STAGES COHERENCE": "high"}
-  ],
-  **prohibited**: [
-    {"PROCESS INCLUSION": False},
-    {"FORMAT MARKERS": False},
-    {"OUTPUT WRAPPING": False},
-    {"CONTENT BLOCKS": False},
-    {"REAL REFERENCES": False},
-    {"NON-EARTH": False},
-    {"FUTURE-TECH": False},
-    {"REAL ENTITIES": False},
-    {"PROCESS LEAKAGE": False},
-    {"SCI-FI ELEMENTS": False},
-    {"FUTURISTIC CONTENT": False}
-  ]
-}
+***IMPORTANT***
+[CONSTRAINTS]
+> @spatial:
+- EARTH ONLY: True
+- REAL LOCATIONS: True
+- FICTIONAL PLACES: False
+- SPACE CONTEXT: "terrestrial"
+
+> @temporal:
+- START YEAR: 2020
+- END YEAR: 2030
+- ALTERNATE HISTORY: False
+- TECH LEVEL: "contemporary"
+- FUTURE CONTENT: False
+
+> @content:
+- TYPE: "fictional"
+- STYLE: "diplomatic"
+- ENTITIES: "fictional"
+- SCOPE: "comprehensive"
+- DEPTH: "high"
+- REALISM: "high"
+- META ANALYSIS: "required"
+- RIGOR: "high"
+- INSIGHTS: "diplomatic"
+- SCI-FI ELEMENTS: False
+
+> @format:
+- XML STRUCTURE: "exact"
+- LANGUAGE: "en-us"
+- STAGE: "reflecting"
+
+> @context:
+- PREVIOUS STAGES: True
+- STRUCTURAL INSPIRATION: True
+- PROFESSIONAL TONE: True
+- STAGES COHERENCE: "high"
+
+> @prohibited:
+- PROCESS INCLUSION: False
+- FORMAT MARKERS: False
+- OUTPUT WRAPPING: False
+- CONTENT BLOCKS: False
+- REAL REFERENCES: False
+- NON-EARTH: False
+- FUTURE-TECH: False
+- REAL ENTITIES: False
+- PROCESS LEAKAGE: False
+- SCI-FI ELEMENTS: False
+- FUTURISTIC CONTENT: False
+[END]
 
 <!-- @section: validation -->
 <!-- @purpose: Define validation rules -->
@@ -239,6 +167,8 @@ stage = reflecting
 [END]
 </validation-rules>
 
+<!-- @section: output-format -->
+<!-- @purpose: Define expected output structure -->
 **CORRECT OUTPUT FORMAT:**
 <!ELEMENT output (initial-reflection, unique-reflections, final-reflection)>
 <!ELEMENT initial-reflection (framework, foundation)>
@@ -247,6 +177,74 @@ stage = reflecting
 [Array of distinct reflection paths]
 <!ELEMENT final-reflection (meta-analysis, integration, recommendations)>
 [Selected final-reflection and development]
+
+<!-- @section: output-example -->
+<!-- @purpose: Define expected output structure -->
+<!-- @validation: Must follow exact XML schema -->
+<!-- @requirements: All fields must be fictional -->
+**PROPER STRUCTURE EXAMPLE:**
+<output>
+  <initial-reflection>
+    <framework>
+      <methodology>[Detailed reflection approach]</methodology>
+      <scope>[Clear reflection boundaries]</scope>
+      <objectives>[Meta-analysis goals]</objectives>
+    </framework>
+    <foundation>
+      <context>[Rich analytical background]</context>
+      <patterns>[Key initial observations]</patterns>
+      <connections>[Cross-stage linkages]</connections>
+    </foundation>
+  </initial-reflection>
+  <unique-reflections>
+    <reflection>
+      <concept>
+        <core>[Central meta-insight]</core>
+        <context>[Strategic framing]</context>
+        <significance>[Strategic importance]</significance>
+      </concept>
+      <elements>
+        <narrative>
+          <arc>[Story evolution]</arc>
+          <themes>[Core messages]</themes>
+          <resonance>[Impact factors]</resonance>
+        </narrative>
+        <analytical>
+          <logic>[Reasoning patterns]</logic>
+          <evidence>[Supporting elements]</evidence>
+          <validity>[Strength assessment]</validity>
+        </analytical>
+        <thematic>
+          <trends>[Pattern elements]</trends>
+          <parallels>[Similar patterns]</parallels>
+          <divergences>[Unique aspects]</divergences>
+        </thematic>
+      </elements>
+      <synthesis>
+        <insights>[Key discoveries]</insights>
+        <implications>[Strategic impacts]</implications>
+        <applications>[Practical uses]</applications>
+      </synthesis>
+    </reflection>
+  </unique-reflections>
+  <final-reflection>
+    <meta-analysis>
+      <overview>[System-level view]</overview>
+      <patterns>[Strategic trends]</patterns>
+      <significance>[Overall importance]</significance>
+    </meta-analysis>
+    <integration>
+      <synthesis>[Combined insights]</synthesis>
+      <connections>[Cross-cutting themes]</connections>
+      <implications>[Strategic impacts]</implications>
+    </integration>
+    <recommendations>
+      <strategic>[Long-term direction]</strategic>
+      <tactical>[Immediate actions]</tactical>
+      <development>[Growth areas]</development>
+    </recommendations>
+  </final-reflection>
+</output>
 
 ---
 **Your response only for this query in following order:**

@@ -10,31 +10,31 @@
 <!-- @section: context -->
 <!-- @purpose: Define action parameters -->
 ## Input Configuration
-**REQUIREMENTS**: {
-  "inputs": [
-    {"SOURCE": "decision results"},
-    {"TYPE": "action execution"},
-    {"STAGE": "implementation"}
-  ],
-  "processing": [
-    {"EXECUTE": "action plans"},
-    {"MONITOR": "implementation progress"},
-    {"VALIDATE": "action effectiveness"},
-    {"REPORT": "outcomes"}
-  ],
-  "actions": [
-    {"ARCHIVE": "valuable samples"},
-    {"TRAIN": "successful patterns"},
-    {"REFINE": "promising content"},
-    {"DISCARD": "rejected content"}
-  ],
-  "monitoring": [
-    {"TRACK PROGRESS": "real-time"},
-    {"LOG RESULTS": "continuous"},
-    {"ADJUST PLANS": "as needed"},
-    {"FEEDBACK LOOP": "enabled"}
-  ]
-}
+[REQUIREMENTS]
+> @inputs:
+- SOURCE: decision results
+- TYPE: action execution
+- STAGE: implementation
+- STYLE: operational
+
+> @processing:
+- EXECUTE: action plans
+- MONITOR: implementation progress
+- VALIDATE: action effectiveness
+- REPORT: outcomes
+
+> @actions:
+- ARCHIVE: valuable samples
+- TRAIN: successful patterns
+- REFINE: promising content
+- DISCARD: rejected content
+
+> @monitoring:
+- TRACK PROGRESS: real-time
+- LOG RESULTS: continuous
+- ADJUST PLANS: as needed
+- FEEDBACK LOOP: enabled
+[END]
 
 <!-- @section: data-sources -->
 <!-- @purpose: Input data references -->
@@ -65,54 +65,6 @@
   <!-- @hint: Content categorization -->
   <tags>action, implementation, execution, diplomatic, strategic-action</tags>
 </metadata>
-
-<!-- @section: output-format -->
-<!-- @purpose: Define action output structure -->
-<output-format>
-### Action Structure
-[IMPLEMENT DECISIONS AND TRACK OUTCOMES]
-<action-execution>
-  <archive-actions>
-    <status>[ARCHIVED/DISCARDED]</status>
-    <details>[Archiving instructions]</details>
-    <classification>[Access level]</classification>
-  </archive-actions>
-  <training-actions>
-    <status>[TRAINED/EXCLUDED]</status>
-    <details>[Training steps]</details>
-    <application>[Usage context]</application>
-  </training-actions>
-  <refinement-actions>
-    <status>[REFINED/REJECTED]</status>
-    <details>[Improvement steps]</details>
-    <priority>[Urgency level]</priority>
-  </refinement-actions>
-</action-execution>
-<monitoring>
-  <progress-tracking>
-    <milestones>[Key implementation milestones]</milestones>
-    <status>[Current progress status]</status>
-    <adjustments>[Plan adjustments]</adjustments>
-  </progress-tracking>
-  <outcome-reporting>
-    <results>[Implementation outcomes]</results>
-    <metrics>[Performance metrics]</metrics>
-    <feedback>[Pipeline feedback]</feedback>
-  </outcome-reporting>
-</monitoring>
-<final-report>
-  <summary>
-    <decisions>[Summary of actions taken]</decisions>
-    <outcomes>[Summary of outcomes]</outcomes>
-    <metrics>[Summary of performance metrics]</metrics>
-  </summary>
-  <recommendations>
-    <future-actions>[Suggested future actions]</future-actions>
-    <improvements>[System improvement suggestions]</improvements>
-    <feedback>[Feedback for decision stage]</feedback>
-  </recommendations>
-</final-report>
-</output-format>
 
 <!-- @section: validation -->
 <!-- @purpose: Define validation rules -->
@@ -162,67 +114,117 @@ stage = action
 <!-- @enforcement: Strict -->
 <critical-instruction>
 ### CRITICAL RULES
-> **IMPORTANT**:
-***CONSTRAINTS***: {
-  **spatial**: [
-    {"EARTH ONLY": True},
-    {"REAL LOCATIONS": True},
-    {"FICTIONAL PLACES": False},
-    {"SPACE CONTEXT": "terrestrial"}
-  ],
-  **temporal**: [
-    {"START YEAR": 2020},
-    {"END YEAR": 2030},
-    {"ALTERNATE HISTORY": False},
-    {"TECH LEVEL": "contemporary"},
-    {"FUTURE CONTENT": False}
-  ],
-  **content**: [
-    {"TYPE": "action"},
-    {"STYLE": "operational"},
-    {"ENTITIES": "fictional"},
-    {"SCOPE": "comprehensive"},
-    {"DEPTH": "high"},
-    {"REALISM": "high"},
-    {"META ANALYSIS": "required"},
-    {"RIGOR": "high"},
-    {"ACTIONABLE": "required"},
-    {"SCI-FI ELEMENTS": False}
-  ],
-  **format**: [
-    {"XML STRUCTURE": "exact"},
-    {"LANGUAGE": "en-us"},
-    {"STAGE": "action"}
-  ],
-  **context**: [
-    {"PREVIOUS STAGES": True},
-    {"STRATEGIC ALIGNMENT": "required"},
-    {"PROFESSIONAL TONE": True},
-    {"STAGES COHERENCE": "high"}
-  ],
-  **prohibited**: [
-    {"PROCESS INCLUSION": False},
-    {"FORMAT MARKERS": False},
-    {"OUTPUT WRAPPING": False},
-    {"CONTENT BLOCKS": False},
-    {"REAL REFERENCES": False},
-    {"NON-EARTH": False},
-    {"FUTURE-TECH": False},
-    {"REAL ENTITIES": False},
-    {"PROCESS LEAKAGE": False},
-    {"SCI-FI ELEMENTS": False},
-    {"FUTURISTIC CONTENT": False}
-  ]
-}
+***IMPORTANT***
+[CONSTRAINTS]
+> @spatial:
+- EARTH ONLY: True
+- REAL LOCATIONS: True
+- FICTIONAL PLACES: False
+- SPACE CONTEXT: "terrestrial"
 
+> @temporal:
+- START YEAR: 2020
+- END YEAR: 2030
+- ALTERNATE HISTORY: False
+- TECH LEVEL: "contemporary"
+- FUTURE CONTENT: False
+
+> @content:
+- TYPE: "action"
+- STYLE: "operational"
+- ENTITIES: "fictional"
+- SCOPE: "comprehensive"
+- DEPTH: "high"
+- REALISM: "high"
+- META ANALYSIS: "required"
+- RIGOR: "high"
+- ACTIONABLE: "required"
+- SCI-FI ELEMENTS: False
+
+> @format:
+- XML STRUCTURE: "exact"
+- LANGUAGE: "en-us"
+- STAGE: "action"
+
+> @context:
+- PREVIOUS STAGES: True
+- STRATEGIC ALIGNMENT: "required"
+- PROFESSIONAL TONE: True
+- STAGES COHERENCE: "high"
+
+> @prohibited:
+- PROCESS INCLUSION: False
+- FORMAT MARKERS: False
+- OUTPUT WRAPPING: False
+- CONTENT BLOCKS: False
+- REAL REFERENCES: False
+- NON-EARTH: False
+- FUTURE-TECH: False
+- REAL ENTITIES: False
+- PROCESS LEAKAGE: False
+- SCI-FI ELEMENTS: False
+- FUTURISTIC CONTENT: False
+[END]
+
+<!-- @section: output-format -->
+<!-- @purpose: Define action output structure -->
 **CORRECT OUTPUT FORMAT:**
 <!ELEMENT output (action-execution, monitoring, final-report)>
 <!ELEMENT action-execution (archive-actions, training-actions, refinement-actions)>
-[Implementation of decisions]
+[Implementation of strategic decisions]
 <!ELEMENT monitoring (progress-tracking, outcome-reporting)>
-[Progress tracking and outcome reporting]
+[Progress monitoring and outcomes]
 <!ELEMENT final-report (summary, recommendations)>
-[Summary and recommendations]
+[Summary and future recommendations]
+
+<!-- @section: output-example -->
+<!-- @purpose: Define expected output structure -->
+<!-- @validation: Must follow exact XML schema -->
+<!-- @requirements: All fields must be fictional -->
+**PROPER STRUCTURE EXAMPLE:**
+<output>
+  <action-execution>
+    <archive-actions>
+      <status>[Archive/Discard status]</status>
+      <details>[Implementation steps]</details>
+      <classification>[Security level]</classification>
+    </archive-actions>
+    <training-actions>
+      <status>[Train/Exclude status]</status>
+      <details>[Training process]</details>
+      <application>[Usage context]</application>
+    </training-actions>
+    <refinement-actions>
+      <status>[Refine/Reject status]</status>
+      <details>[Enhancement steps]</details>
+      <priority>[Priority level]</priority>
+    </refinement-actions>
+  </action-execution>
+  <monitoring>
+    <progress-tracking>
+      <milestones>[Implementation stages]</milestones>
+      <status>[Current progress]</status>
+      <adjustments>[Plan modifications]</adjustments>
+    </progress-tracking>
+    <outcome-reporting>
+      <results>[Action outcomes]</results>
+      <metrics>[Performance data]</metrics>
+      <feedback>[System feedback]</feedback>
+    </outcome-reporting>
+  </monitoring>
+  <final-report>
+    <summary>
+      <decisions>[Action summary]</decisions>
+      <outcomes>[Result summary]</outcomes>
+      <metrics>[Performance summary]</metrics>
+    </summary>
+    <recommendations>
+      <future-actions>[Next steps]</future-actions>
+      <improvements>[Enhancement suggestions]</improvements>
+      <feedback>[Process feedback]</feedback>
+    </recommendations>
+  </final-report>
+</output>
 
 ---
 **Your response only for this query in following order:**

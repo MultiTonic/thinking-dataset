@@ -10,25 +10,31 @@
 <!-- @section: context -->
 <!-- @purpose: Define review parameters -->
 ## Input Configuration
-**REQUIREMENTS**: {
-  "inputs": [
-    {"SOURCE": "action results"},
-    {"TYPE": "review and feedback"},
-    {"STAGE": "final review"}
-  ],
-  "processing": [
-    {"REVIEW": "outcomes and effectiveness"},
-    {"GATHER": "stakeholder feedback"},
-    {"ANALYZE": "feedback and insights"},
-    {"REPORT": "findings and recommendations"}
-  ],
-  "actions": [
-    {"DOCUMENT": "findings and feedback"},
-    {"UPDATE": "processes and workflows"},
-    {"TRAIN": "team members"},
-    {"COMMUNICATE": "results to stakeholders"}
-  ]
-}
+[REQUIREMENTS]
+> @inputs:
+- SOURCE: action results
+- TYPE: review and feedback
+- STAGE: final review
+- STYLE: analytical assessment
+
+> @processing:
+- REVIEW: outcomes and effectiveness
+- GATHER: stakeholder feedback
+- ANALYZE: feedback and insights
+- REPORT: findings and recommendations
+
+> @actions:
+- DOCUMENT: findings and feedback
+- UPDATE: processes and workflows
+- TRAIN: team members
+- COMMUNICATE: results to stakeholders
+
+> @feedback:
+- TRACK METRICS: continuous
+- LOG IMPROVEMENTS: required
+- MAINTAIN HISTORY: enabled
+- UPDATE PIPELINE: as needed
+[END]
 
 <!-- @section: data-sources -->
 <!-- @purpose: Input data references -->
@@ -72,32 +78,6 @@
 - **METHOD**: Systematic review and feedback process
 </overview>
 
-<!-- @section: output-format -->
-<!-- @purpose: Define review output structure -->
-<output-format>
-### Review Structure
-[REVIEW OUTCOMES AND GATHER FEEDBACK]
-<review-summary>
-  <outcomes>
-    <effectiveness>[Effectiveness of actions]</effectiveness>
-    <challenges>[Challenges encountered]</challenges>
-    <successes>[Successes achieved]</successes>
-  </outcomes>
-  <feedback>
-    <stakeholder>[Stakeholder feedback]</stakeholder>
-    <insights>[Key insights]</insights>
-    <recommendations>[Recommendations for improvement]</recommendations>
-  </feedback>
-</review-summary>
-<final-report>
-  <summary>
-    <findings>[Summary of findings]</findings>
-    <recommendations>[Summary of recommendations]</recommendations>
-    <next-steps>[Next steps for improvement]</next-steps>
-  </summary>
-</final-report>
-</output-format>
-
 <!-- @section: process -->
 <!-- @purpose: Define review methodology -->
 <review-process>
@@ -120,58 +100,57 @@
 <!-- @enforcement: Strict -->
 <critical-instruction>
 ### CRITICAL RULES
-> **IMPORTANT**:
-***CONSTRAINTS***: {
-  **spatial**: [
-    {"EARTH ONLY": True},
-    {"REAL LOCATIONS": True},
-    {"FICTIONAL PLACES": False},
-    {"SPACE CONTEXT": "terrestrial"}
-  ],
-  **temporal**: [
-    {"START YEAR": 2020},
-    {"END YEAR": 2030},
-    {"ALTERNATE HISTORY": False},
-    {"TECH LEVEL": "contemporary"},
-    {"FUTURE CONTENT": False}
-  ],
-  **content**: [
-    {"TYPE": "review"},
-    {"STYLE": "analytical"},
-    {"ENTITIES": "fictional"},
-    {"SCOPE": "comprehensive"},
-    {"DEPTH": "high"},
-    {"REALISM": "high"},
-    {"META ANALYSIS": "required"},
-    {"RIGOR": "high"},
-    {"ACTIONABLE": "required"},
-    {"SCI-FI ELEMENTS": False}
-  ],
-  **format**: [
-    {"XML STRUCTURE": "exact"},
-    {"LANGUAGE": "en-us"},
-    {"STAGE": "review"}
-  ],
-  **context**: [
-    {"PREVIOUS STAGES": True},
-    {"STRATEGIC ALIGNMENT": "required"},
-    {"PROFESSIONAL TONE": True},
-    {"STAGES COHERENCE": "high"}
-  ],
-  **prohibited**: [
-    {"PROCESS INCLUSION": False},
-    {"FORMAT MARKERS": False},
-    {"OUTPUT WRAPPING": False},
-    {"CONTENT BLOCKS": False},
-    {"REAL REFERENCES": False},
-    {"NON-EARTH": False},
-    {"FUTURE-TECH": False},
-    {"REAL ENTITIES": False},
-    {"PROCESS LEAKAGE": False},
-    {"SCI-FI ELEMENTS": False},
-    {"FUTURISTIC CONTENT": False}
-  ]
-}
+***IMPORTANT***
+[CONSTRAINTS]
+> @spatial:
+- EARTH ONLY: True
+- REAL LOCATIONS: True
+- FICTIONAL PLACES: False
+- SPACE CONTEXT: "terrestrial"
+
+> @temporal:
+- START YEAR: 2020
+- END YEAR: 2030
+- ALTERNATE HISTORY: False
+- TECH LEVEL: "contemporary"
+- FUTURE CONTENT: False
+
+> @content:
+- TYPE: "review"
+- STYLE: "analytical"
+- ENTITIES: "fictional"
+- SCOPE: "comprehensive"
+- DEPTH: "high"
+- REALISM: "high"
+- META ANALYSIS: "required"
+- RIGOR: "high"
+- ACTIONABLE: "required"
+- SCI-FI ELEMENTS: False
+
+> @format:
+- XML STRUCTURE: "exact"
+- LANGUAGE: "en-us"
+- STAGE: "review"
+
+> @context:
+- PREVIOUS STAGES: True
+- STRATEGIC ALIGNMENT: "required"
+- PROFESSIONAL TONE: True
+- STAGES COHERENCE: "high"
+
+> @prohibited:
+- PROCESS INCLUSION: False
+- FORMAT MARKERS: False
+- OUTPUT WRAPPING: False
+- CONTENT BLOCKS: False
+- REAL REFERENCES: False
+- NON-EARTH: False
+- FUTURE-TECH: False
+- REAL ENTITIES: False
+- PROCESS LEAKAGE: False
+- SCI-FI ELEMENTS: False
+- FUTURISTIC CONTENT: False
+[END]
 
 <!-- @section: validation -->
 <!-- @purpose: Define validation rules -->
@@ -199,12 +178,65 @@ stage = review
 [END]
 </validation-rules>
 
+<!-- @section: output-format -->
+<!-- @purpose: Define expected output structure -->
 **CORRECT OUTPUT FORMAT:**
 <!ELEMENT output (review-summary, final-report)>
 <!ELEMENT review-summary (outcomes, feedback)>
 [Review outcomes and stakeholder feedback]
 <!ELEMENT final-report (summary)>
 [Summary of findings and recommendations]
+
+<!-- @section: output-example -->
+<!-- @purpose: Define expected output structure -->
+<!-- @validation: Must follow exact XML schema -->
+<!-- @requirements: All fields must be fictional -->
+**PROPER STRUCTURE EXAMPLE:**
+<output>
+  <review-summary>
+    <outcomes>
+      <effectiveness>[Action effectiveness analysis]</effectiveness>
+      <challenges>[Implementation challenges]</challenges>
+      <successes>[Key achievements]</successes>
+    </outcomes>
+    <feedback>
+      <stakeholder>
+        <responses>[Stakeholder input]</responses>
+        <concerns>[Key issues raised]</concerns>
+        <suggestions>[Improvement ideas]</suggestions>
+      </stakeholder>
+      <insights>
+        <patterns>[Identified patterns]</patterns>
+        <lessons>[Key learnings]</lessons>
+        <opportunities>[Growth areas]</opportunities>
+      </insights>
+      <recommendations>
+        <process>[Process improvements]</process>
+        <workflow>[Workflow adjustments]</workflow>
+        <training>[Training needs]</training>
+      </recommendations>
+    </feedback>
+  </review-summary>
+  <final-report>
+    <summary>
+      <findings>
+        <major>[Key findings]</major>
+        <minor>[Supporting observations]</minor>
+        <impacts>[Identified effects]</impacts>
+      </findings>
+      <recommendations>
+        <strategic>[Long-term changes]</strategic>
+        <tactical>[Immediate adjustments]</tactical>
+        <resource>[Resource needs]</resource>
+      </recommendations>
+      <next-steps>
+        <immediate>[Priority actions]</immediate>
+        <planned>[Scheduled improvements]</planned>
+        <contingent>[Conditional steps]</contingent>
+      </next-steps>
+    </summary>
+  </final-report>
+</output>
 
 ---
 **Your response only for this query in following order:**
@@ -213,7 +245,6 @@ stage = review
 - ***Include complete final-report***
 - ***Close the `</output>` node***
 - ***ONLY return XML; NO explain.***
-
 </critical-instruction>
 
 <!-- @section: response -->

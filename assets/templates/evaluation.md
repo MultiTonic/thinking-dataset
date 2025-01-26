@@ -10,31 +10,31 @@
 <!-- @section: context -->
 <!-- @purpose: Define evaluation parameters -->
 ## Input Configuration
-**REQUIREMENTS**: {
-  "inputs": [
-    {"SOURCE": "composed diplomatic content"},
-    {"TYPE": "synthetic validation"},
-    {"STAGE": "final filtering"}
-  ],
-  "validation": [
-    {"AUTHENTICITY": "synthetic only"},
-    {"UNIQUENESS": "100%"},
-    {"CONTENT TYPE": "fictional"},
-    {"SAFETY CHECK": "required"}
-  ],
-  "filters": [
-    {"REAL CONTENT": "exclude"},
-    {"SENSITIVE INFO": "exclude"},
-    {"EXISTING CABLES": "exclude"},
-    {"IDENTIFIABLE ENTITIES": "exclude"}
-  ],
-  "actions": [
-    {"LOG VIOLATIONS": True},
-    {"SECURE DISPOSAL": "immediate"},
-    {"REPORT MATCHES": "anonymous"},
-    {"TRACK PATTERNS": "metadata only"}
-  ]
-}
+[REQUIREMENTS]
+> @inputs:
+- SOURCE: composed diplomatic content
+- TYPE: synthetic validation
+- STAGE: final filtering
+- STYLE: analytical evaluation
+
+> @validation:
+- AUTHENTICITY: synthetic only
+- UNIQUENESS: 100%
+- CONTENT TYPE: fictional
+- SAFETY CHECK: required
+
+> @filters:
+- REAL CONTENT: exclude
+- SENSITIVE INFO: exclude
+- EXISTING CABLES: exclude
+- IDENTIFIABLE ENTITIES: exclude
+
+> @actions:
+- LOG VIOLATIONS: true
+- SECURE DISPOSAL: immediate
+- REPORT MATCHES: anonymous
+- TRACK PATTERNS: metadata only
+[END]
 
 <!-- @section: data-sources -->
 <!-- @purpose: Input data references -->
@@ -131,71 +131,6 @@ automated = full
 [END]
 </data-security>
 
-<!-- @section: output-format -->
-<!-- @purpose: Define evaluation output structure -->
-<output-format>
-### Evaluation Structure
-[VALIDATE AND GRADE SYNTHETIC DIPLOMATIC CONTENT]
-<initial-scan>
-  <content-check>
-    <real-world>
-      <entities>[Named real individuals/organizations]</entities>
-      <locations>[Real city/country names]</locations>
-      <events>[Historical incidents]</events>
-      <policies>[Actual policies/doctrines]</policies>
-    </real-world>
-    <parallel-world>
-      <plausibility>[Realistic alternative names/places]</plausibility>
-      <consistency>[Internal logic check]</consistency>
-      <authenticity>[Diplomatic style/format]</authenticity>
-    </parallel-world>
-  </content-check>
-</initial-scan>
-<quality-assessment>
-  <diplomatic-elements>
-    <format score="0-100">[Cable structure adherence]</format>
-    <tone score="0-100">[Professional diplomatic voice]</tone>
-    <protocol score="0-100">[Diplomatic conventions]</protocol>
-  </diplomatic-elements>
-  <narrative-quality>
-    <coherence score="0-100">[Logical flow/consistency]</coherence>
-    <detail score="0-100">[Appropriate depth]</detail>
-    <realism score="0-100">[Believable scenario]</realism>
-  </narrative-quality>
-  <world-building>
-    <geopolitics score="0-100">[Political dynamics]</geopolitics>
-    <culture score="0-100">[Social/cultural authenticity]</culture>
-    <economics score="0-100">[Economic relationships]</economics>
-  </world-building>
-</quality-assessment>
-<content-flags>
-  <critical-issues>
-    <real-content type="[category]">[Identified real-world content]</real-content>
-    <sensitivity type="[level]">[Problematic elements]</sensitivity>
-    <accuracy type="[issue]">[Format/protocol errors]</accuracy>
-  </critical-issues>
-  
-  <improvements>
-    <suggestions>[Enhancement recommendations]</suggestions>
-    <alternatives>[Replacement options]</alternatives>
-  </improvements>
-</content-flags>
-<final-grade>
-  <scores>
-    <overall score="0-100">[Composite score]</overall>
-    <authenticity score="0-100">[Synthetic content rating]</authenticity>
-    <quality score="0-100">[Writing/structure rating]</quality>
-    <usefulness score="0-100">[Training value rating]</usefulness>
-  </scores>
-  <final-score>[Final overall score]</final-score>
-  <disposition>
-    <status>[ACCEPT/REVISE/REJECT]</status>
-    <rationale>[Decision basis]</rationale>
-    <actions>[Required steps]</actions>
-  </disposition>
-</final-grade>
-</output-format>
-
 <!-- @section: process -->
 <!-- @purpose: Define evaluation methodology -->
 <evaluation-process>
@@ -218,58 +153,57 @@ automated = full
 <!-- @enforcement: Strict -->
 <critical-instruction>
 ### CRITICAL RULES
-> **IMPORTANT**:
-***CONSTRAINTS***: {
-  **spatial**: [
-    {"EARTH ONLY": True},
-    {"REAL LOCATIONS": True},
-    {"FICTIONAL PLACES": False},
-    {"SPACE CONTEXT": "terrestrial"}
-  ],
-  **temporal**: [
-    {"START YEAR": 2020},
-    {"END YEAR": 2030},
-    {"ALTERNATE HISTORY": False},
-    {"TECH LEVEL": "contemporary"},
-    {"FUTURE CONTENT": False}
-  ],
-  **content**: [
-    {"TYPE": "evaluation"},
-    {"STYLE": "analytical"},
-    {"ENTITIES": "fictional"},
-    {"SCOPE": "comprehensive"},
-    {"DEPTH": "high"},
-    {"REALISM": "high"},
-    {"META ANALYSIS": "required"},
-    {"RIGOR": "high"},
-    {"FILTERING": "strict"},
-    {"SCI-FI ELEMENTS": False}
-  ],
-  **format**: [
-    {"XML STRUCTURE": "exact"},
-    {"LANGUAGE": "en-us"},
-    {"STAGE": "evaluation"}
-  ],
-  **context**: [
-    {"PREVIOUS STAGES": True},
-    {"CONTENT SAFETY": "required"},
-    {"PROFESSIONAL TONE": True},
-    {"STAGES COHERENCE": "high"}
-  ],
-  **prohibited**: [
-    {"PROCESS INCLUSION": False},
-    {"FORMAT MARKERS": False},
-    {"OUTPUT WRAPPING": False},
-    {"CONTENT BLOCKS": False},
-    {"REAL REFERENCES": False},
-    {"NON-EARTH": False},
-    {"FUTURE-TECH": False},
-    {"REAL ENTITIES": False},
-    {"PROCESS LEAKAGE": False},
-    {"SCI-FI ELEMENTS": False},
-    {"FUTURISTIC CONTENT": False}
-  ]
-}
+***IMPORTANT***
+[CONSTRAINTS]
+> @spatial:
+- EARTH ONLY: True
+- REAL LOCATIONS: True
+- FICTIONAL PLACES: False
+- SPACE CONTEXT: "terrestrial"
+
+> @temporal:
+- START YEAR: 2020
+- END YEAR: 2030
+- ALTERNATE HISTORY: False
+- TECH LEVEL: "contemporary"
+- FUTURE CONTENT: False
+
+> @content:
+- TYPE: "evaluation"
+- STYLE: "analytical"
+- ENTITIES: "fictional"
+- SCOPE: "comprehensive"
+- DEPTH: "high"
+- REALISM: "high"
+- META ANALYSIS: "required"
+- RIGOR: "high"
+- FILTERING: "strict"
+- SCI-FI ELEMENTS: False
+
+> @format:
+- XML STRUCTURE: "exact"
+- LANGUAGE: "en-us"
+- STAGE: "evaluation"
+
+> @context:
+- PREVIOUS STAGES: True
+- CONTENT SAFETY: "required"
+- PROFESSIONAL TONE: True
+- STAGES COHERENCE: "high"
+
+> @prohibited:
+- PROCESS INCLUSION: False
+- FORMAT MARKERS: False
+- OUTPUT WRAPPING: False
+- CONTENT BLOCKS: False
+- REAL REFERENCES: False
+- NON-EARTH: False
+- FUTURE-TECH: False
+- REAL ENTITIES: False
+- PROCESS LEAKAGE: False
+- SCI-FI ELEMENTS: False
+- FUTURISTIC CONTENT: False
+[END]
 
 <!-- @section: validation -->
 <!-- @purpose: Define validation rules -->
@@ -297,14 +231,69 @@ stage = evaluation
 [END]
 </validation-rules>
 
+<!-- @section: output-format -->
+<!-- @purpose: Define expected output structure -->
 **CORRECT OUTPUT FORMAT:**
 <!ELEMENT output (initial-scan, quality-assessment, final-grade)>
 <!ELEMENT initial-scan (content-check)>
-[Content safety and authenticity check]
+[Content safety and authenticity validation]
 <!ELEMENT quality-assessment (diplomatic-elements, narrative-quality, world-building)>
-[Detailed scoring and evaluation]
+[Quality scoring and assessment]
 <!ELEMENT final-grade (scores, disposition)>
-[Final disposition and recommendations]
+[Final evaluation results and disposition]
+
+<!-- @section: output-example -->
+<!-- @purpose: Define expected output structure -->
+<!-- @validation: Must follow exact XML schema -->
+<!-- @requirements: All fields must be fictional -->
+**PROPER STRUCTURE EXAMPLE:**
+<output>
+  <initial-scan>
+    <content-check>
+      <real-world>
+        <entities>[Named entities check]</entities>
+        <locations>[Location verification]</locations>
+        <events>[Event validation]</events>
+        <policies>[Policy review]</policies>
+      </real-world>
+      <parallel-world>
+        <plausibility>[Reality alignment]</plausibility>
+        <consistency>[Internal coherence]</consistency>
+        <authenticity>[Style conformity]</authenticity>
+      </parallel-world>
+    </content-check>
+  </initial-scan>
+  <quality-assessment>
+    <diplomatic-elements>
+      <format score="0-100">[Structure compliance]</format>
+      <tone score="0-100">[Voice assessment]</tone>
+      <protocol score="0-100">[Convention adherence]</protocol>
+    </diplomatic-elements>
+    <narrative-quality>
+      <coherence score="0-100">[Flow assessment]</coherence>
+      <detail score="0-100">[Depth evaluation]</detail>
+      <realism score="0-100">[Credibility check]</realism>
+    </narrative-quality>
+    <world-building>
+      <geopolitics score="0-100">[Political framework]</geopolitics>
+      <culture score="0-100">[Cultural elements]</culture>
+      <economics score="0-100">[Economic context]</economics>
+    </world-building>
+  </quality-assessment>
+  <final-grade>
+    <scores>
+      <overall score="0-100">[Total assessment]</overall>
+      <authenticity score="0-100">[Synthetic rating]</authenticity>
+      <quality score="0-100">[Content rating]</quality>
+      <usefulness score="0-100">[Utility score]</usefulness>
+    </scores>
+    <disposition>
+      <status>[Accept/Revise/Reject]</status>
+      <rationale>[Decision basis]</rationale>
+      <actions>[Required steps]</actions>
+    </disposition>
+  </final-grade>
+</output>
 
 ---
 **Your response only for this query in following order:**

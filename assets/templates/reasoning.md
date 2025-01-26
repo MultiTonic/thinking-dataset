@@ -10,28 +10,27 @@
 <!-- @section: context -->
 <!-- @purpose: Define input parameters and constraints -->
 ## Input Configuration
-> **REQUIREMENTS**: {
-  **inputs**: [
-    {"SOURCE": "diplomatic cables"},
-    {"SAMPLE SIZE": "20k-100k chars"},
-    {"TYPE": "random selection"},
-    {"STYLE": "professional diplomatic"}
-  ],
-  **content**: [
-    {"UNIQUENESS": "100%"},
-    {"EXTRACTION": "structural patterns only"},
-    {"COMBINATION": "all stage outputs"},
-    {"INSPIRATION": "real world snippets"}
-  ],
-  **prohibited**: [
-    {"CONTENT COPYING": False},
-    {"SAMPLE COMBINING": False},
-    {"REAL DETAILS": False},
-    {"INSPIRATION COMBINING": False},
-    {"SCI-FI ELEMENTS": False},
-    {"FUTURISTIC CONTENT": False}
-  ]
-}
+[REQUIREMENTS]
+> @inputs:
+- SOURCE: diplomatic cables
+- SAMPLE SIZE: 20k-100k chars
+- TYPE: random selection
+- STYLE: professional diplomatic
+
+> @content:
+- UNIQUENESS: 100%
+- EXTRACTION: structural patterns only
+- COMBINATION: all stage outputs
+- INSPIRATION: real world snippets
+
+> @prohibited:
+- CONTENT COPYING: false
+- SAMPLE COMBINING: false
+- REAL DETAILS: false
+- INSPIRATION COMBINING: false
+- SCI-FI ELEMENTS: false
+- FUTURISTIC CONTENT: false
+[END]
 
 <!-- @section: thinking-context -->
 <!-- @purpose: Define previous stage inputs -->
@@ -77,76 +76,6 @@
 - **METHOD**: Sequential analytical decomposition
 </overview>
 
-<!-- @section: output-format -->
-<!-- @purpose: Define expected output structure -->
-<!-- @validation: Must follow exact XML schema -->
-<!-- @requirements: All fields must be fictional -->
-<output-format>
-### Structure Requirements
-[GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
-<initial-analysis>
-  <framework>
-    <approach>[Analysis methodology]</approach>
-    <scope>[Analysis boundaries]</scope>
-    <focus>[Core analytical elements]</focus>
-  </framework>
-  <base>
-    <situation>[Current state]</situation>
-    <context>[Key background]</context>
-    <factors>[Critical variables]</factors>
-  </base>
-</initial-analysis>
-<unique-analysis>
-  <analysis>
-    <premise>
-      <core>[Central argument]</core>
-      <assumptions>[Key premises]</assumptions>
-      <constraints>[Limiting factors]</constraints>
-    </premise>
-    <elements>
-      <logical>
-        <structure>[Argument framework]</structure>
-        <flow>[Reasoning chain]</flow>
-        <validity>[Logic strength]</validity>
-      </logical>
-      <factual>
-        <evidence>[Supporting data]</evidence>
-        <verification>[Proof points]</verification>
-        <reliability>[Data quality]</reliability>
-      </factual>
-      <contextual>
-        <environment>[Situational factors]</environment>
-        <influences>[External forces]</influences>
-        <dynamics>[Changing elements]</dynamics>
-      </contextual>
-    </elements>
-    <implications>
-      <direct>[Immediate effects]</direct>
-      <indirect>[Secondary impacts]</indirect>
-      <long-term>[Future consequences]</long-term>
-    </implications>
-  </analysis>
-  <!-- Generate 2 - 3 more analyses -->
-</unique-analysis>
-<final-analysis>
-  <selected-logic>
-    <path>[Chosen reasoning chain]</path>
-    <justification>[Selection rationale]</justification>
-    <impact>[Expected outcomes]</impact>
-  </selected-logic>
-  <synthesis>
-    <integration>[Combined elements]</integration>
-    <patterns>[Identified trends]</patterns>
-    <insights>[Key discoveries]</insights>
-  </synthesis>
-  <recommendations>
-    <strategic>[Long-term actions]</strategic>
-    <tactical>[Immediate steps]</tactical>
-    <contingencies>[Alternative plans]</contingencies>
-  </recommendations>
-</final-analysis>
-</output-format>
-
 <!-- @section: process -->
 <!-- @purpose: Define reasoning methodology -->
 <!-- @visibility: Internal only, not for output -->
@@ -168,58 +97,57 @@
 <!-- @enforcement: Strict -->
 <critical-instruction>
 ### CRITICAL RULES
-> **IMPORTANT**:
-***CONSTRAINTS***: {
-  **spatial**: [
-    {"EARTH ONLY": True},
-    {"REAL LOCATIONS": True},
-    {"FICTIONAL PLACES": False},
-    {"SPACE CONTEXT": "terrestrial"}
-  ],
-  **temporal**: [
-    {"START YEAR": 2020},
-    {"END YEAR": 2030},
-    {"ALTERNATE HISTORY": False},
-    {"TECH LEVEL": "contemporary"},
-    {"FUTURE CONTENT": False}
-  ],
-  **content**: [
-    {"TYPE": "fictional"},
-    {"STYLE": "diplomatic"},
-    {"ENTITIES": "fictional"},
-    {"SCOPE": "comprehensive"},
-    {"DEPTH": "high"},
-    {"REALISM": "high"},
-    {"META ANALYSIS": "required"},
-    {"RIGOR": "high"},
-    {"INSIGHTS": "diplomatic"},
-    {"SCI-FI ELEMENTS": False}
-  ],
-  **format**: [
-    {"XML_STRUCTURE": "exact"},
-    {"LANGUAGE": "en-us"},
-    {"STAGE": "reasoning"}
-  ],
-  **context**: [
-    {"PREVIOUS STAGES": True},
-    {"STRUCTURAL INSPIRATION": True},
-    {"PROFESSIONAL TONE": True},
-    {"STAGES COHERENCE": "high"}
-  ],
-  **prohibited**: [
-    {"PROCESS INCLUSION": False},
-    {"FORMAT MARKERS": False},
-    {"OUTPUT WRAPPING": False},
-    {"CONTENT BLOCKS": False},
-    {"REAL REFERENCES": False},
-    {"NON-EARTH": False},
-    {"FUTURE-TECH": False},
-    {"REAL ENTITIES": False},
-    {"PROCESS LEAKAGE": False},
-    {"SCI-FI ELEMENTS": False},
-    {"FUTURISTIC CONTENT": False}
-  ]
-}
+***IMPORTANT***
+[CONSTRAINTS]
+> @spatial:
+- EARTH ONLY: True
+- REAL LOCATIONS: True
+- FICTIONAL PLACES: False
+- SPACE CONTEXT: "terrestrial"
+
+> @temporal:
+- START YEAR: 2020
+- END YEAR: 2030
+- ALTERNATE HISTORY: False
+- TECH LEVEL: "contemporary"
+- FUTURE CONTENT: False
+
+> @content:
+- TYPE: "fictional"
+- STYLE: "diplomatic"
+- ENTITIES: "fictional"
+- SCOPE: "comprehensive"
+- DEPTH: "high"
+- REALISM: "high"
+- META ANALYSIS: "required"
+- RIGOR: "high"
+- INSIGHTS: "diplomatic"
+- SCI-FI ELEMENTS: False
+
+> @format:
+- XML STRUCTURE: "exact"
+- LANGUAGE: "en-us"
+- STAGE: "reasoning"
+
+> @context:
+- PREVIOUS STAGES: True
+- STRUCTURAL INSPIRATION: True
+- PROFESSIONAL TONE: True
+- STAGES COHERENCE: "high"
+
+> @prohibited:
+- PROCESS INCLUSION: False
+- FORMAT MARKERS: False
+- OUTPUT WRAPPING: False
+- CONTENT BLOCKS: False
+- REAL REFERENCES: False
+- NON-EARTH: False
+- FUTURE-TECH: False
+- REAL ENTITIES: False
+- PROCESS LEAKAGE: False
+- SCI-FI ELEMENTS: False
+- FUTURISTIC CONTENT: False
+[END]
 
 <!-- @section: validation -->
 <!-- @purpose: Define validation rules -->
@@ -247,16 +175,84 @@ stage = reasoning
 [END]
 </validation-rules>
 
-<!-- @section: correct output format-->
-<!-- @purpose: Define the structure of the output -->
+<!-- @section: output-format -->
+<!-- @purpose: Define expected output structure -->
 **CORRECT OUTPUT FORMAT:**
 <!ELEMENT output (initial-analysis, unique-analysis, final-analysis)>
 <!ELEMENT initial-analysis (framework, base)>
-[First unique analytical framework]
+[First analytical framework and base]
 <!ELEMENT unique-analysis (analysis+)>
-[Array of distinct and unique reasoning paths]
+[Array of distinct chain of thought reasoning paths]
 <!ELEMENT final-analysis (selected-logic, synthesis, recommendations)>
-[Selected final-analysis and development]
+[Selected analysis and recommendations]
+
+<!-- @section: output-example -->
+<!-- @purpose: Define expected output structure -->
+<!-- @validation: Must follow exact XML schema -->
+<!-- @requirements: All fields must be fictional -->
+**PROPER STRUCTURE EXAMPLE:**
+<output>
+  <initial-analysis>
+    <framework>
+      <approach>[Detailed analysis methodology]</approach>
+      <scope>[Clear analysis boundaries]</scope>
+      <focus>[Core analytical elements]</focus>
+    </framework>
+    <base>
+      <situation>[Current state assessment]</situation>
+      <context>[Key background factors]</context>
+      <factors>[Critical variables]</factors>
+    </base>
+  </initial-analysis>
+  <unique-analysis>
+    <analysis>
+      <premise>
+        <core>[Central analytical argument]</core>
+        <assumptions>[Key analytical premises]</assumptions>
+        <constraints>[Limiting factors]</constraints>
+      </premise>
+      <elements>
+        <logical>
+          <structure>[Argument framework]</structure>
+          <flow>[Reasoning chain]</flow>
+          <validity>[Logic strength assessment]</validity>
+        </logical>
+        <factual>
+          <evidence>[Supporting analysis]</evidence>
+          <verification>[Proof points]</verification>
+          <reliability>[Data quality assessment]</reliability>
+        </factual>
+        <contextual>
+          <environment>[Situational analysis]</environment>
+          <influences>[External forces]</influences>
+          <dynamics>[Change patterns]</dynamics>
+        </contextual>
+      </elements>
+      <implications>
+        <direct>[Immediate impacts]</direct>
+        <indirect>[Secondary effects]</indirect>
+        <long-term>[Future implications]</long-term>
+      </implications>
+    </analysis>
+  </unique-analysis>
+  <final-analysis>
+    <selected-logic>
+      <path>[Selected reasoning chain]</path>
+      <justification>[Selection rationale]</justification>
+      <impact>[Expected outcomes]</impact>
+    </selected-logic>
+    <synthesis>
+      <integration>[Combined elements]</integration>
+      <patterns>[Identified trends]</patterns>
+      <insights>[Key discoveries]</insights>
+    </synthesis>
+    <recommendations>
+      <strategic>[Long-term actions]</strategic>
+      <tactical>[Immediate steps]</tactical>
+      <contingencies>[Alternative plans]</contingencies>
+    </recommendations>
+  </final-analysis>
+</output>
 
 ---
 **Your response only for this query in following order:**
