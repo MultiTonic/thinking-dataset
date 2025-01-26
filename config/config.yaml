@@ -386,7 +386,7 @@ pipelines:
           seed_amount: 3
           seed_length: 2500
           seed_offset: 0
-          batch_size: 3
+          batch_size: 10
           if_exists: "replace"
           prompt:
             template: "{{paths.templates}}/thinking.md"
@@ -395,7 +395,7 @@ pipelines:
         config:
           provider: "localhost"
           if_exists: "replace"
-          max_workers: 3
+          max_workers: 5
           mock: False
           input:
           - table: "cables"
