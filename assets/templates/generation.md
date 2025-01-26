@@ -71,7 +71,7 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>1.0.5</version>
+  <version>1.0.6</version>
   <!-- @hint: Current stage in pipeline -->
   <stage>generation</stage>
   <!-- @hint: Processing flow control -->
