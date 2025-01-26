@@ -361,13 +361,13 @@ pipelines:
         type: "FilterBySizePipe"
         config:
           column_name: "cable"
-          min_size: 500
+          min_size: 1000
           max_size: 0
     - pipe:
         type: "ChunkingPipe"
         config:
           columns: [ "cable" ]
-          min_chunk_size: 500
+          min_chunk_size: 1000
           max_chunk_size: 2500
 - pipeline:
     name: "generate"
