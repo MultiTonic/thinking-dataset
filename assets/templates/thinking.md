@@ -1,39 +1,43 @@
-<!-- @template-type: diplomatic-thinking -->
-<!-- @purpose: Generate synthetic diplomatic narratives -->
-<!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
+<!-- @template: diplomatic-thinking -->
+<!-- @purpose: Ideation of synthetic diplomatic narratives -->
+<!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -> review -->
 <!-- @context: Professional diplomatic communication -->
 <!-- @spatial: Earth-based -->
 <!-- @temporal: 2020 to 2030 -->
-
-# Stage 1: Diplomatic Narrative Thinking
 ---
+# Stage 1: Diplomatic Narrative Thinking
+
 <!-- @section: context -->
 <!-- @purpose: Define input parameters and constraints -->
 ## Input Configuration
-**REQUIREMENTS**: {
-  "inputs": [
-    - SOURCE: diplomatic_cables
-    - SAMPLE_SIZE: 40k-100k chars
-    - TYPE: random_selection
-    - STYLE: professional_diplomatic
+> **REQUIREMENTS**: {
+  **inputs**: [
+    {"SOURCE": "diplomatic cables"},
+    {"SAMPLE SIZE": "20k-100k chars"},
+    {"TYPE": "random selection"},
+    {"STYLE": "professional diplomatic"}
   ],
-  "content": [
-    - UNIQUENESS: 100%
-    - EXTRACTION: structural_patterns_only
-    - COMBINATION: all_stage_outputs
-    - INSPIRATION: real_world_snippets
+  **content**: [
+    {"UNIQUENESS": "100%"},
+    {"EXTRACTION": "structural patterns only"},
+    {"COMBINATION": "all stage outputs"},
+    {"INSPIRATION": "real world snippets"}
   ],
-  "prohibited": [
-    - CONTENT_COPYING: false
-    - SAMPLE_COMBINING: false
-    - REAL_DETAILS: false
-    - INSPIRATION_COMBINING: false
-    - SCI_FI_ELEMENTS: false
-    - FUTURISTIC_CONTENT: false
+  **prohibited**: [
+    {"CONTENT COPYING": False},
+    {"SAMPLE COMBINING": False},
+    {"REAL DETAILS": False},
+    {"INSPIRATION COMBINING": False},
+    {"SCI-FI ELEMENTS": False},
+    {"FUTURISTIC CONTENT": False}
   ]
 }
 
+<!-- @section: data-sources -->
+<!-- @purpose: Input data references -->
+<!-- @validation: Follow input configuration requirements -->
 ## Data Sources
+<!-- @hint: Use provided seeds for inspiration -->
 <inspirations>{{seeds}}</inspirations>
 ---
 
@@ -41,7 +45,7 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>1.0.7</version>
+  <version>1.0.8</version>
   <!-- @hint: Current stage in pipeline -->
   <stage>thinking</stage>
   <!-- @hint: Processing flow control -->
@@ -54,7 +58,7 @@
 <!-- @section: overview -->
 <!-- @purpose: Define core objectives and methods -->
 <overview>
-### Primary Objectives
+### Prime Directive
 - **PURPOSE**: Generate synthetic diplomatic narratives
 - **ROLE**: Transform inputs into fictional scenarios
 - **OUTPUT**: XML-structured diplomatic content
@@ -68,7 +72,6 @@
 <output-format>
 ### Structure Requirements
 [GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
-
 <initial-thought>
   <scenario>[Diplomatic situation or crisis]</scenario>
   <context>
@@ -121,7 +124,7 @@
       </outcomes>
     </potential>
   </thought>
-  <!-- Generate 3 - 5 more unique and detailed thoughts -->
+  <!-- Generate 2 - 3 more unique and detailed thoughts -->
 </unique-thoughts>
 <final-synthesis>
   <selected-direction>
@@ -160,18 +163,6 @@
 </final-synthesis>
 </output-format>
 
-<!-- @section: validation -->
-<!-- @purpose: Define validation rules -->
-<validation-rules>
-- Must follow exact XML schema
-- All content must be fictional
-- Must maintain professional tone
-- Must follow constraint blocks
-- Must avoid sci-fi and futuristic elements
-- Must avoid any real-world content
-- Must use parallel world content
-</validation-rules>
-
 <!-- @section: process -->
 <!-- @purpose: Define creation methodology -->
 <!-- @visibility: Internal only, not for output -->
@@ -192,71 +183,94 @@
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
-
-**CONSTRAINTS**: {
-  "spatial": [
-    - EARTH_ONLY: true
-    - REAL_LOCATIONS: true
-    - FICTIONAL_PLACES: false
-    - SPACE_CONTEXT: terrestrial
+***CONSTRAINTS***: {
+  **spatial**: [
+    {"EARTH ONLY": True},
+    {"REAL LOCATIONS": True},
+    {"FICTIONAL PLACES": False},
+    {"SPACE CONTEXT": "terrestrial"}
   ],
-  "temporal": [
-    - START_YEAR: 2020
-    - END_YEAR: 2030
-    - ALTERNATE_HISTORY: false
-    - TECH_LEVEL: contemporary
-    - FUTURE_CONTENT: false
+  **temporal**: [
+    {"START YEAR": 2020},
+    {"END YEAR": 2030},
+    {"ALTERNATE HISTORY": False},
+    {"TECH LEVEL": "contemporary"},
+    {"FUTURE CONTENT": False}
   ],
-  "content": [
-    - TYPE: fictional
-    - STYLE: diplomatic
-    - ENTITIES: fictional
-    - SCOPE: comprehensive
-    - DEPTH: high
-    - REALISM: high
-    - META_ANALYSIS: required
-    - RIGOR: high
-    - INSIGHTS: diplomatic
-    - SCI_FI_ELEMENTS: false
+  **content**: [
+    {"TYPE": "fictional"},
+    {"STYLE": "diplomatic"},
+    {"ENTITIES": "fictional"},
+    {"SCOPE": "comprehensive"},
+    {"DEPTH": "high"},
+    {"REALISM": "high"},
+    {"META ANALYSIS": "required"},
+    {"RIGOR": "high"},
+    {"INSIGHTS": "diplomatic"},
+    {"SCI-FI ELEMENTS": False}
   ],
-  "format": [
-    - XML_STRUCTURE: exact
-    - LANGUAGE: en-us
-    - STAGE: thinking
+  **format**: [
+    {"XML STRUCTURE": "exact"},
+    {"LANGUAGE": "en-us"},
+    {"STAGE": "thinking"}
   ],
-  "context": [
-    - PREVIOUS_STAGES: true
-    - STRUCTURAL_INSPIRATION: true
-    - PROFESSIONAL_TONE: true
-    - STAGES_COHERENCE: high
+  **context**: [
+    {"PREVIOUS STAGES": True},
+    {"STRUCTURAL INSPIRATION": True},
+    {"PROFESSIONAL TONE": True},
+    {"STAGES COHERENCE": "high"}
   ],
-  "prohibited": [
-    - PROCESS_INCLUSION: false
-    - FORMAT_MARKERS: false
-    - OUTPUT_WRAPPING: false
-    - CONTENT_BLOCKS: false
-    - REAL_REFERENCES: false
-    - NON_EARTH: false
-    - FUTURE_TECH: false
-    - REAL_ENTITIES: false
-    - PROCESS_LEAKAGE: false
-    - SCI_FI_ELEMENTS: false
-    - FUTURISTIC_CONTENT: false
+  **prohibited**: [
+    {"PROCESS INCLUSION": False},
+    {"FORMAT MARKERS": False},
+    {"OUTPUT WRAPPING": False},
+    {"CONTENT BLOCKS": False},
+    {"REAL REFERENCES": False},
+    {"NON-EARTH": False},
+    {"FUTURE-TECH": False},
+    {"REAL ENTITIES": False},
+    {"PROCESS LEAKAGE": False},
+    {"SCI-FI ELEMENTS": False},
+    {"FUTURISTIC CONTENT": False}
   ]
 }
 
+<!-- @section: validation -->
+<!-- @purpose: Define validation rules -->
+<validation-rules>
+[RULES]
+!001 XML_SCHEMA: "follow exact XML schema"
+!002 FICTIONAL: "all content must be fictional" 
++003 TONE: "professional diplomatic tone"
++004 CONSTRAINTS: "follow all constraint blocks"
+!005 NO_SCIFI: "no sci-fi/futuristic elements"
+!006 NO_REAL_WORLD: "no real-world content"
++007 PARALLEL_WORLD: "use parallel world content"
+
+[GROUPS]
+ALL  = [001, 002]
+MUST = [003-007]
+CRIT = [001, 002, 005, 006]
+HIGH = [003, 004, 007]
+
+[META]
+enforced = True
+validated = False
+stage = thinking
+
+[END]
+</validation-rules>
+
+<!-- @section: correct output format-->
+<!-- @purpose: Define the structure of the output -->
 **CORRECT OUTPUT FORMAT:**
-<output>
-<initial-thought>
-[First creative direction]
-</initial-thought>
-<unique-thoughts>
-[Array of distinct fictional concepts]
-</unique-thoughts>
-<final-synthesis>
-[Selected direction and rationale]
-</final-synthesis>
-</output>
+<!ELEMENT output (initial-thought, unique-thoughts, final-synthesis)>
+<!ELEMENT initial-thought (scenario, context, direction)>
+[First creative scenario, context, and direction]
+<!ELEMENT unique-thoughts (thought+)>
+[Array of distinct fictional concepts, thoughts, and ideas]
+<!ELEMENT final-synthesis (selected-direction, rationale, development)>
+[Selected-direction, rationale and development]
 
 ---
 **Your response only for this query in following order:**

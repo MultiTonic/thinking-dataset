@@ -1,6 +1,6 @@
 <!-- @template-type: diplomatic-reflecting -->
 <!-- @purpose: Synthesize cross-stage insights and patterns -->
-<!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
+<!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -> review -->
 <!-- @context: Professional diplomatic meta-analysis -->
 <!-- @spatial: Earth-based -->
 <!-- @temporal: 2020 to 2030 -->
@@ -11,30 +11,37 @@
 <!-- @purpose: Define input parameters and constraints -->
 ## Input Configuration
 **REQUIREMENTS**: {
-  "inputs": [
-    - SOURCE: diplomatic_cables
-    - SAMPLE_SIZE: 40k-100k chars
-    - TYPE: random_selection
-    - STYLE: professional_diplomatic
+  **inputs**: [
+    {"SOURCE": "diplomatic cables"},
+    {"SAMPLE SIZE": "20k-100k chars"},
+    {"TYPE": "random selection"},
+    {"STYLE": "professional diplomatic"}
   ],
-  "content": [
-    - UNIQUENESS: 100%
-    - EXTRACTION: structural_patterns_only
-    - COMBINATION: all_stage_outputs
-    - INSPIRATION: real_world_snippets
-    - PREVIOUS_STAGES: [thinking, reasoning]
+  **content**: [
+    {"UNIQUENESS": "100%"},
+    {"EXTRACTION": "structural patterns only"},
+    {"COMBINATION": "all stage outputs"},
+    {"INSPIRATION": "real world snippets"}
   ],
-  "prohibited": [
-    - CONTENT_COPYING: false
-    - SAMPLE_COMBINING: false
-    - REAL_DETAILS: false
-    - INSPIRATION_COMBINING: false
+  **prohibited**: [
+    {"CONTENT COPYING": False},
+    {"SAMPLE COMBINING": False},
+    {"REAL-WORLD": False},
+    {"INSPIRATION COMBINING": False},
+    {"SCI-FI ELEMENTS": False},
+    {"FUTURISTIC CONTENT": False}
   ]
 }
 
+<!-- @section: data-sources -->
+<!-- @purpose: Input data references -->
+<!-- @validation: Follow input configuration requirements -->
 ## Data Sources
+<!-- @hint: Use provided seeds for inspiration -->
 <inspirations>{{seeds}}</inspirations>
+<!-- @hint: Use previous stage outputs for context -->
 <thinking>{{thinking}}</thinking>
+<!-- @hint: Integrate insights from reasoning stage -->
 <reasoning>{{reasoning}}</reasoning>
 ---
 
@@ -42,7 +49,7 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>1.0.7</version>
+  <version>1.0.8</version>
   <!-- @hint: Current stage in pipeline -->
   <stage>reflecting</stage>
   <!-- @hint: Processing flow control -->
@@ -52,23 +59,10 @@
   <tags>reflection, synthesis, meta-analysis, diplomatic, insights</tags>
 </metadata>
 
-<!-- @section: validation -->
-<!-- @purpose: Define validation rules -->
-<validation-rules>
-- Must follow exact XML schema
-- All content must be fictional
-- Must maintain professional tone
-- Must follow constraint blocks
-- Must align with thinking and reasoning stage outputs
-- Must avoid sci-fi and futuristic elements
-- Must avoid any real-world content
-- Must use parallel world content
-</validation-rules>
-
 <!-- @section: overview -->
 <!-- @purpose: Define core objectives and methods -->
 <overview>
-### Primary Objectives
+### Prime Directive
 - **PURPOSE**: Synthesize cross-stage insights
 - **ROLE**: Extract patterns and implications
 - **OUTPUT**: XML-structured meta-analysis
@@ -82,7 +76,6 @@
 <output-format>
 ### Structure Requirements
 [GENERATE 100% FICTIONAL DIPLOMATIC CONTENT]
-
 <initial-reflection>
   <framework>
     <methodology>[Analysis approach]</methodology>
@@ -95,7 +88,6 @@
     <connections>[Cross-stage links]</connections>
   </foundation>
 </initial-reflection>
-
 <unique-reflections>
   <reflection>
     <concept>
@@ -126,9 +118,8 @@
       <applications>[Practical uses]</applications>
     </synthesis>
   </reflection>
-  <!-- Generate 2-3 more reflections -->
+  <!-- Generate 2 - 3 more reflections -->
 </unique-reflections>
-
 <final-reflection>
   <meta-analysis>
     <overview>[Comprehensive view]</overview>
@@ -170,71 +161,92 @@
 <critical-instruction>
 ### CRITICAL RULES
 > **IMPORTANT**:
-
-**CONSTRAINTS**: {
-  "spatial": [
-    - EARTH_ONLY: true
-    - REAL_LOCATIONS: true
-    - FICTIONAL_PLACES: false
-    - SPACE_CONTEXT: terrestrial
+>***CONSTRAINTS***: {
+  **spatial**: [
+    {"EARTH ONLY": True},
+    {"REAL LOCATIONS": True},
+    {"FICTIONAL PLACES": False},
+    {"SPACE CONTEXT": "terrestrial"}
   ],
-  "temporal": [
-    - START_YEAR: 2020
-    - END_YEAR: 2030
-    - ALTERNATE_HISTORY: false
-    - TECH_LEVEL: contemporary
-    - FUTURE_CONTENT: false
+  **temporal**: [
+    {"START YEAR": 2020},
+    {"END YEAR": 2030},
+    {"ALTERNATE HISTORY": False},
+    {"TECH LEVEL": "contemporary"},
+    {"FUTURE CONTENT": False}
   ],
-  "content": [
-    - TYPE: fictional
-    - STYLE: diplomatic
-    - ENTITIES: fictional
-    - SCOPE: comprehensive
-    - DEPTH: high
-    - REALISM: high
-    - META_ANALYSIS: required
-    - RIGOR: high
-    - INSIGHTS: diplomatic
-    - SCI_FI_ELEMENTS: false
+  **content**: [
+    {"TYPE": "fictional"},
+    {"STYLE": "diplomatic"},
+    {"ENTITIES": "fictional"},
+    {"SCOPE": "comprehensive"},
+    {"DEPTH": "high"},
+    {"REALISM": "high"},
+    {"META ANALYSIS": "required"},
+    {"RIGOR": "high"},
+    {"INSIGHTS": "diplomatic"},
+    {"SCI-FI ELEMENTS": False}
   ],
-  "format": [
-    - XML_STRUCTURE: exact
-    - LANGUAGE: en-us
-    - STAGE: reflection
+  **format**: [
+    {"XML STRUCTURE": "exact"},
+    {"LANGUAGE": "en-us"},
+    {"STAGE": "reflection"}
   ],
-  "context": [
-    - PREVIOUS_STAGES: true
-    - STRUCTURAL_INSPIRATION: true
-    - PROFESSIONAL_TONE: true
-    - STAGES_COHERENCE: high
+  **context**: [
+    {"PREVIOUS STAGES": True},
+    {"STRUCTURAL INSPIRATION": True},
+    {"PROFESSIONAL TONE": True},
+    {"STAGES COHERENCE": "high"}
   ],
-  "prohibited": [
-    - PROCESS_INCLUSION: false
-    - FORMAT_MARKERS: false
-    - OUTPUT_WRAPPING: false
-    - CONTENT_BLOCKS: false
-    - REAL_REFERENCES: false
-    - NON-EARTH: false
-    - FUTURE_TECH: false
-    - REAL_ENTITIES: false
-    - PROCESS_LEAKAGE: false
-    - SCI_FI_ELEMENTS: false
-    - FUTURISTIC_CONTENT: false
+  **prohibited**: [
+    {"PROCESS INCLUSION": False},
+    {"FORMAT MARKERS": False},
+    {"OUTPUT WRAPPING": False},
+    {"CONTENT BLOCKS": False},
+    {"REAL REFERENCES": False},
+    {"NON-EARTH": False},
+    {"FUTURE-TECH": False},
+    {"REAL ENTITIES": False},
+    {"PROCESS LEAKAGE": False},
+    {"SCI-FI ELEMENTS": False},
+    {"FUTURISTIC CONTENT": False}
   ]
 }
 
+<!-- @section: validation -->
+<!-- @purpose: Define validation rules -->
+<validation-rules>
+[RULES]
+!001 XML_SCHEMA: "follow exact XML schema"
+!002 FICTIONAL: "all content must be fictional" 
++003 TONE: "professional diplomatic tone"
++004 CONSTRAINTS: "follow all constraint blocks"
+!005 NO_SCIFI: "no sci-fi/futuristic elements"
+!006 NO_REAL_WORLD: "no real-world content"
++007 PARALLEL_WORLD: "use parallel world content"
+
+[GROUPS]
+ALL  = [001, 002]
+MUST = [003-007]
+CRIT = [001, 002, 005, 006]
+HIGH = [003, 004, 007]
+
+[META]
+enforced = True
+validated = False
+stage = reflecting
+
+[END]
+</validation-rules>
+
 **CORRECT OUTPUT FORMAT:**
-<output>
-<initial-reflection>
+<!ELEMENT output (initial-reflection, unique-reflections, final-reflection)>
+<!ELEMENT initial-reflection (framework, foundation)>
 [First reflective framework]
-</initial-reflection>
-<unique-reflections>
+<!ELEMENT unique-reflections (reflection+)>
 [Array of distinct reflection paths]
-</unique-reflections>
-<final-reflection>
-[Selected reflection and development]
-</final-reflection>
-</output>
+<!ELEMENT final-reflection (meta-analysis, integration, recommendations)>
+[Selected final-reflection and development]
 
 ---
 **Your response only for this query in following order:**
