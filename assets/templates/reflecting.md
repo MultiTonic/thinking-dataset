@@ -1,54 +1,35 @@
-<!-- @template-type: diplomatic-reflections -->
-<!-- @version: 1.0.3 -->
+<!-- @template-type: diplomatic-reflecting -->
 <!-- @purpose: Synthesize cross-stage insights and patterns -->
-<!-- @flow: ideation -> thinking -> reasoning -> reflection -> generation -->
+<!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
 <!-- @context: Professional diplomatic meta-analysis -->
-<!-- @constraints: Earth-based, no real entities -->
-<!-- @output-format: XML structured reflections -->
 
 # Stage 3: Diplomatic Reflection Analysis
 ---
 <!-- @section: context -->
 <!-- @purpose: Define input parameters and constraints -->
-## Inspirations Context
-> **CRITICAL**: Use these inputs for reflections:
-- **Random** samples (40k-100k chars) from diplomatic cables
-- **100% unique** diplomatic content
-- **Professional** diplomatic style
-- **Extract structural patterns ONLY**
-- **Combine** outputs from all stages
-- **Inspirations**: Real-world snippets
-- **Thoughts**: Previous outputs
-- **Reasoning**: Previous outputs
-- **NEVER**:
-  - Copy content
-  - Combine samples
-  - Use real details
-  - Combine inspirations
+## Input Configuration
+**REQUIREMENTS**: {
+  "inputs": [
+    - SOURCE: diplomatic_cables
+    - SAMPLE_SIZE: 40k-100k chars
+    - TYPE: random_selection
+    - STYLE: professional_diplomatic
+  ],
+  "content": [
+    - UNIQUENESS: 100%
+    - EXTRACTION: structural_patterns_only
+    - COMBINATION: all_stage_outputs
+    - INSPIRATION: real_world_snippets
+    - PREVIOUS_STAGES: [thinking, reasoning]
+  ],
+  "prohibited": [
+    - CONTENT_COPYING: false
+    - SAMPLE_COMBINING: false
+    - REAL_DETAILS: false
+    - INSPIRATION_COMBINING: false
+  ]
+}
 
-<!-- @section: thinking-context -->
-<!-- @purpose: Define thought integration requirements -->
-<!-- @dependency: thinking.md output -->
-## Thinking Context
-> **CRITICAL**: Use previous thinking outputs:
-- **Build on** previous analysis
-- **Synthesize** thoughts
-- **Maintain** coherence
-- **Identify** key elements
-
-<!-- @section: reasoning-context -->
-<!-- @purpose: Define reasoning integration requirements -->
-<!-- @dependency: reasoning.md output -->
-## Reasoning Context
-> **CRITICAL**: Use previous reasoning outputs:
-- **Incorporate** frameworks
-- **Align** with established reasoning
-- **Maintain** consistency
-- **Extract** key elements
-
-<!-- @section: data-sources -->
-<!-- @purpose: Define input data sources -->
-<!-- @validation: Must have valid data from all stages -->
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
 <thinking>{{thinking}}</thinking>
@@ -59,15 +40,25 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>1.0.6</version>
+  <version>1.0.7</version>
   <!-- @hint: Current stage in pipeline -->
-  <stage>reflection</stage>
+  <stage>reflecting</stage>
   <!-- @hint: Processing flow control -->
   <last>reasoning</last>
-  <next>generation</next>
+  <next>composing</next>
   <!-- @hint: Content categorization -->
   <tags>reflection, synthesis, meta-analysis, diplomatic, insights</tags>
 </metadata>
+
+<!-- @section: validation -->
+<!-- @purpose: Define validation rules -->
+<validation-rules>
+- Must follow exact XML schema
+- All content must be fictional
+- Must maintain professional tone
+- Must follow constraint blocks
+- Must align with thinking and reasoning stage outputs
+</validation-rules>
 
 <!-- @section: overview -->
 <!-- @purpose: Define core objectives and methods -->
@@ -153,10 +144,10 @@
 </output-format>
 
 <!-- @section: process -->
-<!-- @purpose: Define reflection methodology -->
+<!-- @purpose: Define reflecting methodology -->
 <!-- @visibility: Internal only, not for output -->
 <reflection-process>
-### Creation Method
+### Reflecting Method
 1. **Review**:
    > Process all prior stage outputs thoroughly
 2. **Analyze**:

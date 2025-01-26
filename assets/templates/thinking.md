@@ -1,29 +1,33 @@
 <!-- @template-type: diplomatic-thinking -->
-<!-- @version: 1.0.6 -->
 <!-- @purpose: Generate synthetic diplomatic narratives -->
-<!-- @flow: ideation -> thinking -> reasoning -> reflection -> generation -->
+<!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
 <!-- @context: Professional diplomatic communication -->
-<!-- @constraints: Earth-based, no real entities -->
-<!-- @output-format: XML structured narrative -->
 
 # Stage 1: Diplomatic Narrative Thinking
 ---
 <!-- @section: context -->
 <!-- @purpose: Define input parameters and constraints -->
-## Inspirations Context
-> **CRITICAL**: Use these inputs for reasoning:
-- **Random** samples (40k-100k chars) from diplomatic cables
-- **100% unique** diplomatic content
-- **Professional** diplomatic style
-- **Extract structural patterns ONLY**
-- **Combine** outputs from all stages
-- **Inspirations**: Real-world snippets
-- **Thoughts**: Previous outputs
-- **NEVER**:
-  - Copy content
-  - Combine samples
-  - Use real details
-  - Combine inspirations
+## Input Configuration
+**REQUIREMENTS**: {
+  "inputs": [
+    - SOURCE: diplomatic_cables
+    - SAMPLE_SIZE: 40k-100k chars
+    - TYPE: random_selection
+    - STYLE: professional_diplomatic
+  ],
+  "content": [
+    - UNIQUENESS: 100%
+    - EXTRACTION: structural_patterns_only
+    - COMBINATION: all_stage_outputs
+    - INSPIRATION: real_world_snippets
+  ],
+  "prohibited": [
+    - CONTENT_COPYING: false
+    - SAMPLE_COMBINING: false
+    - REAL_DETAILS: false
+    - INSPIRATION_COMBINING: false
+  ]
+}
 
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
@@ -33,14 +37,14 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>1.0.6</version>
+  <version>1.0.7</version>
   <!-- @hint: Current stage in pipeline -->
-  <stage>ideation</stage>
+  <stage>thinking</stage>
   <!-- @hint: Processing flow control -->
-  <last>generation</last>
+  <last>none</last>
   <next>reasoning</next>
   <!-- @hint: Content categorization -->
-  <tags>ideation, synthetic-content, diplomatic, narrative, analysis</tags>
+  <tags>ideation, thinking, synthetic-content, diplomatic, narrative, analysis</tags>
 </metadata>
 
 <!-- @section: overview -->
@@ -113,7 +117,7 @@
       </outcomes>
     </potential>
   </thought>
-  <!-- Generate 2-3 more unique and detailed thoughts -->
+  <!-- Generate 3 - 5 more unique and detailed thoughts -->
 </unique-thoughts>
 <final-synthesis>
   <selected-direction>
@@ -151,6 +155,15 @@
   </development>
 </final-synthesis>
 </output-format>
+
+<!-- @section: validation -->
+<!-- @purpose: Define validation rules -->
+<validation-rules>
+- Must follow exact XML schema
+- All content must be fictional
+- Must maintain professional tone
+- Must follow constraint blocks
+</validation-rules>
 
 <!-- @section: process -->
 <!-- @purpose: Define creation methodology -->

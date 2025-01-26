@@ -1,85 +1,64 @@
-<!-- @template-type: diplomatic-generation -->
-<!-- @version: 1.0.5 -->
+<!-- @template-type: diplomatic-composition -->
 <!-- @purpose: Transform all prior inputs into formal diplomatic cable -->
-<!-- @flow: ideation -> thinking -> reasoning -> reflection -> generation -->
+<!-- @flow: thinking -> reasoning -> reflection -> composing -> evaluation -> decision -> action -->
 <!-- @context: Professional diplomatic cable creation -->
-<!-- @constraints: Earth-based, no real entities -->
-<!-- @output-format: XML structured cable -->
 
-# Stage 4: Diplomatic Cable Generation
+# Stage 4: Diplomatic Cable Composition
 ---
 <!-- @section: context -->
 <!-- @purpose: Define input parameters and constraints -->
-## Inspirations Context
-> **CRITICAL**: Use these inputs for cable generation:
-- **Random** samples (40k-100k chars) from diplomatic cables
-- **100% unique** diplomatic content
-- **Professional** diplomatic style
-- **Extract structural patterns ONLY**
-- **Combine** outputs from all stages
-- **Inspirations**: Real-world snippets
-- **Thoughts**: Previous outputs
-- **Reasoning**: Previous outputs
-- **Reflections**: Generated reflections
-- **NEVER**:
-  - Copy content
-  - Combine samples
-  - Use real details
-  - Combine inspirations
+## Input Configuration
+**REQUIREMENTS**: {
+  "inputs": [
+    - SOURCE: diplomatic_cables
+    - SAMPLE_SIZE: 40k-100k chars
+    - TYPE: random_selection
+    - STYLE: professional_diplomatic
+  ],
+  "content": [
+    - UNIQUENESS: 100%
+    - EXTRACTION: structural_patterns_only
+    - COMBINATION: all_stage_outputs
+    - INSPIRATION: real_world_snippets
+    - PREVIOUS_STAGES: [thinking, reasoning, reflecting]
+  ],
+  "prohibited": [
+    - CONTENT_COPYING: false
+    - SAMPLE_COMBINING: false
+    - REAL_DETAILS: false
+    - INSPIRATION_COMBINING: false
+  ]
+}
 
-<!-- @section: thinking-context -->
-<!-- @purpose: Define thought integration requirements -->
-<!-- @dependency: thinking.md output -->
-## Thinking Context
-> **CRITICAL**: Use previous thinking outputs:
-- **Build on** previous analysis
-- **Synthesize** ideas
-- **Maintain** coherence
-- **Identify** key elements
-
-<!-- @section: reasoning-context -->
-<!-- @purpose: Define reasoning integration requirements -->
-<!-- @dependency: reasoning.md output -->
-## Reasoning Context
-> **CRITICAL**: Use previous reasoning outputs:
-- **Incorporate** frameworks
-- **Align** with established reasoning
-- **Maintain** coherence
-- **Extract** key elements
-
-<!-- @section: reflection-context -->
-<!-- @purpose: Define reflection integration requirements -->
-<!-- @dependency: reflections.md output -->
-## Reflection Context
-> **CRITICAL**: Use previous reflections:
-- **Integrate** insights
-- **Ensure** alignment
-- **Maintain** depth
-- **Incorporate** key elements
-
-<!-- @section: data-sources -->
-<!-- @purpose: Define all input data sources -->
-<!-- @validation: Must have valid data from all stages -->
 ## Data Sources
 <inspirations>{{seeds}}</inspirations>
 <thinking>{{thinking}}</thinking>
 <reasoning>{{reasoning}}</reasoning>
-<reflections>{{reflections}}</reflections>
+<reflecting>{{reflections}}</reflecting>
 ---
 
 <!-- @section: metadata -->
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
-  <!-- @hint: Version control for template processing -->
-  <version>1.0.6</version>
   <!-- @hint: Current stage in pipeline -->
-  <stage>generation</stage>
+  <stage>composing</stage>
   <!-- @hint: Processing flow control -->
-  <last>reflection</last>
-  <next>ideation</next>
+  <last>reflecting</last>
+  <next>evaluation</next>
   <!-- @hint: Content categorization -->
-  <tags>diplomatic-cable, final-output, synthetic-content, diplomatic, communication</tags>
+  <tags>diplomatic-cable, composition, final-output, synthetic-content, diplomatic, communication</tags>
 </metadata>
+
+<!-- @section: validation -->
+<!-- @purpose: Define validation rules -->
+<validation-rules>
+- Must follow exact XML schema
+- All content must be fictional
+- Must maintain professional tone
+- Must follow constraint blocks
+- Must align with all previous stage outputs
+- Must follow standard diplomatic cable format
+</validation-rules>
 
 <!-- @section: overview -->
 <!-- @purpose: Define core objectives and methods -->
@@ -202,19 +181,19 @@
 </output-format>
 
 <!-- @section: process -->
-<!-- @purpose: Define cable generation methodology -->
+<!-- @purpose: Define cable composing methodology -->
 <!-- @visibility: Internal only, not for output -->
-<generation-process>
-### Creation Method
+<composing-process>
+### Composing Method
 1. **Analyze**:
    > Review cable requirements and format specifications
 2. **Structure**:
    > Map required sections and components
-3. **Generate**:
-   > Create professional diplomatic cable
+3. **Compose**:
+   > Create a professional diplomatic cable
 4. **Verify**:
    > Ensure compliance and completeness
-</generation-process>
+</composing-process>
 
 <!-- @section: instructions -->
 <!-- @purpose: Critical rules and constraints -->
@@ -251,7 +230,7 @@
   "format": [
     - XML_STRUCTURE: exact
     - LANGUAGE: en-us
-    - STAGE: generation
+    - STAGE: composing
   ],
   "context": [
     - PREVIOUS_STAGES: true

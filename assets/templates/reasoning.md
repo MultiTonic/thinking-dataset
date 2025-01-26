@@ -1,35 +1,40 @@
 <!-- @template-type: diplomatic-reasoning -->
-<!-- @version: 1.0.4 -->
 <!-- @purpose: Transform thoughts into structured analytical framework -->
-<!-- @flow: ideation -> thinking -> reasoning -> reflection -> generation -->
+<!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action-->
 <!-- @context: Professional diplomatic analysis -->
-<!-- @constraints: Earth-based, no real entities -->
-<!-- @output-format: XML structured analysis -->
 
 # Stage 2: Diplomatic Reasoning Analysis
 ---
 <!-- @section: context -->
 <!-- @purpose: Define input parameters and constraints -->
-## Inspirations Context
-> **CRITICAL**: Use these inputs for reasoning:
-- **Random** samples (40k-100k chars) from diplomatic cables
-- **100% unique** diplomatic content
-- **Professional** diplomatic style
-- **Extract structural patterns ONLY**
-- **Combine** outputs from all stages
-- **Inspirations**: Real-world snippets
-- **Thoughts**: Previous outputs
-- **NEVER**:
-  - Copy content
-  - Combine samples
-  - Use real details
-  - Combine inspirations
+## Input Configuration
+**REQUIREMENTS**: {
+  "inputs": [
+    - SOURCE: diplomatic_cables
+    - SAMPLE_SIZE: 40k-100k chars
+    - TYPE: random_selection
+    - STYLE: professional_diplomatic
+  ],
+  "content": [
+    - UNIQUENESS: 100%
+    - EXTRACTION: structural_patterns_only
+    - COMBINATION: all_stage_outputs
+    - INSPIRATION: real_world_snippets
+    - PREVIOUS_STAGE: thinking
+  ],
+  "prohibited": [
+    - CONTENT_COPYING: false
+    - SAMPLE_COMBINING: false
+    - REAL_DETAILS: false
+    - INSPIRATION_COMBINING: false
+  ]
+}
 
 <!-- @section: thinking-context -->
 <!-- @purpose: Define previous stage inputs -->
 <!-- @dependency: thinking.md output -->
 ## Thinking Context
-> **CRITICAL**: Use previous thinking outputs:
+> **CRITICAL**: Use previous thinking output:
 - **Build on** previous analysis
 - **Synthesize** thoughts
 - **Maintain** coherence
@@ -47,12 +52,12 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>1.0.6</version>
+  <version>1.0.7</version>
   <!-- @hint: Current stage in pipeline -->
   <stage>reasoning</stage>
   <!-- @hint: Processing flow control -->
-  <last>ideation</last>
-  <next>reflection</next>
+  <last>thinking</last>
+  <next>reflecting</next>
   <!-- @hint: Content categorization -->
   <tags>reasoning, analysis, synthetic-logic, diplomatic, critical-thinking</tags>
 </metadata>
@@ -140,11 +145,21 @@
 </final-analysis>
 </output-format>
 
+<!-- @section: validation -->
+<!-- @purpose: Define validation rules -->
+<validation-rules>
+- Must follow exact XML schema
+- All content must be fictional
+- Must maintain professional tone
+- Must follow constraint blocks
+- Must align with thinking stage output
+</validation-rules>
+
 <!-- @section: process -->
-<!-- @purpose: Define analytical methodology -->
+<!-- @purpose: Define reasoning methodology -->
 <!-- @visibility: Internal only, not for output -->
 <reasoning-process>
-### Creation Method
+### Reasoning Method
 1. **Input**:
    > Review scope and gather key parameters
 2. **Structure**:
