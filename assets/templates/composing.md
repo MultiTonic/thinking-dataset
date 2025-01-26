@@ -1,7 +1,9 @@
 <!-- @template-type: diplomatic-composition -->
 <!-- @purpose: Transform all prior inputs into formal diplomatic cable -->
-<!-- @flow: thinking -> reasoning -> reflection -> composing -> evaluation -> decision -> action -->
+<!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
 <!-- @context: Professional diplomatic cable creation -->
+<!-- @spatial: Earth-based -->
+<!-- @temporal: 2020 to 2030 -->
 
 # Stage 4: Diplomatic Cable Composition
 ---
@@ -34,7 +36,7 @@
 <inspirations>{{seeds}}</inspirations>
 <thinking>{{thinking}}</thinking>
 <reasoning>{{reasoning}}</reasoning>
-<reflecting>{{reflections}}</reflecting>
+<reflecting>{{reflecting}}</reflecting>
 ---
 
 <!-- @section: metadata -->
@@ -58,6 +60,9 @@
 - Must follow constraint blocks
 - Must align with all previous stage outputs
 - Must follow standard diplomatic cable format
+- Must avoid sci-fi and futuristic elements
+- Must avoid any real-world content
+- Must use parallel world content
 </validation-rules>
 
 <!-- @section: overview -->
@@ -211,10 +216,11 @@
     - SPACE_CONTEXT: terrestrial
   ],
   "temporal": [
-    - START_YEAR: 2015
-    - END_YEAR: 2025
+    - START_YEAR: 2020
+    - END_YEAR: 2030
     - ALTERNATE_HISTORY: false
     - TECH_LEVEL: contemporary
+    - FUTURE_CONTENT: false
   ],
   "content": [
     - TYPE: fictional
@@ -226,6 +232,7 @@
     - META_ANALYSIS: required
     - RIGOR: high
     - INSIGHTS: diplomatic
+    - SCI_FI_ELEMENTS: false
   ],
   "format": [
     - XML_STRUCTURE: exact
@@ -244,10 +251,12 @@
     - OUTPUT_WRAPPING: false
     - CONTENT_BLOCKS: false
     - REAL_REFERENCES: false
-    - NON_EARTH: false
+    - NON-EARTH: false
     - FUTURE_TECH: false
     - REAL_ENTITIES: false
     - PROCESS_LEAKAGE: false
+    - SCI_FI_ELEMENTS: false
+    - FUTURISTIC_CONTENT: false
   ]
 }
 

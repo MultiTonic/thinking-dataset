@@ -1,7 +1,9 @@
 <!-- @template-type: diplomatic-reasoning -->
 <!-- @purpose: Transform thoughts into structured analytical framework -->
-<!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action-->
+<!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
 <!-- @context: Professional diplomatic analysis -->
+<!-- @spatial: Earth-based -->
+<!-- @temporal: 2020 to 2030 -->
 
 # Stage 2: Diplomatic Reasoning Analysis
 ---
@@ -153,6 +155,9 @@
 - Must maintain professional tone
 - Must follow constraint blocks
 - Must align with thinking stage output
+- Must avoid sci-fi and futuristic elements
+- Must avoid any real-world content
+- Must use parallel world content
 </validation-rules>
 
 <!-- @section: process -->
@@ -186,10 +191,11 @@
     - SPACE_CONTEXT: terrestrial
   ],
   "temporal": [
-    - START_YEAR: 2015
-    - END_YEAR: 2025
+    - START_YEAR: 2020
+    - END_YEAR: 2030
     - ALTERNATE_HISTORY: false
     - TECH_LEVEL: contemporary
+    - FUTURE_CONTENT: false
   ],
   "content": [
     - TYPE: fictional
@@ -201,6 +207,7 @@
     - META_ANALYSIS: required
     - RIGOR: high
     - INSIGHTS: diplomatic
+    - SCI_FI_ELEMENTS: false
   ],
   "format": [
     - XML_STRUCTURE: exact
@@ -223,6 +230,8 @@
     - FUTURE_TECH: false
     - REAL_ENTITIES: false
     - PROCESS_LEAKAGE: false
+    - SCI_FI_ELEMENTS: false
+    - FUTURISTIC_CONTENT: false
   ]
 }
 

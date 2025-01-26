@@ -2,6 +2,8 @@
 <!-- @purpose: Implement decisions and execute actions -->
 <!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
 <!-- @context: Strategic action implementation -->
+<!-- @spatial: Earth-based -->
+<!-- @temporal: 2020 to 2030 -->
 
 # Stage 7: Strategic Action Implementation
 ---
@@ -113,12 +115,13 @@
 <!-- @section: validation -->
 <!-- @purpose: Define validation rules -->
 <validation-rules>
-- Must execute all action plans
-- Must track progress and outcomes
-- Must validate action effectiveness
-- Must provide detailed reporting
+- Must follow exact XML schema
+- All content must be fictional
+- Must maintain professional tone
+- Must follow constraint blocks
+- Must provide clear action steps
+- Must maintain audit trail
 - Must enable feedback loop
-- Must suggest future improvements
 </validation-rules>
 
 <!-- @section: process -->
@@ -153,10 +156,11 @@
     - SPACE_CONTEXT: terrestrial
   ],
   "temporal": [
-    - START_YEAR: 2015
-    - END_YEAR: 2025
+    - START_YEAR: 2020
+    - END_YEAR: 2030
     - ALTERNATE_HISTORY: false
     - TECH_LEVEL: contemporary
+    - FUTURE_CONTENT: false
   ],
   "content": [
     - TYPE: action
@@ -168,6 +172,7 @@
     - META_ANALYSIS: required
     - RIGOR: high
     - ACTIONABLE: required
+    - SCI_FI_ELEMENTS: false
   ],
   "format": [
     - XML_STRUCTURE: exact
@@ -190,6 +195,8 @@
     - FUTURE_TECH: false
     - REAL_ENTITIES: false
     - PROCESS_LEAKAGE: false
+    - SCI_FI_ELEMENTS: false
+    - FUTURISTIC_CONTENT: false
   ]
 }
 

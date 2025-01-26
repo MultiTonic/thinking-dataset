@@ -2,6 +2,8 @@
 <!-- @purpose: Process evaluation results and determine actions -->
 <!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
 <!-- @context: Strategic decision making and action planning -->
+<!-- @spatial: Earth-based -->
+<!-- @temporal: 2020 to 2030 -->
 
 # Stage 6: Strategic Decision Making
 ---
@@ -119,12 +121,15 @@
 <!-- @section: validation -->
 <!-- @purpose: Define validation rules -->
 <validation-rules>
-- Must process all evaluation criteria
+- Must follow exact XML schema
+- All content must be fictional
+- Must maintain professional tone
+- Must follow constraint blocks
 - Must justify all decisions
+- Must process all evaluation criteria
 - Must provide clear action steps
 - Must maintain audit trail
 - Must enable feedback loop
-- Must track performance metrics
 </validation-rules>
 
 <!-- @section: process -->
@@ -159,10 +164,11 @@
     - SPACE_CONTEXT: terrestrial
   ],
   "temporal": [
-    - START_YEAR: 2015
-    - END_YEAR: 2025
+    - START_YEAR: 2020
+    - END_YEAR: 2030
     - ALTERNATE_HISTORY: false
     - TECH_LEVEL: contemporary
+    - FUTURE_CONTENT: false
   ],
   "content": [
     - TYPE: decision
@@ -174,6 +180,7 @@
     - META_ANALYSIS: required
     - RIGOR: high
     - ACTIONABLE: required
+    - SCI_FI_ELEMENTS: false
   ],
   "format": [
     - XML_STRUCTURE: exact
@@ -196,6 +203,8 @@
     - FUTURE_TECH: false
     - REAL_ENTITIES: false
     - PROCESS_LEAKAGE: false
+    - SCI_FI_ELEMENTS: false
+    - FUTURISTIC_CONTENT: false
   ]
 }
 

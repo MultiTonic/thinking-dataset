@@ -2,6 +2,8 @@
 <!-- @purpose: Generate synthetic diplomatic narratives -->
 <!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
 <!-- @context: Professional diplomatic communication -->
+<!-- @spatial: Earth-based -->
+<!-- @temporal: 2020 to 2030 -->
 
 # Stage 1: Diplomatic Narrative Thinking
 ---
@@ -26,6 +28,8 @@
     - SAMPLE_COMBINING: false
     - REAL_DETAILS: false
     - INSPIRATION_COMBINING: false
+    - SCI_FI_ELEMENTS: false
+    - FUTURISTIC_CONTENT: false
   ]
 }
 
@@ -163,13 +167,16 @@
 - All content must be fictional
 - Must maintain professional tone
 - Must follow constraint blocks
+- Must avoid sci-fi and futuristic elements
+- Must avoid any real-world content
+- Must use parallel world content
 </validation-rules>
 
 <!-- @section: process -->
 <!-- @purpose: Define creation methodology -->
 <!-- @visibility: Internal only, not for output -->
 <thinking-process>
-### Creation Method
+### Thinking Method
 1. **Review**: Study formats and patterns
 2. **Plan**: Identify elements and themes
 3. **Create**: Develop cohesive narrative
@@ -194,10 +201,11 @@
     - SPACE_CONTEXT: terrestrial
   ],
   "temporal": [
-    - START_YEAR: 2015
-    - END_YEAR: 2025
+    - START_YEAR: 2020
+    - END_YEAR: 2030
     - ALTERNATE_HISTORY: false
     - TECH_LEVEL: contemporary
+    - FUTURE_CONTENT: false
   ],
   "content": [
     - TYPE: fictional
@@ -209,6 +217,7 @@
     - META_ANALYSIS: required
     - RIGOR: high
     - INSIGHTS: diplomatic
+    - SCI_FI_ELEMENTS: false
   ],
   "format": [
     - XML_STRUCTURE: exact
@@ -231,6 +240,8 @@
     - FUTURE_TECH: false
     - REAL_ENTITIES: false
     - PROCESS_LEAKAGE: false
+    - SCI_FI_ELEMENTS: false
+    - FUTURISTIC_CONTENT: false
   ]
 }
 

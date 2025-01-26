@@ -2,6 +2,8 @@
 <!-- @purpose: Synthesize cross-stage insights and patterns -->
 <!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
 <!-- @context: Professional diplomatic meta-analysis -->
+<!-- @spatial: Earth-based -->
+<!-- @temporal: 2020 to 2030 -->
 
 # Stage 3: Diplomatic Reflection Analysis
 ---
@@ -58,6 +60,9 @@
 - Must maintain professional tone
 - Must follow constraint blocks
 - Must align with thinking and reasoning stage outputs
+- Must avoid sci-fi and futuristic elements
+- Must avoid any real-world content
+- Must use parallel world content
 </validation-rules>
 
 <!-- @section: overview -->
@@ -174,10 +179,11 @@
     - SPACE_CONTEXT: terrestrial
   ],
   "temporal": [
-    - START_YEAR: 2015
-    - END_YEAR: 2025
+    - START_YEAR: 2020
+    - END_YEAR: 2030
     - ALTERNATE_HISTORY: false
     - TECH_LEVEL: contemporary
+    - FUTURE_CONTENT: false
   ],
   "content": [
     - TYPE: fictional
@@ -189,6 +195,7 @@
     - META_ANALYSIS: required
     - RIGOR: high
     - INSIGHTS: diplomatic
+    - SCI_FI_ELEMENTS: false
   ],
   "format": [
     - XML_STRUCTURE: exact
@@ -207,10 +214,12 @@
     - OUTPUT_WRAPPING: false
     - CONTENT_BLOCKS: false
     - REAL_REFERENCES: false
-    - NON_EARTH: false
+    - NON-EARTH: false
     - FUTURE_TECH: false
     - REAL_ENTITIES: false
     - PROCESS_LEAKAGE: false
+    - SCI_FI_ELEMENTS: false
+    - FUTURISTIC_CONTENT: false
   ]
 }
 

@@ -2,6 +2,8 @@
 <!-- @purpose: Validate and filter synthetic content -->
 <!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -->
 <!-- @context: Content safety and validation -->
+<!-- @spatial: Earth-based -->
+<!-- @temporal: 2020 to 2030 -->
 
 # Stage 5: Content Evaluation and Filtering
 ---
@@ -139,7 +141,7 @@
     <quality score="0-100">[Writing/structure rating]</quality>
     <usefulness score="0-100">[Training value rating]</usefulness>
   </scores>
-  
+  <final-score>[Final overall score]</final-score>
   <disposition>
     <status>[ACCEPT/REVISE/REJECT]</status>
     <rationale>[Decision basis]</rationale>
@@ -151,12 +153,17 @@
 <!-- @section: validation -->
 <!-- @purpose: Define validation rules -->
 <validation-rules>
+- Must follow exact XML schema
+- All content must be fictional
+- Must maintain professional tone
+- Must follow constraint blocks
+- Must check for sci-fi or futuristic elements
 - Must validate parallel world consistency
-- Must identify any real-world content
 - Must provide numerical scoring
 - Must justify all flags/rejections
 - Must suggest improvements
 - Must track statistical patterns
+- Must identify any real-world content
 </validation-rules>
 
 <!-- @section: process -->
@@ -191,10 +198,11 @@
     - SPACE_CONTEXT: terrestrial
   ],
   "temporal": [
-    - START_YEAR: 2015
-    - END_YEAR: 2025
+    - START_YEAR: 2020
+    - END_YEAR: 2030
     - ALTERNATE_HISTORY: false
     - TECH_LEVEL: contemporary
+    - FUTURE_CONTENT: false
   ],
   "content": [
     - TYPE: evaluation
@@ -206,6 +214,7 @@
     - META_ANALYSIS: required
     - RIGOR: high
     - FILTERING: strict
+    - SCI_FI_ELEMENTS: false
   ],
   "format": [
     - XML_STRUCTURE: exact
@@ -228,6 +237,8 @@
     - FUTURE_TECH: false
     - REAL_ENTITIES: false
     - PROCESS_LEAKAGE: false
+    - SCI_FI_ELEMENTS: false
+    - FUTURISTIC_CONTENT: false
   ]
 }
 
