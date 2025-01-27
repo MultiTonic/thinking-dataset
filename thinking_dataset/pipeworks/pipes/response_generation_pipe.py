@@ -228,7 +228,6 @@ class ResponseGenerationPipe(Pipe):
             ]
             await asyncio.gather(*tasks, return_exceptions=False)
         except Exception as e:
-            Log.error(f"Query batch processing failed: {str(e)}")
             raise RuntimeError("Failed to process query batch") from e
 
     async def _process_single_query(self, session, row, provider, out_table,
