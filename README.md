@@ -43,7 +43,7 @@ For more details, see the [Overview](docs/00_OVERVIEW.md).
 
 ### Prerequisites
 
-- Python 3.10 or later
+- Python 3.12 or later
 - Git
 - A cloud-based account (e.g., OpenAI) or a GPU (RTX 3090 or greater) for processing, or both
 
@@ -56,39 +56,50 @@ For more details, see the [Overview](docs/00_OVERVIEW.md).
     cd thinking-dataset
     ```
 
-2. **Install the `uv` package management tool using `pip`:**
-
+2. **Install the package:**
     ```bash
-    pip install uv
+    # Install package (creates and configures virtual environment automatically)
+    pip install --editable .
+
+    # Optional: Install with CUDA support
+    pip install --editable ".[cuda]"
     ```
 
-    > ***Alternate:*** install via package manager use `pip install -e .` and skip to step 4.
-
-3. **Install the required packages using `uv` and `thinking-dataset.toml`:**
-
-    ```bash
-    uv install -f thinking-dataset.toml
-    ```
-
-4. **Set up environment variables:**
+3. **Set up environment variables:**
 
     Copy the `.env.sample` file to `.env` and change the values as needed:
     ```bash
     cp .env.sample .env
     ```
 
-    Update the `.env` file with the following variables:
-    ```plaintext
-    HF_TOKEN=your_huggingface_token
-    HF_DATASET=your_dataset_name
-    HF_ORGANIZATION=your_organization_name
-    ROOT_DIR=your_root_directory
-    DATA_DIR=your_data_directory
+    Update the `.env` file with your credentials:
+    ```ini
+    # Required settings
+    HF_ORG="my_huggingface_organization"
+    HF_USER="my_huggingface_username"
+    HF_READ_TOKEN="my_huggingface_read_access_token"
+    HF_WRITE_TOKEN="my_huggingface_write_access_token"
+
+    # Required configuration
+    CONFIG_PATH="config/config.yaml"
+
+    # One or more providers
+    OLLAMA_SERVER_URL="http://localhost:11434"
+    OPENAI_API_TOKEN="your_openai_api_token"
+    RUNPOD_API_TOKEN="your_runpod_api_token"
     ```
 
 ## Usage
 
-For detailed usage instructions, please refer to the [Usage](docs/05_USAGE.md) in the `docs` directory.
+### Virtual Environment
+
+Activate the virtual environment (created automatically during install)
+```bash
+source .venv/bin/activate  # Linux/macOS
+.venv\Scripts\activate     # Windows
+```
+
+For complete usage instructions and examples, see the [Usage Guide](docs/05_USAGE.md).
 
 ### Running the Download Command
 
@@ -161,7 +172,7 @@ This dataset is licensed under the MIT License.
 Please use the following BibTeX entry to cite this dataset:
 
 ```bibtex
-@article{thinking-dataset,
+@software{thinking-dataset,
   author = {Kara Rawson, Joseph Pollack, and et al.},
   title = {Thinking-Dataset: Leveraging Real-World Data for Strategic Business Insights and STaR Case Study Generation},
   year = {2025},
@@ -183,5 +194,5 @@ Special thanks to our contributors:
 
 For questions or support, please contact us at:
 
-- **Email**: info@tonic-ai.com
+- **Email**: info@datatonic.ai
 - **Discord**: [Join our Discord](https://discord.gg/RgxcdVFjpz)

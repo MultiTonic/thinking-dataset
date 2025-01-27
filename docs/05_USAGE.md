@@ -1,122 +1,184 @@
 # Usage Guide
 
-## Overview
-
-This document offers detailed usage instructions for the Thinking Dataset Project. It covers how to interact with the application, provides examples of typical workflows, and outlines common commands. This guide ensures users can efficiently navigate the application and leverage its powerful features for generating strategic business insights and STaR case studies.
-
 ## Table of Contents
 
-- [Running the Application](#running-the-application)
-- [Using the CLI](#using-the-cli)
-  - [Basic Commands](#basic-commands)
-  - [Example Workflows](#example-workflows)
+- [Development Environment Setup](#development-environment-setup)
+  - [Virtual Environment](#virtual-environment)
+  - [Environment Configuration](#environment-configuration)
+- [Basic Usage](#basic-usage)
+  - [Command Line Interface](#command-line-interface)
+  - [Common Workflows](#common-workflows)
 - [Advanced Usage](#advanced-usage)
-  - [Custom Configurations](#custom-configurations)
-  - [Logging and Monitoring](#logging-and-monitoring)
-- [Conclusion](#conclusion)
+  - [Using Different Model Providers](#using-different-model-providers)
+  - [CUDA Support](#cuda-support)
+  - [Development Tools](#development-tools)
+- [Troubleshooting](#troubleshooting)
+- [Uninstallation](#uninstallation)
+- [Additional Resources](#additional-resources)
 
-## Running the Application
+## Development Environment Setup
 
-To start the application, ensure your environment variables are set up correctly and run the following command:
+> **Note:** This package requires Python 3.12 or later.
+
+### Virtual Environment
+
+The virtual environment is created automatically during installation:
 
 ```bash
-thinking-dataset --version
+# Install package (creates and configures virtual environment automatically)
+pip install --editable .
+
+# Activate virtual environment
+.venv\Scripts\activate      # Windows
+source .venv/bin/activate   # Linux/macOS
 ```
 
-## Using the CLI
+### Environment Configuration
 
-The Command Line Interface (CLI) of the Thinking Dataset Project allows you to efficiently perform various tasks and operations.
-
-### Basic Commands
-
-- **Download Data**: Download all parquet files from the Cablegate dataset using Hugging Face CLI.
-  ```bash
-  thinking-dataset download
-  ```
-
-- **Process Data**: Process the downloaded data to load into the database.
-  ```bash
-  thinking-dataset process
-  ```
-
-- **Load Data**: Load the prepared data downloaded from Hugging Face CLI.
-  ```bash
-  thinking-dataset load
-  ```
-
-- **Enrich Data**: Enrich the prepared data using AI.
-  ```bash
-  thinking-dataset enrich
-  ```
-
-- **Export Data**: Export the enriched data from the database.
-  ```bash
-  thinking-dataset export
-  ```
-
-- **Upload Data**: Upload the exported data to the specified location.
-  ```bash
-  thinking-dataset upload
-  ```
-
-- **Clean Data Directory**: Clear the root data directory and start fresh.
-  ```bash
-  thinking-dataset clean
-  ```
-
-### Example Workflows
-
-#### Example 1: Data Ingestion and Preprocessing
-
-1. **Download Data**: Download all parquet files from the Cablegate dataset.
+1. Copy the sample environment file:
    ```bash
-   thinking-dataset download
+   cp .env.sample .env
    ```
 
-2. **Process Data**: Process the downloaded data to load into the database.
-   ```bash
-   thinking-dataset process
+2. Configure your environment variables:
+   ```ini
+   # Required settings
+   HF_ORG="my_huggingface_organization"
+   HF_USER="my_huggingface_username"
+   HF_READ_TOKEN="my_huggingface_read_access_token"
+   HF_WRITE_TOKEN="my_huggingface_write_access_token"
+
+   # Required configuration
+   CONFIG_PATH="config/config.yaml"
+
+   # One or more providers required
+   OLLAMA_SERVER_URL="http://localhost:11434"
+   OPENAI_API_TOKEN="your_openai_api_token"
+   RUNPOD_API_TOKEN="your_runpod_api_token"
    ```
 
-3. **Load Data**: Load the prepared data downloaded from Hugging Face CLI.
-   ```bash
-   thinking-dataset load
-   ```
+## Basic Usage
 
-4. **Enrich Data**: Enrich the prepared data using AI.
-   ```bash
-   thinking-dataset enrich
-   ```
+### Command Line Interface
 
-5. **Export Data**: Export the enriched data from the database.
-   ```bash
-   thinking-dataset export
-   ```
+The package provides a CLI tool `thinking-dataset` with the following commands:
 
-6. **Upload Data**: Upload the exported data to the specified location.
-   ```bash
-   thinking-dataset upload
-   ```
+```bash
+# View version and help
+thinking-dataset --version
+thinking-dataset --help
 
-7. **Clean Data Directory**: Clear the root data directory and start fresh.
-   ```bash
-   thinking-dataset clean
-   ```
+# Data operations
+thinking-dataset download   # Download dataset
+thinking-dataset process    # Process downloaded data
+thinking-dataset load       # Load data into database
+thinking-dataset enrich     # Enrich data using AI
+thinking-dataset export     # Export processed data
+thinking-dataset upload     # Upload to HuggingFace
+thinking-dataset clean      # Clean data directory
+```
+
+### Common Workflows
+
+#### 1. Initial Setup and Data Download
+```bash
+# Download and prepare dataset
+thinking-dataset download
+thinking-dataset process
+thinking-dataset load
+```
+
+#### 2. Data Enrichment and Export
+```bash
+# Enrich and export data
+thinking-dataset enrich
+thinking-dataset export
+```
+
+#### 3. Upload to HuggingFace
+```bash
+# Upload processed dataset
+thinking-dataset upload
+```
 
 ## Advanced Usage
 
-### Custom Configurations
+### Using Different Model Providers
 
-Custom configurations can be set using environment variables in the `.env` file. Update the file with your specific settings. You can also change custom project-dependent configuration settings in the file `./config/config.yaml`.
+The package supports multiple model providers:
 
-### Logging and Monitoring
+1. **Ollama** (Default, local):
+   ```bash
+   # Ensure Ollama is running
+   ollama serve
+   ```
 
-Enhanced logging can be implemented using `loguru` for better monitoring and debugging.
+2. **OpenAI**:
+   ```bash
+   # Set OpenAI API token in .env
+   OPENAI_API_TOKEN="your_token"
+   ```
 
-**Algorithm**:
-1. **Add logging configuration** with the desired format and level.
-2. **Log important events** during the application's execution for better traceability.
+3. **RunPod**:
+   ```bash
+   # Set RunPod API token in .env
+   RUNPOD_API_TOKEN="your_token"
+   ```
 
-## Conclusion
+### CUDA Support
 
-The Thinking Dataset Project offers robust tools for generating strategic business insights and STaR case studies. By following this guide, users can efficiently use CLI commands, manage data, interact with inference adapters, and configure settings. This ensures the project is versatile, user-friendly, and supports diverse business and research needs.
+For GPU acceleration, install with CUDA support:
+```bash
+# Within your activated virtual environment
+pip install --editable ".[cuda]"
+```
+
+This will replace the CPU version of PyTorch with the CUDA-enabled version.
+
+> **Note:** Make sure you have NVIDIA CUDA drivers installed on your system.
+
+### Development Tools
+
+Install development dependencies:
+```bash
+uv pip install ".[dev,test,docs]"
+```
+
+## Troubleshooting
+
+For common issues and solutions, see [Troubleshooting](06_TROUBLESHOOTING.md).
+
+## Uninstallation
+
+To completely remove the thinking-dataset package from your system:
+
+1. **Deactivate the virtual environment:**
+   ```bash
+   deactivate
+   ```
+
+2. **Remove the package:**
+   ```bash
+   uv pip uninstall thinking-dataset
+   ```
+
+3. **Clean up (optional):**
+   ```bash
+   # Remove virtual environment
+   rm -rf .venv
+
+   # Remove data directory
+   thinking-dataset clean
+
+   # Remove downloaded datasets
+   rm -rf data/
+
+   # Remove environment file
+   rm .env
+   ```
+
+## Additional Resources
+
+- [Project Documentation](https://github.com/MultiTonic/thinking-dataset/tree/main/docs)
+- [API Reference](docs/04_API.md)
+- [Contributing Guidelines](CONTRIBUTING.md)
