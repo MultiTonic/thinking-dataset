@@ -56,14 +56,12 @@ For more details, see the [Overview](docs/00_OVERVIEW.md).
     cd thinking-dataset
     ```
 
-2. **Install the package:**
-    ```bash
-    # Install package (creates and configures virtual environment automatically)
-    pip install --editable .
-
-    # Optional: Install with CUDA support
-    pip install --editable ".[cuda]"
+2. **Set up the project:**
+    ```sh
+    uv run setup
     ```
+
+This will create a virtual environment and install the project dependencies.
 
 3. **Set up environment variables:**
 
