@@ -58,10 +58,10 @@ For more details, see the [Overview](docs/00_OVERVIEW.md).
 
 2. **Set up the project:**
     ```sh
-    uv run setup
+    uv run dev
     ```
 
-This will create a virtual environment and install the project dependencies.
+This will create a virtual environment, install the project dependencies, and activate the virtual environment.
 
 3. **Set up environment variables:**
 
@@ -91,10 +91,9 @@ This will create a virtual environment and install the project dependencies.
 
 ### Virtual Environment
 
-Activate the virtual environment (created automatically during install)
+Activate the virtual environment using `uv`:
 ```bash
-source .venv/bin/activate  # Linux/macOS
-.venv\Scripts\activate     # Windows
+dev.uv run dev
 ```
 
 For complete usage instructions and examples, see the [Usage Guide](docs/05_USAGE.md).

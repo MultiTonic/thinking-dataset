@@ -53,7 +53,7 @@ dev = [
 ]
 
 [project.scripts]
-setup = "assets.scripts.uv.setup:main"
+dev = "assets.scripts.uv.dev:main"
 
 [tool.mypy]
 python_version = "3.12"
