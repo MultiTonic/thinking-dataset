@@ -4,12 +4,27 @@
 # @license MIT
 
 import subprocess
+import os
 
 def main():
-    print("Hello from 🌌")
-    # Ensure the correct Python version and create virtual environment with dependencies
-    # subprocess.check_call(['uv', 'python', 'set', 'cpython-3.12.8-windows-x86_64-none'])
-    # subprocess.check_call(['uv', 'pip', 'install', '-e', '.'])
+    try:
+        # Check if virtual environment exists
+        if not os.path.exists('.venv'):
+            # Create virtual environment using uv
+            subprocess.check_call(['uv', 'venv', '.venv'])
+        
+        # Install dependencies
+        subprocess.check_call(['uv', 'pip', 'install', '-e', '.'])
+        
+        print("Hello from 🌌")
+        
+        # Import modules after installing dependencies
+        from thinking_dataset.io.files import Files
+
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to create or activate virtual environment: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()
