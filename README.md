@@ -61,11 +61,6 @@ For more details, see the [**Overview**](docs/00_OVERVIEW.md).
     pip install uv
     ```
 
-3. **Set up the project:**
-    ```bash
-    uv run dev
-    ```
-
 This will create a virtual environment, install the project dependencies, and activate the virtual environment.
 
 3. **Set up environment variables:**
