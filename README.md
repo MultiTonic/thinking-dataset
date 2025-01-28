@@ -6,18 +6,18 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Quick Start](#quick-start)
-- [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [Resources](#resources)
-- [License](#license)
-- [Citations](#citations)
-- [Acknowledgements](#acknowledgements)
-- [Contact](#contact)
+- [**Overview**](#overview)
+- [**Features**](#features)
+- [**Installation**](#installation)
+- [**Usage**](#usage)
+- [**Quick Start**](#quick-start)
+- [**Project Structure**](#project-structure)
+- [**Contributing**](#contributing)
+- [**Resources**](#resources)
+- [**License**](#license)
+- [**Citations**](#citations)
+- [**Acknowledgements**](#acknowledgements)
+- [**Contact**](#contact)
 
 ## Overview
 
@@ -27,7 +27,7 @@ The Thinking Dataset Project creates a dataset to help with various data tasks a
 
 **STaR Case Studies** (Situation, Task, Action, and Result) are structured narratives used to illustrate how specific business challenges were addressed and the outcomes achieved. These case studies apply to our various datasets like **Cablegate**, which provide real-world seed data for generating comprehensive business insights.
 
-For more details, see the [Overview](docs/00_OVERVIEW.md).
+For more details, see the [**Overview**](docs/00_OVERVIEW.md).
 
 ## Features
 
@@ -43,21 +43,26 @@ For more details, see the [Overview](docs/00_OVERVIEW.md).
 
 ### Prerequisites
 
-- Python 3.12 or later
-- Git
-- A cloud-based account (e.g., OpenAI) or a GPU (RTX 3090 or greater) for processing, or both
+- [**Python 3.12**](https://www.python.org/downloads/release/python-3128/) or later
+- [**Git**](https://git-scm.com/)
+- A **cloud-based account** (e.g., ***Huggingface***) or a **GPU** (***RTX 3090*** or greater) for processing, or both
 
 ### Setup
 
-1. **Clone the repository:**
+1. **Clone the [repository](https://github.com/MultiTonic/thinking-dataset.git):**
 
     ```bash
     git clone https://github.com/MultiTonic/thinking-dataset.git
     cd thinking-dataset
     ```
 
-2. **Set up the project:**
-    ```sh
+2. **Install [`uv`](https://docs.astral.sh/uv/) package manager:**
+    ```bash
+    pip install uv
+    ```
+
+3. **Set up the project:**
+    ```bash
     uv run dev
     ```
 
@@ -93,10 +98,10 @@ This will create a virtual environment, install the project dependencies, and ac
 
 Activate the virtual environment using `uv`:
 ```bash
-dev.uv run dev
+uv run dev
 ```
 
-For complete usage instructions and examples, see the [Usage Guide](docs/05_USAGE.md).
+> **`uv`** will automatically setup and manage your virtual environment. For complete usage instructions and examples, see the [**Usage Guide**](docs/05_USAGE.md).
 
 ### Running the Download Command
 
