@@ -1,17 +1,38 @@
-# @file thinking_dataset/utils/exceptions.py
-# @description Decorator for exceptions and logging using the Log Singleton.
-# @version 1.0.2
-# @license MIT
+"""Exception handling decorator for Thinking Dataset.
+
+This module provides a decorator for handling exceptions and logging errors
+using the Log Singleton.
+
+Functions:
+    exceptions: Decorator to handle exceptions and log errors.
+"""
 
 import sys
+import subprocess
 from functools import wraps
+from typing import Callable, Any
+
 from thinking_dataset.utils.log import Log
 
+__version__ = "0.0.2"
+__author__ = "MultiTonic Team"
+__copyright__ = "Copyright (c) 2025 MultiTonic Team"
+__license__ = "MIT"
 
-def exceptions(func):
+
+def exceptions(func: Callable) -> Callable:
+    """
+    Decorator to handle exceptions and log errors.
+
+    Args:
+        func (Callable): The function to wrap.
+
+    Returns:
+        Callable: The wrapped function with exception handling.
+    """
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         error_occurred = False
         try:
             return func(
@@ -27,6 +48,9 @@ def exceptions(func):
             error_occurred = True
         except RuntimeError as e:
             Log.error(f"Runtime error: {e}", exc_info=True)
+            error_occurred = True
+        except subprocess.CalledProcessError as e:
+            Log.error(f"Subprocess error: {e.stderr}", exc_info=True)
             error_occurred = True
         except Exception as e:
             Log.error(f"An unexpected error occurred: {e}", exc_info=True)

@@ -16,7 +16,8 @@ custom_theme = Theme({
     "command": "bright_cyan",
     "key": "green",
     "text": "white",
-    "param": "blue"
+    "param": "blue",
+    "error": "bold red"
 })
 
 # Create a console instance with the custom theme

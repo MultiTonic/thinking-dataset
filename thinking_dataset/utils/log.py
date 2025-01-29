@@ -1,7 +1,14 @@
-# @file thinking_dataset/utils/log.py
-# @description Defines the Log class for unified logging.
-# @version 1.1.0
-# @license MIT
+"""Logging Utility Module.
+
+This module provides a unified logging class for the project, managing log
+levels, formatting, and specialized logging configurations.
+
+Functions:
+    None
+
+Classes:
+    Log: Provides unified logging functionality across the project.
+"""
 
 import functools
 import inspect
@@ -14,9 +21,7 @@ T = TypeVar("T")
 
 
 class Log:
-    """
-    The Log class provides unified logging functionality across the project,
-    managing log levels, formatting, and specialized logging configurations.
+    """Unified logging class for the project.
 
     This class:
     1. Manages a singleton logging instance for consistent logging.
@@ -92,7 +97,11 @@ class Log:
     # Level management
     @staticmethod
     def set_level(level: int) -> None:
-        """Set the global logging level for all loggers."""
+        """Set the global logging level for all loggers.
+
+        Args:
+            level (int): Logging level to set
+        """
         Log._level = level
         if Log._instance:
             Log._instance.setLevel(Log._level)
@@ -101,7 +110,14 @@ class Log:
 
     @staticmethod
     def level(level: int) -> Callable[[Callable[..., T]], Callable[..., T]]:
-        """Decorator to temp change log level during method execution."""
+        """Decorator to temporarily change log level during method execution.
+
+        Args:
+            level (int): Logging level to set temporarily
+
+        Returns:
+            Callable: Decorator function
+        """
 
         def decorator(func: Callable[..., T]) -> Callable[..., T]:
 
@@ -121,7 +137,11 @@ class Log:
     # Logging methods
     @staticmethod
     def debug(message: str) -> None:
-        """Log a debug level message with calling context."""
+        """Log a debug level message with calling context.
+
+        Args:
+            message (str): Message to log
+        """
         if Log._level <= logging.DEBUG:
             logger = Log.get()
             logger.name = Log._get_name()
@@ -129,7 +149,11 @@ class Log:
 
     @staticmethod
     def info(message: str) -> None:
-        """Log an info level message with calling context."""
+        """Log an info level message with calling context.
+
+        Args:
+            message (str): Message to log
+        """
         if Log._level <= logging.INFO:
             logger = Log.get()
             logger.name = Log._get_name()
@@ -137,7 +161,11 @@ class Log:
 
     @staticmethod
     def warn(message: str) -> None:
-        """Log a warning level message with calling context."""
+        """Log a warning level message with calling context.
+
+        Args:
+            message (str): Message to log
+        """
         if Log._level <= logging.WARNING:
             logger = Log.get()
             logger.name = Log._get_name()
@@ -145,7 +173,12 @@ class Log:
 
     @staticmethod
     def error(message: str, exc_info: Optional[bool] = None) -> None:
-        """Log an error level message with call context and optional trace."""
+        """Log an error level message with call context and optional trace.
+
+        Args:
+            message (str): Message to log
+            exc_info (Optional[bool]): Include exception info if True
+        """
         if Log._level <= logging.ERROR:
             logger = Log.get()
             logger.name = Log._get_name()

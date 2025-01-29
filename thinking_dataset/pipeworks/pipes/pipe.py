@@ -10,17 +10,19 @@ Classes:
     Pipe: Abstract base class for all processing pipes.
 """
 
-import time
-import threading
 import importlib
-import pandas as pd
-from tqdm import tqdm
-from abc import ABC, abstractmethod
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from thinking_dataset.utils.log import Log
-from thinking_dataset.utils.command_utils import CommandUtils as utils
 import signal
 import sys
+import threading
+from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Callable, List, Type
+
+import pandas as pd
+from tqdm import tqdm
+
+from thinking_dataset.utils.command_utils import CommandUtils as utils
+from thinking_dataset.utils.log import Log
 
 __version__ = "0.0.2"
 __author__ = "MultiTonic Team"
@@ -42,26 +44,26 @@ class Pipe(ABC):
         config (dict): Pipe configuration dictionary
     """
 
-    abort_flag = threading.Event()
-    pipeline_config = {}
+    abort_flag: threading.Event = threading.Event()
+    pipeline_config: dict = {}
 
-    def __init__(self, config: dict):
+    def __init__(self, config: dict) -> None:
         """Initialize pipe with configuration.
 
         Args:
             config (dict): Configuration dictionary for the pipe
         """
-        self.config = config
+        self.config = config or {}
         signal.signal(signal.SIGINT, self.signal_handler)
 
     @classmethod
-    def set_pipeline_config(cls, config: dict):
+    def set_pipeline_config(cls, config: dict) -> None:
         """Set the pipeline configuration for all pipes.
 
         Args:
             config (dict): Pipeline configuration dictionary
         """
-        cls.pipeline_config = config
+        cls.pipeline_config = config or {}
 
     @classmethod
     def get_batch_size(cls) -> int:
@@ -84,17 +86,17 @@ class Pipe(ABC):
             pd.DataFrame: Processed DataFrame
         """
         Log.info(f"Flow -- {self.__class__.__name__}")
-        pass
+        raise NotImplementedError("Pipe subclasses must implement flow()")
 
-    @staticmethod
-    def get_pipe(pipe_type: str) -> type:
+    @classmethod
+    def get_pipe(cls, pipe_type: str) -> Type['Pipe']:
         """Get pipe class by type name.
 
         Args:
             pipe_type (str): Name of pipe class to load
 
         Returns:
-            type: Pipe class type
+            Type[Pipe]: Pipe class type
 
         Raises:
             ImportError: If pipe class cannot be loaded
@@ -105,16 +107,17 @@ class Pipe(ABC):
         try:
             module = importlib.import_module(module_name)
             return getattr(module, pipe_type)
-        except (ImportError, AttributeError):
+        except (ImportError, AttributeError) as e:
             raise ImportError(f"Error loading pipe class {pipe_type} "
-                              f"from module {module_name}")
+                              f"from module {module_name}") from e
 
-    def progress_apply(self, series: pd.Series, func, desc: str) -> pd.Series:
+    def progress_apply(self, series: pd.Series, func: Callable,
+                       desc: str) -> pd.Series:
         """Apply function to series with progress bar.
 
         Args:
             series (pd.Series): Input series
-            func: Function to apply
+            func (Callable): Function to apply
             desc (str): Progress bar description
 
         Returns:
@@ -123,9 +126,10 @@ class Pipe(ABC):
         tqdm.pandas(desc=desc)
         return series.progress_apply(func)
 
-    def multi_thread_apply(self,
+    @classmethod
+    def multi_thread_apply(cls,
                            series: pd.Series,
-                           func,
+                           func: Callable,
                            desc: str,
                            max_workers: int = 5) -> pd.Series:
         """Apply function to series using multiple threads.
@@ -140,51 +144,43 @@ class Pipe(ABC):
             pd.Series: Transformed series
         """
         total = len(series)
-        pbar = tqdm(total=total, desc=desc)
-        results = []
         completed = 0
+        results: List[Any] = []
 
-        def progress_updater():
-            while completed < total:
-                pbar.n = completed
-                pbar.refresh()
-                time.sleep(0.1)
+        with tqdm(total=total, desc=desc) as pbar:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {
+                    executor.submit(func, value): i
+                    for i, value in enumerate(series)
+                }
 
-        updater_thread = threading.Thread(target=progress_updater)
-        updater_thread.start()
-
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(func, value): i
-                for i, value in enumerate(series)
-            }
-
-            for future in as_completed(futures):
-                results.append(future)
-                completed += 1
-
-        pbar.n = completed
-        pbar.refresh()
-        pbar.close()
-        updater_thread.join()
+                for future in as_completed(futures):
+                    try:
+                        results.append(future)
+                        completed += 1
+                        pbar.update(1)
+                    except Exception as e:
+                        raise RuntimeError(
+                            f"Thread execution failed: {str(e)}") from e
 
         results.sort(key=lambda x: futures[x])
         return pd.Series([future.result() for future in results],
                          index=series.index)
 
     @staticmethod
-    def signal_handler(sig, frame):
+    def signal_handler(sig: int, frame: Any) -> None:
         """Handle interrupt signals.
 
         Args:
-            sig: Signal number
-            frame: Current stack frame
+            sig (int): Signal number
+            frame (Any): Current stack frame
         """
-        Log.error("Process aborted by user.")
+        Log.error("\nProcess aborted by user.")
         Pipe.abort_flag.set()
         sys.exit(0)
 
-    def flush(self, df: pd.DataFrame, column_name: str) -> pd.DataFrame:
+    @classmethod
+    def flush(cls, df: pd.DataFrame, column_name: str) -> pd.DataFrame:
         """Clear DataFrame contents.
 
         Args:

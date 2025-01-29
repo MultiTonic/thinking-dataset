@@ -1,20 +1,28 @@
-"""Pipe for generating queries from templates and seeds.
+"""Query Generation Pipeline Module.
 
-This module provides functionality for generating queries by combining
-templates with seed text samples using configurable dynamic label replacements.
+This module provides functionality for generating queries by combining template
+patterns with seed text samples from a configured data source.
+
+Functions:
+    None
+
+Classes:
+    QueryGenerationPipe: Handles query generation from templates and seeds.
 """
 
-import re
 import random
+import re
+from typing import List, Any
+
 import pandas as pd
-from tqdm import tqdm
-from .pipe import Pipe
-from typing import List
-from thinking_dataset.utils.log import Log
-from sqlalchemy import select, Table, MetaData
+from sqlalchemy import MetaData, Table, select
 from tenacity import retry, stop_after_attempt, wait_fixed
-from thinking_dataset.templates.template_loader import TemplateLoader
+from tqdm import tqdm
+
 from thinking_dataset.decorators.with_db_session import with_db_session
+from thinking_dataset.templates.template_loader import TemplateLoader
+from thinking_dataset.utils.log import Log
+from .pipe import Pipe
 
 __version__ = "0.0.2"
 __author__ = "MultiTonic Team"
@@ -44,13 +52,15 @@ class QueryGenerationPipe(Pipe):
     """
 
     @with_db_session
-    def flow(self, df: pd.DataFrame, session=None, **kwargs) -> pd.DataFrame:
+    def flow(self,
+             df: pd.DataFrame,
+             session: Any = None,
+             **kwargs) -> pd.DataFrame:
         """Execute the query generation pipeline.
 
         Args:
             df (pd.DataFrame): Input DataFrame
             session: Database session
-            **kwargs: Additional keyword arguments including pipeline_config
 
         Returns:
             pd.DataFrame: DataFrame with generated queries
@@ -62,10 +72,6 @@ class QueryGenerationPipe(Pipe):
         template_path = self.config["prompt"]["template"]
         if_exists = self.config["if_exists"]
         use_ellipsis = self.config.get("elipsis", True)
-
-        pipeline_config = kwargs.get("pipeline_config", {})
-        if not pipeline_config:
-            raise ValueError("Pipeline configuration is required")
 
         template = TemplateLoader.load(template_path)
         batch_size = self.get_batch_size()
@@ -98,7 +104,7 @@ class QueryGenerationPipe(Pipe):
         Log.info("Finished QueryGenerationPipe")
         return df
 
-    def _validate(self, df: pd.DataFrame, column: str):
+    def _validate(self, df: pd.DataFrame, column: str) -> None:
         """Validate DataFrame and column requirements.
 
         Args:
@@ -165,7 +171,7 @@ class QueryGenerationPipe(Pipe):
             seed_texts.append(seed)
         return seed_texts
 
-    def _fetch_seeds(self, session, table_name: str,
+    def _fetch_seeds(self, session: Any, table_name: str,
                      in_column: str) -> pd.DataFrame:
         """Fetch seed texts from database table.
 
@@ -226,8 +232,8 @@ class QueryGenerationPipe(Pipe):
         return queries
 
     @retry(stop=stop_after_attempt(5), wait=wait_fixed(2), reraise=True)
-    def _write_to_db(self, df: pd.DataFrame, session, out_table: str,
-                     if_exists: str):
+    def _write_to_db(self, df: pd.DataFrame, session: Any, out_table: str,
+                     if_exists: str) -> None:
         """Write DataFrame to database with retry logic.
 
         Args:
