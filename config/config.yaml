@@ -44,7 +44,7 @@ providers:
     config:
       #model: "deepseek-r1:8b"
       # model: "llama3.2:3b"
-      model: "llama3.1:8b"
+      model: "llama3.1:latest"
       stream: False
       options:
         num_ctx: 64768
