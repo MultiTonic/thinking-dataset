@@ -1,8 +1,17 @@
-# flake8: noqa
-# @file assets/scripts/run_llama_cpp.py
-# @description Download and install llama-cpp-python with CUDA toolkit and other required Python packages, and download model using hfapi
-# @version 3.0.0
-# @license MIT
+"""Script to install llama-cpp-python with CUDA toolkit and other required
+    packages.
+
+This script installs the llama-cpp-python package with CUDA support and other
+required Python packages. It also downloads a model using the Hugging Face API.
+
+Functions:
+    error: Logs an error message and traceback.
+    run: Runs a shell command and collects its output.
+    install_py_pkgs: Installs required Python packages.
+    install_llama_cpp_python: Installs llama-cpp-python with CUDA support.
+    download_model: Downloads a model from the Hugging Face Hub.
+    signal_handler: Handles the SIGINT signal to abort installation.
+"""
 
 import sys
 import subprocess
@@ -11,6 +20,11 @@ from rich.console import Console
 import signal
 import os
 from huggingface_hub import hf_hub_download
+
+__version__ = "0.0.2"
+__author__ = "MultiTonic Team"
+__copyright__ = "Copyright (c) 2025 MultiTonic Team"
+__license__ = "MIT"
 
 console = Console()
 
@@ -29,18 +43,32 @@ cmd = {
     'install_py_pkgs':
     f"{sys.executable} -m pip install {' '.join(packages['py_pkgs'])}",
     'install_llama_cpp_python':
-    f"{sys.executable} -m pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu124/"
+    (f"{sys.executable} -m pip install llama-cpp-python "
+     "--extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu124/")
 }
 
 
-def error(msg):
+def error(msg: str) -> None:
+    """Logs an error message and traceback.
+
+    Args:
+        msg (str): The error message to log.
+    """
     tb = traceback.format_exc(limit=2)
     console.print(f"[red]An error occurred:[/red] {msg}")
     console.print(f"[red]Traceback:[/red]\n{tb}")
     sys.exit(1)
 
 
-def run(cmd):
+def run(cmd: str) -> tuple:
+    """Runs a shell command and collects its output.
+
+    Args:
+        cmd (str): The command to run.
+
+    Returns:
+        tuple: The stdout and stderr output of the command.
+    """
     console.print(f"[blue]Running command:[/blue] {cmd}")
     try:
         process = subprocess.Popen(cmd,
@@ -61,34 +89,37 @@ def run(cmd):
         stdout = ''.join(stdout)
         stderr = ''.join(stderr)
         if process.returncode != 0:
-            raise RuntimeError(
-                f"Command failed with return code {process.returncode}: "
-                f"{stderr}")
+            raise RuntimeError(f"Command failed with return code "
+                               f"{process.returncode}: {stderr}")
         return stdout, stderr
     except Exception as e:
         error(f"Failed to run command {cmd}: {e}")
 
 
-def install_py_pkgs():
+def install_py_pkgs() -> None:
+    """Installs required Python packages."""
     console.print(
         "[green]Starting installation of required Python packages[/green]")
     stdout, stderr = run(cmd['install_py_pkgs'])
     console.print(
-        "[green]Installation of required Python packages completed successfully[/green]"
-    )
+        "[green]Installation of required Python packages completed![/green]")
 
 
-def install_llama_cpp_python():
-    console.print(
-        "[green]Starting installation of llama-cpp-python with CUDA support[/green]"
-    )
+def install_llama_cpp_python() -> None:
+    """Installs llama-cpp-python with CUDA support."""
+    console.print("[green]Starting installation of llama-cpp-python "
+                  "with CUDA support[/green]")
     stdout, stderr = run(cmd['install_llama_cpp_python'])
-    console.print(
-        "[green]Installation of llama-cpp-python with CUDA support completed successfully[/green]"
-    )
+    console.print("[green]Installation of llama-cpp-python "
+                  "with CUDA support completed successfully[/green]")
 
 
-def download_model():
+def download_model() -> str:
+    """Downloads a model from the Hugging Face Hub.
+
+    Returns:
+        str: The path to the downloaded model.
+    """
     console.print(
         "[green]Starting model download from Hugging Face Hub[/green]")
     if not os.path.exists(path['models']):
@@ -103,7 +134,13 @@ def download_model():
     return file_path
 
 
-def signal_handler(sig, frame):
+def signal_handler(sig, frame) -> None:
+    """Handles the SIGINT signal to abort installation.
+
+    Args:
+        sig: The signal number.
+        frame: The current stack frame.
+    """
     console.print("[red]Installation aborted by user.[/red]")
     sys.exit(0)
 
@@ -115,11 +152,11 @@ if __name__ == "__main__":
         install_llama_cpp_python()
         # model_path = download_model()
 
-        from llama_cpp import Llama
+        from llama_cpp import Llama  # type: ignore # noqa: E402
 
         llm = Llama.from_pretrained(
             repo_id="bullerwins/DeepSeek-V3-GGUF",
-            filename=
+            filename=  # noqa
             "DeepSeek-V3-Q4_K_M/DeepSeek-V3-Q4_K_M-00001-of-00010.gguf",
         )
 

@@ -1,20 +1,24 @@
-"""
-@file Scripts/activate_venv.py
-@description Script to activate the virtual environment.
-@version 1.0.0
-@license MIT
-@author Kara Rawson
-@see {@link https://github.com/MultiTonic/thinking-dataset|GitHub Repository}
-@see {@link https://huggingface.co/DataTonic|Hugging Face Organization}
+"""Script to activate the virtual environment.
+
+This script activates the virtual environment by setting the necessary
+environment variables and adding the site-packages to sys.path.
+
+Functions:
+    activate_virtualenv: Activates the virtual environment.
+    main: Main function to run the activation process.
 """
 
 import os
 import sys
 
+__version__ = "0.0.2"
+__author__ = "MultiTonic Team"
+__copyright__ = "Copyright (c) 2025 MultiTonic Team"
+__license__ = "MIT"
 
-def activate_virtualenv():
-    """
-    Activates the virtual environment by setting the necessary environment
+
+def activate_virtualenv() -> None:
+    """Activates the virtual environment by setting the necessary environment
     variables and adding the site-packages to sys.path.
     """
     # Get the path to the virtual environment's Python executable
@@ -31,5 +35,10 @@ def activate_virtualenv():
     sys.path.insert(0, site_packages)
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Main function to run the activation process."""
     activate_virtualenv()
+
+
+if __name__ == "__main__":
+    main()
