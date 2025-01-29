@@ -29,4 +29,4 @@ jobs:
         uv run setup
     - name: Test with pytest
       run: |
-        pytest tests/
+        uv pytest tests/
