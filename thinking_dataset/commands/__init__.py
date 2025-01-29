@@ -14,6 +14,6 @@ from .ls import ls
 from .generate import generate
 
 __all__ = [
-    "download", "clean", "load", "prepare", "export", "upload", "ls",
+    "download", "clean", "load", "process", "export", "upload", "ls",
     "generate"
 ]
