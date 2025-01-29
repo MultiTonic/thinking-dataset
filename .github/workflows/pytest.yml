@@ -27,8 +27,12 @@ jobs:
       run: |
         pip install uv
         uv run setup
+        # Explicitly install flake8 to ensure it's available
+        pip install flake8
     - name: Lint with flake8
       run: |
+        # Verify flake8 is installed and available
+        flake8 --version
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
