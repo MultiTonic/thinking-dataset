@@ -2,7 +2,9 @@
 
 [![License](https://img.shields.io/github/license/MultiTonic/thinking-dataset)](LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
+[![CodeQL](https://github.com/MultiTonic/thinking-dataset/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/MultiTonic/thinking-dataset/actions/workflows/github-code-scanning/codeql)
 [![Pylint](https://github.com/MultiTonic/thinking-dataset/actions/workflows/pylint.yml/badge.svg?branch=main)](https://github.com/MultiTonic/thinking-dataset/actions/workflows/pylint.yml)
+[![Pytest](https://github.com/MultiTonic/thinking-dataset/actions/workflows/pytest.yml/badge.svg)](https://github.com/MultiTonic/thinking-dataset/actions/workflows/pytest.yml)
 
 ## Table of Contents
 
@@ -21,23 +23,19 @@
 
 ## Overview
 
-The Thinking Dataset Project creates a dataset to help with various data tasks and analyses. The project uses advanced technologies and tools to manage, process, and analyze data efficiently. Our Thinking Dataset technology utilizes two key components: **STAR self-teaching** and **STaR Case Studies**.
-
-**STAR self-teaching** is a method where the dataset acts as a model and uses other models (**Mixture of Models, MOM**) to generate new datasets. This process helps the model improve its evaluation scores and create synthetic datasets that are more accurate and effective than those created by humans.
-
-**STaR Case Studies** (Situation, Task, Action, and Result) are structured narratives used to illustrate how specific business challenges were addressed and the outcomes achieved. These case studies apply to our various datasets like **Cablegate**, which provide real-world seed data for generating comprehensive business insights.
+Transform your business data into strategic insights using our powerful Thinking Dataset technology. At its core, our STAR self-teaching engine combines multiple AI models to generate high-quality synthetic datasets, while our STaR Case Studies framework turns real-world data (like our Cablegate dataset) into actionable business narratives. This powerful combination helps you create more accurate, practical, and human-like datasets than traditional methods.
 
 For more details, see the [**Overview**](docs/00_OVERVIEW.md).
 
 ## Features
 
-- **Structured Data Management**: Centralized data storage using SQLite.
-- **Enhanced Logging**: Integrated `rich` for robust console outputs and error handling.
-- **Automated Download/Upload**: Fetch, download, upload, and create datasets using Hugging Face CLI.
-- **Modular Codebase**: Organized scripts and modules for better readability and maintenance.
-- **Environment Configuration**: Flexible management of directories and environment variables.
-- **Database Operations**: Modularized SQL database operations with a finite state machine for session management.
-- **Parquet File Processing**: Tooling for working with parquet files and ingesting them into database tables.
+- **🔄 Data Pipeline**: Lightning-fast SQLite storage with seamless Parquet integration and HuggingFace CLI sync
+- **🎯 Quality Control**: Rich console outputs and intelligent error handling for robust data operations
+- **🔧 Development Ready**: Modern modular codebase with comprehensive test coverage and documentation
+- **🚀 Production Grade**: Advanced state machine for database operations and flexible environment management
+- **⚡ Performance**: Optimized for large-scale data processing with parallel execution capabilities
+- **🔐 Security**: Built-in credential management and secure API integrations
+- **📊 Analytics**: Advanced data transformation and analysis tools for business insights
 
 ## Quick Start
 
@@ -103,14 +101,7 @@ This will create a virtual environment, install the project dependencies, and ac
 
 ## Usage
 
-### Virtual Environment
-
-Activate the virtual environment using `uv`:
-```bash
-uv run setup
-```
-
-> **`uv`** will automatically setup and manage your virtual environment. For complete usage instructions and examples, see the [**Usage Guide**](docs/05_USAGE.md).
+For complete usage instructions and examples, see the [**Usage Guide**](docs/05_USAGE.md).
 
 ### Running the Download Command
 
@@ -165,7 +156,7 @@ thinking-dataset/
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure your code adheres to the project's coding standards and includes appropriate tests. See [Contributing](CONTRIBUTING.md) for detailed guidelines.
+Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure your code adheres to the project's coding standards and includes appropriate tests. See [**Contributing**](CONTRIBUTING.md) for detailed guidelines.
 
 ## Resources
 
