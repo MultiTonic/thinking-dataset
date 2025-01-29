@@ -28,9 +28,7 @@ jobs:
         pip install --upgrade pip
         pip install uv
         uv run setup
-    - name: Activate Environment
-      run: |
-        .venv/Scripts/activate
+        uv pip install -e .
     - name: Test with pytest
       run: |
-        pytest tests/
+        uv pytest tests/
