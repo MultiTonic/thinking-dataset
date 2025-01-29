@@ -122,8 +122,22 @@ class Pipeline:
                 break
 
     def _process_pipes(self, df, pipes, skip_files=False):
-        """Process DataFrame through sequence of pipes."""
+        """Process DataFrame through sequence of pipes.
+
+        Args:
+            df (pd.DataFrame): Input DataFrame to process
+            pipes (list): List of pipe instances to execute
+            skip_files (bool, optional): Whether to skip file operations.
+                Defaults to False.
+
+        Returns:
+            pd.DataFrame: Processed DataFrame after running through all pipes
+
+        Raises:
+            RuntimeError: If pipe processing fails
+        """
         _, config = self.get(self.name)
+        Pipe.set_pipeline_config(config)
         for pipe in pipes:
             Log.info(f"Open -- {pipe.__class__.__name__}")
             df = pipe.flow(df, pipeline_config=config)

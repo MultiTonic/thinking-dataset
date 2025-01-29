@@ -60,32 +60,27 @@ class QueryGenerationPipe(Pipe):
         """
         Log.info("Starting QueryGenerationPipe")
         template_path = self.config["prompt"]["template"]
-        seed_amount = self.config["seed_amount"]
-        seed_length = self.config["seed_length"]
-        seed_offset = self.config["seed_offset"]
         if_exists = self.config["if_exists"]
         use_ellipsis = self.config.get("elipsis", True)
 
-        # Get required batch_size from pipeline config
         pipeline_config = kwargs.get("pipeline_config", {})
         if not pipeline_config:
             raise ValueError("Pipeline configuration is required")
 
-        batch_size = pipeline_config.get("batch_size")
-        if batch_size is None:
-            raise ValueError(
-                "batch_size is required in pipeline configuration")
-
-        Log.info(f"Using batch_size: {batch_size}")
-
         template = TemplateLoader.load(template_path)
+        batch_size = self.get_batch_size()
         in_config = self.config["input"][0]
         out_config = self.config["output"][0]
         table_name = in_config["table"]
         in_column = in_config["columns"][0]
         label = in_config.get("label", "seeds")
+        seed_amount = in_config.get("seed_amount", 3)
+        seed_length = in_config.get("seed_length", 2500)
+        seed_offset = in_config.get("seed_offset", 0)
         out_table = out_config["table"]
         out_column = out_config["columns"][0]
+
+        Log.info(f"Using batch_size: {batch_size} for table {table_name}")
 
         df = self._prepare_df(template, out_column, batch_size)
         seeds = self._fetch_seeds(session, table_name, in_column)
@@ -93,8 +88,7 @@ class QueryGenerationPipe(Pipe):
                                          seed_offset, template, batch_size,
                                          label, use_ellipsis)
 
-        Log.info(f"Prepared DataFrame: \n{df.head()}")
-        Log.info(f"Shape: {df.shape}")
+        Log.info(f"DataFrame Shape: {df.shape}")
         Log.info(f"Queries Generated: {len(queries)}")
         Log.info(f"ID Column Length: {len(df['id'])}")
 
@@ -104,7 +98,6 @@ class QueryGenerationPipe(Pipe):
         Log.info("Finished QueryGenerationPipe")
         return df
 
-    # Data validation and preparation methods
     def _validate(self, df: pd.DataFrame, column: str):
         """Validate DataFrame and column requirements.
 

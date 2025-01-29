@@ -43,6 +43,7 @@ class Pipe(ABC):
     """
 
     abort_flag = threading.Event()
+    pipeline_config = {}
 
     def __init__(self, config: dict):
         """Initialize pipe with configuration.
@@ -52,6 +53,24 @@ class Pipe(ABC):
         """
         self.config = config
         signal.signal(signal.SIGINT, self.signal_handler)
+
+    @classmethod
+    def set_pipeline_config(cls, config: dict):
+        """Set the pipeline configuration for all pipes.
+
+        Args:
+            config (dict): Pipeline configuration dictionary
+        """
+        cls.pipeline_config = config
+
+    @classmethod
+    def get_batch_size(cls) -> int:
+        """Get batch size from current pipeline configuration.
+
+        Returns:
+            int: Configured batch size or default value of 1
+        """
+        return cls.pipeline_config.get('batch_size', 1)
 
     @abstractmethod
     def flow(self, df: pd.DataFrame, **args) -> pd.DataFrame:

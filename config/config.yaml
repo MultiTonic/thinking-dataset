@@ -357,18 +357,6 @@ pipelines:
             "vac": "voluntary advisory committee"
             "wipo": "world intellectual property organization"
             "wmd": "weapons of mass destruction"
-    - pipe:
-        type: "FilterBySizePipe"
-        config:
-          column_name: "cable"
-          min_size: 1000
-          max_size: 0
-    - pipe:
-        type: "ChunkingPipe"
-        config:
-          columns: [ "cable" ]
-          min_chunk_size: 1000
-          max_chunk_size: 2500
 - pipeline:
     name: "generate"
     description: "Generate synthetic data pipeline"
@@ -382,12 +370,12 @@ pipelines:
           - table: "train-00000-of-00001"
             columns: [ "cable" ]
             label: "seeds"
+            seed_amount: 3
+            seed_length: 2500
+            seed_offset: 0
           output:
           - table: "cables"
             columns: [ "query" ]
-          seed_amount: 3
-          seed_length: 2500
-          seed_offset: 0
           elipsis: True
           if_exists: "replace"
           prompt:
