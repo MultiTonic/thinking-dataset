@@ -1,8 +1,8 @@
 # Thinking Dataset: Leveraging Real-World Data for Strategic Business Insights and STaR Case Study Generation
 
-[![Build Status](https://img.shields.io/github/workflow/status/MultiTonic/thinking-dataset/CI)](https://github.com/MultiTonic/thinking-dataset/actions)
 [![License](https://img.shields.io/github/license/MultiTonic/thinking-dataset)](LICENSE)
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
+[![Pylint](https://github.com/MultiTonic/thinking-dataset/actions/workflows/pylint.yml/badge.svg?branch=main)](https://github.com/MultiTonic/thinking-dataset/actions/workflows/pylint.yml)
 
 ## Table of Contents
 
@@ -57,13 +57,27 @@ For more details, see the [**Overview**](docs/00_OVERVIEW.md).
     ```
 
 2. **Install [`uv`](https://docs.astral.sh/uv/) package manager:**
+
+    First add the package into the global environment:
     ```bash
     pip install uv
     ```
 
+    Then add uv tools directory to PATH*:
+    ```bash
+    uv tool update-shell
+    ```
+
+3. **Set up the project:**
+    ```bash
+    uv run setup
+    ```
+
+    >___*You may need to restart your terminal session for the changes to update.___
+
 This will create a virtual environment, install the project dependencies, and activate the virtual environment.
 
-3. **Set up environment variables:**
+4. **Set up environment variables:**
 
     Copy the `.env.sample` file to `.env` and change the values as needed:
     ```bash
@@ -93,7 +107,7 @@ This will create a virtual environment, install the project dependencies, and ac
 
 Activate the virtual environment using `uv`:
 ```bash
-uv run dev
+uv run setup
 ```
 
 > **`uv`** will automatically setup and manage your virtual environment. For complete usage instructions and examples, see the [**Usage Guide**](docs/05_USAGE.md).

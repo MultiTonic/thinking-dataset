@@ -1,13 +1,10 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "thinking-dataset"
-version = "0.1.0"
-description = "Dataset for strategic business insights and STaR case study generation"
+version = "0.0.2"
+description = "Generate real-world insights and business case studies with strategic AI"
 readme = "README.md"
 requires-python = ">=3.12"
+license = { text = "MIT" }
 dependencies = [
     "huggingface_hub[cli]>=0.19.0",
     "datasets>=2.15.0",
@@ -53,7 +50,26 @@ dev = [
 ]
 
 [project.scripts]
-dev = "assets.scripts.uv.dev:main"
+setup = "assets.scripts.uv.setup:main"
+thinking-dataset = "thinking_dataset.main:cli"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=thinking_dataset --cov-report=html"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+python_classes = ["Test*"]
+
+[tool.black]
+line-length = 79
+target-version = ["py312"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 79
 
 [tool.mypy]
 python_version = "3.12"
@@ -61,3 +77,7 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 check_untyped_defs = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
