@@ -1,10 +1,17 @@
-# @file thinking_dataset/pipeworks/pipes/response_generation_pipe.py
-# @description Pipe for generating responses from inspirations.
-# @version 1.1.0
-# @license MIT
+"""Response Generation Pipeline Module.
+
+This module provides functionality for asynchronously generating AI responses
+from input queries stored in a database using configurable LLM providers.
+
+Functions:
+    None
+
+Classes:
+    ResponseGenerationPipe: Handles asynchronous AI response generation.
+"""
 
 import asyncio
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 from sqlalchemy import (
@@ -25,65 +32,39 @@ from thinking_dataset.providers.ollama_provider import OllamaProvider
 from thinking_dataset.utils.log import Log
 from thinking_dataset.db.database import Database
 
+__version__ = "0.0.2"
+__author__ = "MultiTonic Team"
+__copyright__ = "Copyright (c) 2025 MultiTonic Team"
+__license__ = "MIT"
+
 
 class ResponseGenerationPipe(Pipe):
-    """
-    The ResponseGenerationPipe class handles the asynchronous generation
-    of AI responses based on input queries from the database.
+    """Handle asynchronous generation of AI responses from input queries.
 
-    This class:
-    1. Fetches queries from specified database table/column
-    2. Processes queries asynchronously through configured AI provider
-    3. Updates database with generated responses
-    4. Manages column creation and validation
+    This class manages:
+    1. Fetching queries from specified database table/column
+    2. Processing queries asynchronously through configured AI provider
+    3. Updating database with generated responses
+    4. Managing column creation and validation
 
-    Methods:
-        __init__(config): Initializes the pipe with configuration.
-        flow(df, session): Main pipeline execution flow.
-        _fetch_queries(session, table_name, in_column): Fetches queries
-            from DB.
-        _update_db(session, out_table, row_id, response, out_column):
-            Updates DB.
-        _generate_response(query, provider): Generates AI response.
-        _process_queries(session, queries, provider, out_table, out_column):
-            Process multiple queries concurrently.
-        _process_single_query(session, row, provider, out_table, out_column):
-            Process a single query through the AI provider.
-
-    Config:
-        input (list): Source table and column config for queries
-        output (list): Target table and column config for responses
-        provider (str): AI provider configuration
-        if_exists (str): How to handle existing output table
-        prompt (dict): Template configuration for responses
-        max_workers (int): Maximum concurrent requests (default: 4)
+    Attributes:
+        max_workers (int): Maximum concurrent requests
+        db (Database): Database connection instance
     """
 
     def __init__(self, config: dict) -> None:
         """Initialize pipe with configuration settings."""
         super().__init__(config)
         self.max_workers = self.config.get("max_workers", 4)
-        self.db = Database()  # Create single Database instance
+        self.db = Database()  # Initialize database connection
 
     @with_db_session
-    def flow(self,
-             df: pd.DataFrame,
-             session: Optional[Any] = None,
-             **kwargs) -> pd.DataFrame:
-        """
-        Execute the main pipeline flow for response generation.
-
-        Args:
-            df (pd.DataFrame): Input DataFrame.
-            session (Optional[Any]): Database session.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            pd.DataFrame: Output DataFrame with generated responses.
-        """
+    def flow(self, df: pd.DataFrame, session=None, **kwargs) -> pd.DataFrame:
+        """Execute the main pipeline flow for response generation."""
         Log.info("Starting ResponseGenerationPipe")
         Log.info(f"Using max_workers: {self.max_workers}")
 
+        # Get configurations
         in_config = self.config["input"][0]
         out_config = self.config["output"][0]
         in_table = in_config["table"]
@@ -92,9 +73,22 @@ class ResponseGenerationPipe(Pipe):
         out_column = out_config["columns"][0]
         mock = self.config.get("mock", False)
 
+        # Get required batch_size from pipeline config
+        pipeline_config = kwargs.get("pipeline_config", {})
+        if not pipeline_config:
+            raise ValueError("Pipeline configuration is required")
+
+        batch_size = pipeline_config.get("batch_size")
+        if batch_size is None:
+            raise ValueError(
+                "batch_size is required in pipeline configuration")
+
+        Log.info(f"Using batch_size: {batch_size}")
+
         async def process() -> None:
             try:
-                queries = self._fetch_queries(session, in_table, in_column)
+                queries = self._fetch_queries(session, in_table, in_column,
+                                              batch_size)
                 provider = OllamaProvider.initialize(self.config, mock=mock)
                 await self._process_queries(session, queries, provider,
                                             out_table, out_column, in_column)
@@ -106,7 +100,31 @@ class ResponseGenerationPipe(Pipe):
         Log.info("Finished ResponseGenerationPipe")
         return df
 
-    # Database operations
+    # Database utility methods
+    def _fetch_queries(self, session, table_name: str, in_column: str,
+                       batch_size: int) -> pd.DataFrame:
+        """Fetch input queries from database table.
+
+        Args:
+            session (Any): The database session
+            table_name (str): Name of the table to fetch queries from
+            in_column (str): Name of the column to fetch queries from
+            batch_size (int): Required number of queries to fetch
+
+        Returns:
+            pd.DataFrame: DataFrame containing the fetched queries
+        """
+        table = Table(table_name, MetaData(), autoload_with=session.bind)
+        query = select(table.c.id, table.c[in_column]).limit(batch_size)
+        result = session.execute(query)
+        rows = result.fetchall()
+
+        queries = pd.DataFrame(rows, columns=['id', in_column])
+        Log.info(
+            f"Fetched {len(queries)} queries from {table_name}.{in_column}")
+        return queries
+
+    # Async database operations
     async def _ensure_column_exists(self, session: Any, table: Table,
                                     out_column: str) -> Table:
         """
@@ -121,29 +139,6 @@ class ResponseGenerationPipe(Pipe):
             Table: The updated table with the ensured column.
         """
         return await self.db._ensure_column_exists(session, table, out_column)
-
-    def _fetch_queries(self, session, table_name: str,
-                       in_column: str) -> pd.DataFrame:
-        """
-        Fetch input queries from database table.
-
-        Args:
-            session (Any): The database session.
-            table_name (str): The name of the table to fetch queries from.
-            in_column (str): The name of the column to fetch queries from.
-
-        Returns:
-            pd.DataFrame: DataFrame containing the fetched queries.
-        """
-        table = Table(table_name, MetaData(), autoload_with=session.bind)
-
-        query = select(table.c.id, table.c[in_column])
-        result = session.execute(query)
-        rows = result.fetchall()
-
-        queries = pd.DataFrame(rows, columns=['id', in_column])
-        Log.info(f"Total Queries in {table_name}.{in_column}: {len(queries)}")
-        return queries
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(2), reraise=True)
     async def _update_db(self, session: Any, out_table: str, row_id: int,
