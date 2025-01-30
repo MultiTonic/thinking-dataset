@@ -59,5 +59,6 @@ def exceptions(func: Callable) -> Callable:
             if error_occurred:
                 Log.error(f"{func.__name__} command did not complete.")
                 sys.exit(1)
+        return ""  # Ensure no None value is returned
 
     return wrapper
