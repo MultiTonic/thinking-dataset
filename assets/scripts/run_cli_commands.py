@@ -35,7 +35,8 @@ def main() -> None:
                 check=True,
                 text=True,
             )
-            print(result.stdout, end='')
+            if result.stdout:
+                print(result.stdout, end='')
     except subprocess.CalledProcessError as e:
         print(f"Command failed: {e.cmd}")
         print(f"Error output:\n{e.stderr}")
