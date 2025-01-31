@@ -22,7 +22,6 @@ Classes:
     RemapColumnsPipe
     RemoveDuplicatesPipe
     ResponseGenerationPipe
-    ScrubOutputPipe
     SubsetPipe
 """
 
@@ -40,7 +39,6 @@ from .query_generation_pipe import QueryGenerationPipe
 from .remap_columns_pipe import RemapColumnsPipe
 from .remove_duplicates_pipe import RemoveDuplicatesPipe
 from .response_generation_pipe import ResponseGenerationPipe
-from .scrub_output_pipe import ScrubOutputPipe
 from .subset_pipe import SubsetPipe
 
 __version__ = "0.0.2"
@@ -63,6 +61,5 @@ __all__ = [
     "RemapColumnsPipe",
     "RemoveDuplicatesPipe",
     "ResponseGenerationPipe",
-    "ScrubOutputPipe",
     "SubsetPipe",
 ]
