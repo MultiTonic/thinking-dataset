@@ -162,8 +162,8 @@ stage = thinking
 </validation-rules>
 
 <!-- @section: output-format -->
-<!-- @purpose: Define expected output structure -->
-**CORRECT OUTPUT FORMAT:**
+<!-- @purpose: Define format for expected output structure -->
+**OUTPUT FORMAT:**
 <!ELEMENT output (initial-thought, unique-thoughts, final-synthesis)>
 <!ELEMENT initial-thought (scenario, context, direction)>
 [First creative scenario, context, and direction]
@@ -172,11 +172,11 @@ stage = thinking
 <!ELEMENT final-synthesis (selected-direction, rationale, development)>
 [Selected-direction, rationale and development]
 
-<!-- @section: output-example -->
-<!-- @purpose: Define expected output structure -->
+<!-- @section: output-template -->
+<!-- @purpose: Define template for expected output format structure -->
 <!-- @validation: Must follow exact XML schema -->
 <!-- @requirements: All fields must be fictional -->
-**PROPER STRUCTURE EXAMPLE:**
+**OUTPUT TEMPLATE:**
 <output>
   <initial-thought>
     <scenario>[Must be detailed diplomatic scenario]</scenario>
