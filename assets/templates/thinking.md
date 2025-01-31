@@ -44,7 +44,7 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>1.0.8</version>
+  <version>0.0.2</version>
   <!-- @hint: Current stage in pipeline -->
   <stage>thinking</stage>
   <!-- @hint: Processing flow control -->

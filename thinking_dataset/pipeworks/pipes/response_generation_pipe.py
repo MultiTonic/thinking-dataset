@@ -29,8 +29,9 @@ from sqlalchemy import update
 from thinking_dataset.db.database import Database
 from thinking_dataset.decorators.with_db_session import with_db_session
 from thinking_dataset.providers.ollama_provider import OllamaProvider
+from thinking_dataset.templates.response_validator import ResponseValidator
+from thinking_dataset.templates.template_extractor import TemplateExtractor
 from thinking_dataset.templates.template_loader import TemplateLoader
-from thinking_dataset.templates.template_validator import TemplateValidator
 from thinking_dataset.utils.log import Log
 from thinking_dataset.utils.exceptions import (
     XMLExtractionError,
@@ -150,8 +151,10 @@ class ResponseGenerationPipe(Pipe):
                 return response
             case "xml":
                 try:
-                    content = TemplateValidator._extract_xml_content(
-                        response, template)
+                    required_elements = \
+                        TemplateExtractor.extract_required_elements(template)
+                    content = ResponseValidator.extract_xml_content(
+                        response, required_elements)
                     return content
                 except (XMLExtractionError, XMLValidationError) as e:
                     raise XMLValidationError(f"XML format error: {str(e)}")
