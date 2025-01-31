@@ -43,7 +43,6 @@ providers:
     url: "http://localhost:11434"
     config:
       model: "llama3.1:latest"
-      # model: "llama3.2:3b"
       stream: False
       options:
         num_ctx: 64768
@@ -391,7 +390,7 @@ pipelines:
           output:
           - table: "cables"
             columns: [ "thinking" ]
-          prompt:
+          response:
             template: "{{paths.templates}}/thinking.md"
 - pipeline:
     name: "export"

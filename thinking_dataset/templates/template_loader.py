@@ -27,7 +27,22 @@ class TemplateLoader:
 
     @staticmethod
     @lru_cache(maxsize=None)
-    def load(path: str, validate: bool) -> str:
+    def load(path: str, validate: bool = True) -> str:
+        """Load a template file from the specified path.
+
+        Args:
+            path (str): The path to the template file.
+            validate (bool, optional): If True, validate the template
+                using TemplateValidator. Defaults to False.
+
+        Returns:
+            str: The content of the template file.
+
+        Raises:
+            FileNotFoundError: If the template file is not found at
+                the specified path.
+            IOError: If there is an error reading the template file.
+        """
         try:
             with open(path, 'r') as file:
                 template = file.read()

@@ -16,8 +16,6 @@ __license__ = "MIT"
 
 import asyncio
 from typing import Any
-import re
-from xml.etree import ElementTree as ET
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -32,8 +30,12 @@ from thinking_dataset.db.database import Database
 from thinking_dataset.decorators.with_db_session import with_db_session
 from thinking_dataset.providers.ollama_provider import OllamaProvider
 from thinking_dataset.templates.template_loader import TemplateLoader
+from thinking_dataset.templates.template_validator import TemplateValidator
 from thinking_dataset.utils.log import Log
-from thinking_dataset.utils.exceptions import XMLValidationError
+from thinking_dataset.utils.exceptions import (
+    XMLExtractionError,
+    XMLValidationError,
+)
 from .pipe import Pipe
 
 
@@ -89,17 +91,18 @@ class ResponseGenerationPipe(Pipe):
         Log.info(f"Using max_workers: {self.max_workers}")
 
         # Get configurations
-        template_path = self.config["prompt"]["template"]
-        validate_template = self.config["prompt"].get("validate", True)
+        template_path = self.config["response"]["template"]
 
         # Load template and configurations
-        template = TemplateLoader.load(template_path, validate_template)
+        template = TemplateLoader.load(template_path)
         batch_size = self.get_batch_size()
         out_config = self.config["output"][0]
         out_table = out_config["table"]
         out_column = out_config["columns"][0]
         mock = self.config.get("mock", False)
         format = self.config.get("format", None)
+        if format:
+            format = format.lower()
 
         # Get input column from previous pipe
         in_column = next(col for col in df.columns
@@ -140,40 +143,20 @@ class ResponseGenerationPipe(Pipe):
     async def generate_response(self, query: str, provider: OllamaProvider,
                                 format: str | None,
                                 template: str | None) -> str:
-        """Generate an AI response with optional format validation.
+        response = await provider.process_request_async(prompt=query)
 
-        Handles the generation and validation of AI responses based on the
-        specified format. Supports raw text and XML validation.
-
-        Args:
-            query (str): The input query string
-            provider (OllamaProvider): The AI provider instance
-            format (str | None): Response format ('xml' or None for raw)
-            template (str | None): The template to validate XML responses
-
-        Returns:
-            str: The response, either raw or extracted based on format
-
-        Raises:
-            XMLValidationError: If XML validation fails when format is 'xml'
-        """
-        raw_response = await provider.process_request_async(prompt=query)
-
-        # If no format specified, return raw response
-        if not format:
-            return raw_response
-
-        # Handle XML format
-        if format.lower() == "xml":
-            result = self._validate_and_extract_xml(raw_response, template)
-            if result is None:
-                raise XMLValidationError(
-                    f"Failed to validate XML response: {raw_response[:100]}..."
-                )
-            return result
-
-        # Default to raw response for unknown formats
-        return raw_response
+        match format:
+            case None:
+                return response
+            case "xml":
+                try:
+                    content = TemplateValidator._extract_xml_content(
+                        response, template)
+                    return content
+                except (XMLExtractionError, XMLValidationError) as e:
+                    raise XMLValidationError(f"XML format error: {str(e)}")
+            case _:
+                return response
 
     async def _process_queries(self, session: Any, df: pd.DataFrame,
                                provider: OllamaProvider, out_table: str,
@@ -326,79 +309,3 @@ class ResponseGenerationPipe(Pipe):
             if session:
                 session.rollback()
             raise RuntimeError(f"Failed to update database: {str(e)}") from e
-
-    def _extract_xml_content(self, text: str) -> tuple[str | None, str | None]:
-        """Extract content from between output tags.
-
-        Args:
-            text (str): Raw response text potentially containing XML
-
-        Returns:
-            tuple[str | None, str | None]: Tuple containing:
-                - Extracted content if found, None if not found
-                - Full XML element if found, None if not found
-
-        Example:
-            content, xml = _extract_xml_content("<output>Hello</output>")
-            # Returns ("Hello", "<output>Hello</output>")
-        """
-        pattern = r'.*?<output>(.*?)</output>.*?'
-        match = re.search(pattern, text, re.DOTALL)
-
-        if not match:
-            return None, None
-
-        content = match.group(1).strip()
-        full_xml = f"<output>{content}</output>"
-        return content, full_xml
-
-    # TODO this should be moved template_validator.py as a static method
-    def _validate_xml(self, xml_str: str, template: str | None) -> bool:
-        """Validate the structure of an XML string against a template.
-
-        Args:
-            xml_str (str): The XML string to validate.
-            template (str): The template to validate against.
-                If None, validation fails.
-
-        Returns:
-            bool: True if the XML string is valid, False otherwise.
-
-        Raises:
-            ET.ParseError: If the XML string is not well-formed.
-        """
-        try:
-            ET.fromstring(xml_str)  # Basic XML validation
-            if template is None:  # No response template for validatation
-                return True
-            else:
-                # TODO: Implement template validation
-                return True
-        except ET.ParseError:
-            return False
-
-    def _validate_and_extract_xml(self, text: str,
-                                  template: str | None) -> str | None:
-        """Validate XML response and extract content from output tags.
-
-        This method combines extraction and validation to ensure both the
-        structure and content are valid.
-
-        Args:
-            text (str): Raw response text potentially containing XML
-            template (str | None): Template for XML validation
-
-        Returns:
-            str | None: Extracted content if valid, None if invalid
-        """
-        try:
-            content, xml = self._extract_xml_content(text)
-            if content is None or xml is None:
-                return None
-
-            if not self._validate_xml(xml, template):
-                return None
-
-            return content
-        except AttributeError:
-            return None
