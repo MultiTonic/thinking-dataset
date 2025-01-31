@@ -180,18 +180,43 @@ class Pipe(ABC):
         sys.exit(0)
 
     @classmethod
-    def flush(cls, df: pd.DataFrame, column_name: str) -> pd.DataFrame:
-        """Clear DataFrame contents.
+    def flush(cls, df: pd.DataFrame) -> pd.DataFrame:
+        """Create a new empty DataFrame with the same column structure.
 
         Args:
-            df (pd.DataFrame): DataFrame to flush
-            column_name (str): Column to include
+            df (pd.DataFrame): Input DataFrame to get column structure from
 
         Returns:
-            pd.DataFrame: Empty DataFrame with specified columns
+            pd.DataFrame: New empty DataFrame with proper column structure
         """
-        columns = ['id', column_name]
-        df = pd.DataFrame(columns=columns)
-        df.loc[0] = [None, None]
-        Log.info("DataFrame Flushed!")
-        return df
+        # Reorder columns to have 'id' first if present
+        if 'id' in df.columns:
+            columns = [column for column in df.columns if column != 'id']
+            columns = ['id'] + columns
+        else:
+            columns = list(df.columns)
+
+        # Create new empty DataFrame with correct structure
+        new_df = pd.DataFrame(columns=columns)
+
+        Log.info(f"Flushed DataFrame with columns: {new_df.columns.tolist()}")
+        return new_df
+
+    @classmethod
+    def log_df_state(cls,
+                     df: pd.DataFrame,
+                     state: str = "",
+                     show_head: bool = False) -> None:
+        """Log the current state of a DataFrame.
+
+        Args:
+            df (pd.DataFrame): DataFrame to log information about
+            state (str, optional): Description of current state. Default to "".
+            show_head (bool, optional): Will show first row. Defaults to False.
+        """
+        prefix = f"{state} " if state else ""
+        Log.info(f"{prefix}DataFrame shape: {df.shape}")
+        Log.info(f"{prefix}DataFrame columns: {df.columns.tolist()}")
+        if show_head and not df.empty:
+            Log.info(
+                f"{prefix}DataFrame head:\n{df.head(1).to_dict('records')}")

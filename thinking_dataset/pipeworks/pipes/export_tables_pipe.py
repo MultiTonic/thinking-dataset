@@ -139,7 +139,7 @@ class ExportTablesPipe(Pipe):
                     col for col in columns if col in table_columns
                 ]
                 if not valid_columns:
-                    Log.warning(f"No valid columns found in table {table}")
+                    Log.warn(f"No valid columns found in table {table}")
                     continue
                 df = df[valid_columns]
                 dfs.append(df)

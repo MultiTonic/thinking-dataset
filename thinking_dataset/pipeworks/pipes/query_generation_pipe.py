@@ -51,6 +51,18 @@ class QueryGenerationPipe(Pipe):
         prompt (dict): Template configuration
     """
 
+    def log_df_state(self, df: pd.DataFrame, state: str = "") -> None:
+        """Log the current state of the DataFrame.
+
+        Args:
+            df (pd.DataFrame): DataFrame to log information about
+            state (str, optional): Description of the current
+                state. Defaults to "".
+        """
+        prefix = f"{state} " if state else ""
+        Log.info(f"{prefix}DataFrame shape: {df.shape}")
+        Log.info(f"{prefix}DataFrame columns: {df.columns.tolist()}")
+
     @with_db_session
     def flow(self,
              df: pd.DataFrame,
@@ -89,16 +101,16 @@ class QueryGenerationPipe(Pipe):
         Log.info(f"Using batch_size: {batch_size} for table {table_name}")
 
         df = self._prepare_df(template, out_column, batch_size)
+        self.log_df_state(df, "Prepared")
+
         seeds = self._fetch_seeds(session, table_name, in_column)
         queries = self._generate_queries(seeds, seed_amount, seed_length,
                                          seed_offset, template, batch_size,
                                          label, use_ellipsis)
 
-        Log.info(f"DataFrame Shape: {df.shape}")
-        Log.info(f"Queries Generated: {len(queries)}")
-        Log.info(f"ID Column Length: {len(df['id'])}")
-
         df = pd.DataFrame({"id": df['id'], out_column: queries})
+        self.log_df_state(df, "Final")
+
         self._write_to_db(df, session, out_table, if_exists)
 
         Log.info("Finished QueryGenerationPipe")
