@@ -20,6 +20,11 @@ __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
 
 
+class XMLExtractionError(Exception):
+    """Exception raised when XML extraction fails in response processing."""
+    pass
+
+
 class XMLValidationError(Exception):
     """Exception raised when XML validation fails in response processing."""
     pass
