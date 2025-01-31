@@ -10,6 +10,11 @@ Classes:
     QueryGenerationPipe: Handles query generation from templates and seeds.
 """
 
+__version__ = "0.0.2"
+__author__ = "MultiTonic Team"
+__copyright__ = "Copyright (c) 2025 MultiTonic Team"
+__license__ = "MIT"
+
 import random
 import re
 from typing import List, Any
@@ -23,11 +28,6 @@ from thinking_dataset.decorators.with_db_session import with_db_session
 from thinking_dataset.templates.template_loader import TemplateLoader
 from thinking_dataset.utils.log import Log
 from .pipe import Pipe
-
-__version__ = "0.0.2"
-__author__ = "MultiTonic Team"
-__copyright__ = "Copyright (c) 2025 MultiTonic Team"
-__license__ = "MIT"
 
 
 class QueryGenerationPipe(Pipe):
