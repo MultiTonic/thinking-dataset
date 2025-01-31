@@ -47,8 +47,8 @@ providers:
       stream: False
       options:
         num_ctx: 64768
-        temperature: 1.5
-        repeat_penalty: 1
+        temperature: 1.6
+        repeat_penalty: 1.2
         num_thread: 64
 pipelines:
 - pipeline:
@@ -379,6 +379,7 @@ pipelines:
           if_exists: "replace"
           prompt:
             template: "{{paths.templates}}/thinking.md"
+            validate: True
     - pipe:
         type: "ResponseGenerationPipe"
         config:
@@ -392,6 +393,7 @@ pipelines:
             columns: [ "thinking" ]
           prompt:
             template: "{{paths.templates}}/thinking.md"
+            validate: True
 - pipeline:
     name: "export"
     description: "Default export pipeline"

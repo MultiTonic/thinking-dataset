@@ -1,19 +1,38 @@
-# @file thinking_dataset/templates/template_loader.py
-# @description Template loader class for Markdown Prompt templates.
-# @version 1.0.6
-# @license MIT
+"""Template Loader Module.
+
+This module provides functionality to load and optionally
+validate templates.
+
+Classes:
+    TemplateLoader
+
+Functions:
+    TemplateLoader.load(path: str, validate: bool) -> str
+
+Exceptions:
+    FileNotFoundError
+    IOError
+"""
+
+__version__ = "0.0.2"
+__author__ = "MultiTonic Team"
+__copyright__ = "Copyright (c) 2025 MultiTonic Team"
+__license__ = "MIT"
 
 from functools import lru_cache
+from thinking_dataset.templates.template_validator import TemplateValidator
 
 
 class TemplateLoader:
 
     @staticmethod
     @lru_cache(maxsize=None)
-    def load(path: str) -> str:
+    def load(path: str, validate: bool) -> str:
         try:
             with open(path, 'r') as file:
                 template = file.read()
+                if validate:
+                    TemplateValidator.validate(template)
             return template
         except FileNotFoundError:
             raise FileNotFoundError(f"Template file not found: {path}")

@@ -31,23 +31,14 @@ from sqlalchemy import update
 from thinking_dataset.db.database import Database
 from thinking_dataset.decorators.with_db_session import with_db_session
 from thinking_dataset.providers.ollama_provider import OllamaProvider
+from thinking_dataset.templates.template_loader import TemplateLoader
 from thinking_dataset.utils.log import Log
 from thinking_dataset.utils.exceptions import XMLValidationError
 from .pipe import Pipe
 
 
 class ResponseGenerationPipe(Pipe):
-    """Handle asynchronous generation of AI responses from input queries.
-
-    This class manages the flow of fetching queries from the database,
-    generating responses using an AI provider, and updating the database with
-    the generated responses. It supports different response formats and
-    validation methods.
-
-    Attributes:
-        max_workers (int): Maximum number of concurrent AI requests.
-        db (Database): Instance for database interactions.
-    """
+    """Handle asynchronous generation of AI responses from input queries."""
 
     def __init__(self, config: dict) -> None:
         """Initialize the ResponseGenerationPipe with configuration settings.
@@ -59,75 +50,47 @@ class ResponseGenerationPipe(Pipe):
         self.max_workers = self.config.get("max_workers", 4)
         self.db = Database()
 
-    # Public Methods
-    @with_db_session
-    def flow(self,
-             df: pd.DataFrame,
-             session: Any = None,
-             **kwargs) -> pd.DataFrame:
-        """
-        Execute the main pipeline flow for response generation.
-        Parameters
+    @retry(stop=stop_after_attempt(3),
+           wait=wait_fixed(2),
+           retry=retry_if_result(lambda x: x is None))
+    async def generate_response(self, query: str, provider: OllamaProvider,
+                                format: str | None,
+                                template: str | None) -> str:
+        """Generate an AI response with optional format validation.
 
-        df : pd.DataFrame
-            The input DataFrame containing data to be processed.
-        session : Any, optional
-            The database session to be used for database operations,
-            by default None.
-        **kwargs : dict
-            Additional keyword arguments.
+        Handles the generation and validation of AI responses based on the
+        specified format. Supports raw text and XML validation.
+
+        Args:
+            query (str): The input query string
+            provider (OllamaProvider): The AI provider instance
+            format (str | None): Response format ('xml' or None for raw)
+            template (str | None): The template to validate XML responses
 
         Returns:
-            pd.DataFrame: The DataFrame with the response generation results.
+            str: The response, either raw or extracted based on format
 
         Raises:
-            Exception: If the provider processing fails.
-
-        Notes:
-            This method initializes the output column if it doesn't exist,
-            logs the current DataFrame state, and processes the query
-            generation and response asynchronously.
+            XMLValidationError: If XML validation fails when format is 'xml'
         """
-        Log.info("Starting ResponseGenerationPipe")
-        Log.info(f"Using max_workers: {self.max_workers}")
+        raw_response = await provider.process_request_async(prompt=query)
 
-        # Get configurations
-        batch_size = self.get_batch_size()
-        out_config = self.config["output"][0]
-        out_table = out_config["table"]
-        out_column = out_config["columns"][0]
-        mock = self.config.get("mock", False)
-        format = self.config.get("format", None)
+        # If no format specified, return raw response
+        if not format:
+            return raw_response
 
-        # Get input column from previous pipe
-        in_column = next(col for col in df.columns
-                         if col not in ['id', out_column])
+        # Handle XML format
+        if format.lower() == "xml":
+            result = self._validate_and_extract_xml(raw_response, template)
+            if result is None:
+                raise XMLValidationError(
+                    f"Failed to validate XML response: {raw_response[:100]}..."
+                )
+            return result
 
-        # Logs the current DataFrame state
-        self.log_df_state(df, batch_size, in_column, out_column)
+        # Default to raw response for unknown formats
+        return raw_response
 
-        # Initialize output column if it doesn't exist
-        if out_column not in df.columns:
-            df[out_column] = None
-
-        async def process() -> None:
-            """Asynchronously process the query generation and response."""
-            try:
-                provider = OllamaProvider.initialize(self.config, mock=mock)
-                await self._process_queries(session, df, provider, out_table,
-                                            out_column, in_column, format)
-                Log.info("Provider processing completed successfully")
-            except Exception as e:
-                Log.error(f"Provider processing failed: {str(e)}")
-                session.rollback()
-                raise e
-
-        asyncio.run(process())
-
-        Log.info("Finished ResponseGenerationPipe")
-        return df
-
-    # XML Validation Methods
     def _extract_xml_content(self, text: str) -> tuple[str | None, str | None]:
         """Extract content from between output tags.
 
@@ -153,26 +116,33 @@ class ResponseGenerationPipe(Pipe):
         full_xml = f"<output>{content}</output>"
         return content, full_xml
 
-    def _validate_xml(self, xml_str: str) -> bool:
-        """Validate XML structure.
+    def _validate_xml(self, xml_str: str, template: str) -> bool:
+        """
+        Validate the structure of an XML string against a template.
 
         Args:
-            xml_str (str): XML string to validate
+            xml_str (str): The XML string to validate.
+            template (str): The template to validate against.
+                If None, validation fails.
 
         Returns:
-            bool: True if valid XML, False otherwise
+            bool: True if the XML string is valid, False otherwise.
 
-        Example:
-            is_valid = _validate_xml("<output>Hello</output>")
-            # Returns True
+        Raises:
+            ET.ParseError: If the XML string is not well-formed.
         """
+        """Validate XML structure."""
         try:
-            ET.fromstring(xml_str)
+            if template is None:
+                return False
+            ET.fromstring(xml_str)  # Basic XML validation
+            # TODO: Consider adding template structure validation here
             return True
         except ET.ParseError:
             return False
 
-    def _validate_and_extract_xml(self, text: str) -> str | None:
+    def _validate_and_extract_xml(self, text: str,
+                                  template: str) -> str | None:
         """Validate XML response and extract content from output tags.
 
         This method combines extraction and validation to ensure both the
@@ -180,6 +150,7 @@ class ResponseGenerationPipe(Pipe):
 
         Args:
             text (str): Raw response text potentially containing XML
+            template (str): Template for XML validation
 
         Returns:
             str | None: Extracted content if valid, None if invalid
@@ -189,57 +160,17 @@ class ResponseGenerationPipe(Pipe):
             if content is None or xml is None:
                 return None
 
-            if not self._validate_xml(xml):
+            if not self._validate_xml(xml, template):
                 return None
 
             return content
         except AttributeError:
             return None
 
-    # Async Processing Methods
-    @retry(stop=stop_after_attempt(3),
-           wait=wait_fixed(2),
-           retry=retry_if_result(lambda x: x is None))
-    async def generate_response(self, query: str, provider: OllamaProvider,
-                                format: str | None) -> str:
-        """Generate an AI response with optional format validation.
-
-        Handles the generation and validation of AI responses based on the
-        specified format. Supports raw text and XML validation.
-
-        Args:
-            query (str): The input query string
-            provider (OllamaProvider): The AI provider instance
-            format (str | None): Response format ('xml' or None for raw)
-
-        Returns:
-            str: The response, either raw or extracted based on format
-
-        Raises:
-            XMLValidationError: If XML validation fails when format is 'xml'
-        """
-        raw_response = await provider.process_request_async(prompt=query)
-
-        # If no format specified, return raw response
-        if not format:
-            return raw_response
-
-        # Handle XML format
-        if format.lower() == "xml":
-            result = self._validate_and_extract_xml(raw_response)
-            if result is None:
-                raise XMLValidationError(
-                    f"Failed to validate XML response: {raw_response[:100]}..."
-                )
-            return result
-
-        # Default to raw response for unknown formats
-        return raw_response
-
     async def _process_queries(self, session: Any, df: pd.DataFrame,
                                provider: OllamaProvider, out_table: str,
                                out_column: str, in_column: str,
-                               format: str | None):
+                               format: str | None, template: str | None):
         """Process multiple queries concurrently with controlled concurrency.
 
         This method coordinates the concurrent processing of multiple queries
@@ -253,6 +184,7 @@ class ResponseGenerationPipe(Pipe):
             out_column (str): Name of the column to store responses
             in_column (str): Name of the column containing input queries
             format (str | None): Response format for validation
+            template (str | None): Template for validation
 
         Raises:
             RuntimeError: If processing any of the queries fails
@@ -294,7 +226,7 @@ class ResponseGenerationPipe(Pipe):
                         await self._process_query(session, int(row_id),
                                                   str(query), provider,
                                                   out_table, out_column,
-                                                  format)
+                                                  format, template)
                 except Exception as e:
                     Log.error(f"Query processing failed: {str(e)}")
                     raise
@@ -307,7 +239,8 @@ class ResponseGenerationPipe(Pipe):
 
     async def _process_query(self, session: Any, row_id: int, query: str,
                              provider: OllamaProvider, out_table: str,
-                             out_column: str, format: str | None):
+                             out_column: str, format: str | None,
+                             template: str | None):
         """Process a single query through the AI pipeline.
 
         Generates a response and handles database updates with error handling
@@ -321,9 +254,11 @@ class ResponseGenerationPipe(Pipe):
             out_table (str): Name of the table to update with the response.
             out_column (str): Name of the column to store the response.
             format (str | None): The format to validate the response.
+            template (str | None): The template to validate the response.
         """
         try:
-            response = await self.generate_response(query, provider, format)
+            response = await self.generate_response(query, provider, format,
+                                                    template)
             await self._update_db(
                 session,
                 out_table,
@@ -384,18 +319,80 @@ class ResponseGenerationPipe(Pipe):
                 session.rollback()
             raise RuntimeError(f"Failed to update database: {str(e)}") from e
 
-    # Utility Methods
-    def log_df_state(self, df: pd.DataFrame, batch_size: int, in_column: str,
-                     out_column: str) -> None:
-        """Log the state of the DataFrame before processing.
+    @with_db_session
+    def flow(self,
+             df: pd.DataFrame,
+             session: Any = None,
+             **kwargs) -> pd.DataFrame:
+        """
+        Execute the main pipeline flow for response generation.
+        Parameters
 
-            Args:
-                df (pd.DataFrame): The DataFrame to log.
-                batch_size (int): The size of the batch to process.
-                in_column (str): The input column name.
-                out_column (str): The output column name.
-            """
-        Log.info(f"DataFrame shape: {df.shape}")
-        Log.info(f"Batch size: {batch_size}")
-        Log.info(f"Input column: {in_column}")
-        Log.info(f"Output column: {out_column}")
+        df : pd.DataFrame
+            The input DataFrame containing data to be processed.
+        session : Any, optional
+            The database session to be used for database operations,
+            by default None.
+        **kwargs : dict
+            Additional keyword arguments.
+
+        Returns:
+            pd.DataFrame: The DataFrame with the response generation results.
+
+        Raises:
+            Exception: If the provider processing fails.
+
+        Notes:
+            This method initializes the output column if it doesn't exist,
+            logs the current DataFrame state, and processes the query
+            generation and response asynchronously.
+        """
+        Log.info("Starting ResponseGenerationPipe")
+        Log.info(f"Using max_workers: {self.max_workers}")
+
+        # Get configurations
+        template_path = self.config["prompt"]["template"]
+        validate_template = self.config["prompt"].get("validate", True)
+
+        # Load template and configurations
+        template = TemplateLoader.load(template_path, validate_template)
+        batch_size = self.get_batch_size()
+        out_config = self.config["output"][0]
+        out_table = out_config["table"]
+        out_column = out_config["columns"][0]
+        mock = self.config.get("mock", False)
+        format = self.config.get("format", None)
+
+        # Get input column from previous pipe
+        in_column = next(col for col in df.columns
+                         if col not in ['id', out_column])
+
+        # Use parent class's log_df_state with state description
+        self.log_df_state(df,
+                          state=f"Batch size: {batch_size}, "
+                          f"Columns: {in_column}, {out_column}")
+
+        # Initialize output column if it doesn't exist
+        if out_column not in df.columns:
+            df[out_column] = None
+
+        # Asynchronous process method
+        async def process() -> None:
+            """Asynchronously process the query generation and response."""
+            try:
+                provider = OllamaProvider.initialize(self.config, mock=mock)
+                await self._process_queries(session, df, provider, out_table,
+                                            out_column, in_column, format,
+                                            template)
+                Log.info("Provider processing completed successfully")
+            except Exception as e:
+                Log.error(f"Provider processing failed: {str(e)}")
+                session.rollback()
+                raise e
+
+        # Run the asynchronous process
+        asyncio.run(process())
+
+        Log.info("Finished ResponseGenerationPipe")
+        return df
+        return df

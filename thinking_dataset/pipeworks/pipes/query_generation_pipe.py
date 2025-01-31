@@ -49,6 +49,7 @@ class QueryGenerationPipe(Pipe):
         batch_size (int): Number of queries to generate
         if_exists (str): How to handle existing output table
         prompt (dict): Template configuration
+        validate (bool): Whether to validate template content
     """
 
     def log_df_state(self, df: pd.DataFrame, state: str = "") -> None:
@@ -81,11 +82,15 @@ class QueryGenerationPipe(Pipe):
             ValueError: If batch_size is not provided in pipeline config
         """
         Log.info("Starting QueryGenerationPipe")
+
+        # Get configuration values
         template_path = self.config["prompt"]["template"]
+        validate_template = self.config["prompt"].get("validate", True)
         if_exists = self.config["if_exists"]
         use_ellipsis = self.config.get("elipsis", True)
 
-        template = TemplateLoader.load(template_path)
+        # Load template and get configuration values
+        template = TemplateLoader.load(template_path, validate_template)
         batch_size = self.get_batch_size()
         in_config = self.config["input"][0]
         out_config = self.config["output"][0]
@@ -99,18 +104,18 @@ class QueryGenerationPipe(Pipe):
         out_column = out_config["columns"][0]
 
         Log.info(f"Using batch_size: {batch_size} for table {table_name}")
-
         df = self._prepare_df(template, out_column, batch_size)
         self.log_df_state(df, "Prepared")
 
+        # Get seeds and generate queries
         seeds = self._fetch_seeds(session, table_name, in_column)
         queries = self._generate_queries(seeds, seed_amount, seed_length,
                                          seed_offset, template, batch_size,
                                          label, use_ellipsis)
 
+        # Prepare and write output DataFrame
         df = pd.DataFrame({"id": df['id'], out_column: queries})
         self.log_df_state(df, "Final")
-
         self._write_to_db(df, session, out_table, if_exists)
 
         Log.info("Finished QueryGenerationPipe")
