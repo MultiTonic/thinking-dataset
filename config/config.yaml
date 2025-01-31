@@ -393,7 +393,6 @@ pipelines:
             columns: [ "thinking" ]
           prompt:
             template: "{{paths.templates}}/thinking.md"
-            validate: True
 - pipeline:
     name: "export"
     description: "Default export pipeline"

@@ -38,7 +38,15 @@ from .pipe import Pipe
 
 
 class ResponseGenerationPipe(Pipe):
-    """Handle asynchronous generation of AI responses from input queries."""
+    """Handle asynchronous generation of AI responses from input queries.
+
+    This class processes input queries through an AI provider and generates
+    responses with optional format validation. Methods are organized
+    as follows:
+    - Special methods (__init__)
+    - Public methods (flow, generate_response)
+    - Private methods (_process_queries, _process_query, etc.)
+    """
 
     def __init__(self, config: dict) -> None:
         """Initialize the ResponseGenerationPipe with configuration settings.
@@ -49,6 +57,82 @@ class ResponseGenerationPipe(Pipe):
         super().__init__(config)
         self.max_workers = self.config.get("max_workers", 4)
         self.db = Database()
+
+    @with_db_session
+    def flow(self,
+             df: pd.DataFrame,
+             session: Any = None,
+             **kwargs) -> pd.DataFrame:
+        """Execute the main pipeline flow for response generation.
+
+        Parameters
+        df : pd.DataFrame
+            The input DataFrame containing data to be processed.
+        session : Any, optional
+            The database session to be used for database operations,
+            by default None.
+        **kwargs : dict
+            Additional keyword arguments.
+
+        Returns:
+            pd.DataFrame: The DataFrame with the response generation results.
+
+        Raises:
+            Exception: If the provider processing fails.
+
+        Notes:
+            This method initializes the output column if it doesn't exist,
+            logs the current DataFrame state, and processes the query
+            generation and response asynchronously.
+        """
+        Log.info("Starting ResponseGenerationPipe")
+        Log.info(f"Using max_workers: {self.max_workers}")
+
+        # Get configurations
+        template_path = self.config["prompt"]["template"]
+        validate_template = self.config["prompt"].get("validate", True)
+
+        # Load template and configurations
+        template = TemplateLoader.load(template_path, validate_template)
+        batch_size = self.get_batch_size()
+        out_config = self.config["output"][0]
+        out_table = out_config["table"]
+        out_column = out_config["columns"][0]
+        mock = self.config.get("mock", False)
+        format = self.config.get("format", None)
+
+        # Get input column from previous pipe
+        in_column = next(col for col in df.columns
+                         if col not in ['id', out_column])
+
+        # Use parent class's log_df_state with state description
+        self.log_df_state(df,
+                          state=f"Batch size: {batch_size}, "
+                          f"Columns: {in_column}, {out_column}")
+
+        # Initialize output column if it doesn't exist
+        if out_column not in df.columns:
+            df[out_column] = None
+
+        # Asynchronous process method
+        async def process() -> None:
+            """Asynchronously process the query generation and response."""
+            try:
+                provider = OllamaProvider.initialize(self.config, mock=mock)
+                await self._process_queries(session, df, provider, out_table,
+                                            out_column, in_column, format,
+                                            template)
+                Log.info("Provider processing completed successfully")
+            except Exception as e:
+                Log.error(f"Provider processing failed: {str(e)}")
+                session.rollback()
+                raise e
+
+        # Run the asynchronous process
+        asyncio.run(process())
+
+        Log.info("Finished ResponseGenerationPipe")
+        return df
 
     @retry(stop=stop_after_attempt(3),
            wait=wait_fixed(2),
@@ -90,82 +174,6 @@ class ResponseGenerationPipe(Pipe):
 
         # Default to raw response for unknown formats
         return raw_response
-
-    def _extract_xml_content(self, text: str) -> tuple[str | None, str | None]:
-        """Extract content from between output tags.
-
-        Args:
-            text (str): Raw response text potentially containing XML
-
-        Returns:
-            tuple[str | None, str | None]: Tuple containing:
-                - Extracted content if found, None if not found
-                - Full XML element if found, None if not found
-
-        Example:
-            content, xml = _extract_xml_content("<output>Hello</output>")
-            # Returns ("Hello", "<output>Hello</output>")
-        """
-        pattern = r'.*?<output>(.*?)</output>.*?'
-        match = re.search(pattern, text, re.DOTALL)
-
-        if not match:
-            return None, None
-
-        content = match.group(1).strip()
-        full_xml = f"<output>{content}</output>"
-        return content, full_xml
-
-    def _validate_xml(self, xml_str: str, template: str) -> bool:
-        """
-        Validate the structure of an XML string against a template.
-
-        Args:
-            xml_str (str): The XML string to validate.
-            template (str): The template to validate against.
-                If None, validation fails.
-
-        Returns:
-            bool: True if the XML string is valid, False otherwise.
-
-        Raises:
-            ET.ParseError: If the XML string is not well-formed.
-        """
-        """Validate XML structure."""
-        try:
-            if template is None:
-                return False
-            ET.fromstring(xml_str)  # Basic XML validation
-            # TODO: Consider adding template structure validation here
-            return True
-        except ET.ParseError:
-            return False
-
-    def _validate_and_extract_xml(self, text: str,
-                                  template: str) -> str | None:
-        """Validate XML response and extract content from output tags.
-
-        This method combines extraction and validation to ensure both the
-        structure and content are valid.
-
-        Args:
-            text (str): Raw response text potentially containing XML
-            template (str): Template for XML validation
-
-        Returns:
-            str | None: Extracted content if valid, None if invalid
-        """
-        try:
-            content, xml = self._extract_xml_content(text)
-            if content is None or xml is None:
-                return None
-
-            if not self._validate_xml(xml, template):
-                return None
-
-            return content
-        except AttributeError:
-            return None
 
     async def _process_queries(self, session: Any, df: pd.DataFrame,
                                provider: OllamaProvider, out_table: str,
@@ -319,80 +327,78 @@ class ResponseGenerationPipe(Pipe):
                 session.rollback()
             raise RuntimeError(f"Failed to update database: {str(e)}") from e
 
-    @with_db_session
-    def flow(self,
-             df: pd.DataFrame,
-             session: Any = None,
-             **kwargs) -> pd.DataFrame:
-        """
-        Execute the main pipeline flow for response generation.
-        Parameters
+    def _extract_xml_content(self, text: str) -> tuple[str | None, str | None]:
+        """Extract content from between output tags.
 
-        df : pd.DataFrame
-            The input DataFrame containing data to be processed.
-        session : Any, optional
-            The database session to be used for database operations,
-            by default None.
-        **kwargs : dict
-            Additional keyword arguments.
+        Args:
+            text (str): Raw response text potentially containing XML
 
         Returns:
-            pd.DataFrame: The DataFrame with the response generation results.
+            tuple[str | None, str | None]: Tuple containing:
+                - Extracted content if found, None if not found
+                - Full XML element if found, None if not found
+
+        Example:
+            content, xml = _extract_xml_content("<output>Hello</output>")
+            # Returns ("Hello", "<output>Hello</output>")
+        """
+        pattern = r'.*?<output>(.*?)</output>.*?'
+        match = re.search(pattern, text, re.DOTALL)
+
+        if not match:
+            return None, None
+
+        content = match.group(1).strip()
+        full_xml = f"<output>{content}</output>"
+        return content, full_xml
+
+    # TODO this should be moved template_validator.py as a static method
+    def _validate_xml(self, xml_str: str, template: str | None) -> bool:
+        """Validate the structure of an XML string against a template.
+
+        Args:
+            xml_str (str): The XML string to validate.
+            template (str): The template to validate against.
+                If None, validation fails.
+
+        Returns:
+            bool: True if the XML string is valid, False otherwise.
 
         Raises:
-            Exception: If the provider processing fails.
-
-        Notes:
-            This method initializes the output column if it doesn't exist,
-            logs the current DataFrame state, and processes the query
-            generation and response asynchronously.
+            ET.ParseError: If the XML string is not well-formed.
         """
-        Log.info("Starting ResponseGenerationPipe")
-        Log.info(f"Using max_workers: {self.max_workers}")
+        try:
+            ET.fromstring(xml_str)  # Basic XML validation
+            if template is None:  # No response template for validatation
+                return True
+            else:
+                # TODO: Implement template validation
+                return True
+        except ET.ParseError:
+            return False
 
-        # Get configurations
-        template_path = self.config["prompt"]["template"]
-        validate_template = self.config["prompt"].get("validate", True)
+    def _validate_and_extract_xml(self, text: str,
+                                  template: str | None) -> str | None:
+        """Validate XML response and extract content from output tags.
 
-        # Load template and configurations
-        template = TemplateLoader.load(template_path, validate_template)
-        batch_size = self.get_batch_size()
-        out_config = self.config["output"][0]
-        out_table = out_config["table"]
-        out_column = out_config["columns"][0]
-        mock = self.config.get("mock", False)
-        format = self.config.get("format", None)
+        This method combines extraction and validation to ensure both the
+        structure and content are valid.
 
-        # Get input column from previous pipe
-        in_column = next(col for col in df.columns
-                         if col not in ['id', out_column])
+        Args:
+            text (str): Raw response text potentially containing XML
+            template (str | None): Template for XML validation
 
-        # Use parent class's log_df_state with state description
-        self.log_df_state(df,
-                          state=f"Batch size: {batch_size}, "
-                          f"Columns: {in_column}, {out_column}")
+        Returns:
+            str | None: Extracted content if valid, None if invalid
+        """
+        try:
+            content, xml = self._extract_xml_content(text)
+            if content is None or xml is None:
+                return None
 
-        # Initialize output column if it doesn't exist
-        if out_column not in df.columns:
-            df[out_column] = None
+            if not self._validate_xml(xml, template):
+                return None
 
-        # Asynchronous process method
-        async def process() -> None:
-            """Asynchronously process the query generation and response."""
-            try:
-                provider = OllamaProvider.initialize(self.config, mock=mock)
-                await self._process_queries(session, df, provider, out_table,
-                                            out_column, in_column, format,
-                                            template)
-                Log.info("Provider processing completed successfully")
-            except Exception as e:
-                Log.error(f"Provider processing failed: {str(e)}")
-                session.rollback()
-                raise e
-
-        # Run the asynchronous process
-        asyncio.run(process())
-
-        Log.info("Finished ResponseGenerationPipe")
-        return df
-        return df
+            return content
+        except AttributeError:
+            return None
