@@ -51,9 +51,11 @@ class OllamaProviderMock(Provider):
             paragraphs=5, char_limit=self.char_limit)
 
         response = f"""
+        ```xml
         <output>
         {output_text}
         </output>
+        ```
         """
         response_size = len(response.encode('utf-8'))
         Log.info(f"Generated mock response ({response_size} bytes)")
