@@ -2,12 +2,11 @@
 
 This module provides functionality for asynchronously generating AI responses
 from input queries stored in a database using configurable LLM providers.
-
-Functions:
-    None
+It supports different response formats including raw text and XML validation.
 
 Classes:
-    ResponseGenerationPipe: Handles asynchronous AI response generation.
+    ResponseGenerationPipe: Handles asynchronous AI response generation with
+        optional format validation.
 """
 
 __version__ = "0.0.2"
@@ -17,19 +16,23 @@ __license__ = "MIT"
 
 import asyncio
 from typing import Any
-
-import pandas as pd
-from sqlalchemy import update
+import re
+from xml.etree import ElementTree as ET
 from tenacity import (
     retry,
     stop_after_attempt,
     wait_fixed,
+    retry_if_result,
 )
+
+import pandas as pd
+from sqlalchemy import update
 
 from thinking_dataset.db.database import Database
 from thinking_dataset.decorators.with_db_session import with_db_session
 from thinking_dataset.providers.ollama_provider import OllamaProvider
 from thinking_dataset.utils.log import Log
+from thinking_dataset.utils.exceptions import XMLValidationError
 from .pipe import Pipe
 
 
@@ -38,7 +41,8 @@ class ResponseGenerationPipe(Pipe):
 
     This class manages the flow of fetching queries from the database,
     generating responses using an AI provider, and updating the database with
-    the generated responses.
+    the generated responses. It supports different response formats and
+    validation methods.
 
     Attributes:
         max_workers (int): Maximum number of concurrent AI requests.
@@ -55,6 +59,7 @@ class ResponseGenerationPipe(Pipe):
         self.max_workers = self.config.get("max_workers", 4)
         self.db = Database()
 
+    # Public Methods
     @with_db_session
     def flow(self,
              df: pd.DataFrame,
@@ -92,6 +97,7 @@ class ResponseGenerationPipe(Pipe):
         out_table = out_config["table"]
         out_column = out_config["columns"][0]
         mock = self.config.get("mock", False)
+        format = self.config.get("format", None)
 
         # Get input column from previous pipe
         in_column = next(col for col in df.columns
@@ -109,7 +115,7 @@ class ResponseGenerationPipe(Pipe):
             try:
                 provider = OllamaProvider.initialize(self.config, mock=mock)
                 await self._process_queries(session, df, provider, out_table,
-                                            out_column, in_column)
+                                            out_column, in_column, format)
                 Log.info("Provider processing completed successfully")
             except Exception as e:
                 Log.error(f"Provider processing failed: {str(e)}")
@@ -121,84 +127,135 @@ class ResponseGenerationPipe(Pipe):
         Log.info("Finished ResponseGenerationPipe")
         return df
 
-    async def generate_response(self, query: str,
-                                provider: OllamaProvider) -> str:
-        """Generate an AI response for a given input query.
-
-        This method sends the input query to the AI provider and awaits
-        the response.
+    # XML Validation Methods
+    def _extract_xml_content(self, text: str) -> tuple[str | None, str | None]:
+        """Extract content from between output tags.
 
         Args:
-            query (str): The input query string.
-            provider (OllamaProvider): The AI provider instance to
-                generate responses.
+            text (str): Raw response text potentially containing XML
 
         Returns:
-            str: The generated AI response.
+            tuple[str | None, str | None]: Tuple containing:
+                - Extracted content if found, None if not found
+                - Full XML element if found, None if not found
+
+        Example:
+            content, xml = _extract_xml_content("<output>Hello</output>")
+            # Returns ("Hello", "<output>Hello</output>")
         """
-        return await provider.process_request_async(prompt=query)
+        pattern = r'.*?<output>(.*?)</output>.*?'
+        match = re.search(pattern, text, re.DOTALL)
 
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2), reraise=True)
-    async def _update_db(self, session: Any, out_table: str, row_id: int,
-                         response: str, out_column: str) -> None:
-        """Update the database with the generated AI response with retry logic.
+        if not match:
+            return None, None
 
-        This method ensures the output table and column exist before updating
-        the row. If the update fails, it retries up to 3 times with a fixed
-        wait time.
+        content = match.group(1).strip()
+        full_xml = f"<output>{content}</output>"
+        return content, full_xml
+
+    def _validate_xml(self, xml_str: str) -> bool:
+        """Validate XML structure.
 
         Args:
-            session (Any): The active database session.
-            out_table (str): Name of the table to update.
-            row_id (int): ID of the row to update.
-            response (str): The generated AI response to store.
-            out_column (str): Name of the column to store the response.
+            xml_str (str): XML string to validate
 
-        Raises:
-            RuntimeError: If the database update fails after retries.
+        Returns:
+            bool: True if valid XML, False otherwise
+
+        Example:
+            is_valid = _validate_xml("<output>Hello</output>")
+            # Returns True
         """
         try:
-            if row_id is None:
-                raise ValueError("Row ID cannot be None")
+            ET.fromstring(xml_str)
+            return True
+        except ET.ParseError:
+            return False
 
-            table = await self.db.ensure_table_exists(session, out_table)
-            table = await self.db.ensure_column_exists(session, table,
-                                                       out_column)
-            stmt = (update(table).where(table.c.id == row_id).values(
-                {out_column: response}))
+    def _validate_and_extract_xml(self, text: str) -> str | None:
+        """Validate XML response and extract content from output tags.
 
-            Log.info(f"Updating DB - ID: {row_id}, "
-                     f"Table: {out_table}, "
-                     f"Column: {out_column}")
+        This method combines extraction and validation to ensure both the
+        structure and content are valid.
 
-            session.execute(stmt)
-            session.commit()
-            Log.info(f"Updated row with id {row_id} in '{out_table}' table")
+        Args:
+            text (str): Raw response text potentially containing XML
 
-        except Exception as e:
-            Log.error(f"Database update failed: {str(e)}")
-            if session:
-                session.rollback()
-            raise RuntimeError(f"Failed to update database: {str(e)}") from e
+        Returns:
+            str | None: Extracted content if valid, None if invalid
+        """
+        try:
+            content, xml = self._extract_xml_content(text)
+            if content is None or xml is None:
+                return None
+
+            if not self._validate_xml(xml):
+                return None
+
+            return content
+        except AttributeError:
+            return None
+
+    # Async Processing Methods
+    @retry(stop=stop_after_attempt(3),
+           wait=wait_fixed(2),
+           retry=retry_if_result(lambda x: x is None))
+    async def generate_response(self, query: str, provider: OllamaProvider,
+                                format: str | None) -> str:
+        """Generate an AI response with optional format validation.
+
+        Handles the generation and validation of AI responses based on the
+        specified format. Supports raw text and XML validation.
+
+        Args:
+            query (str): The input query string
+            provider (OllamaProvider): The AI provider instance
+            format (str | None): Response format ('xml' or None for raw)
+
+        Returns:
+            str: The response, either raw or extracted based on format
+
+        Raises:
+            XMLValidationError: If XML validation fails when format is 'xml'
+        """
+        raw_response = await provider.process_request_async(prompt=query)
+
+        # If no format specified, return raw response
+        if not format:
+            return raw_response
+
+        # Handle XML format
+        if format.lower() == "xml":
+            result = self._validate_and_extract_xml(raw_response)
+            if result is None:
+                raise XMLValidationError(
+                    f"Failed to validate XML response: {raw_response[:100]}..."
+                )
+            return result
+
+        # Default to raw response for unknown formats
+        return raw_response
 
     async def _process_queries(self, session: Any, df: pd.DataFrame,
                                provider: OllamaProvider, out_table: str,
-                               out_column: str, in_column: str):
+                               out_column: str, in_column: str,
+                               format: str | None):
         """Process multiple queries concurrently with controlled concurrency.
 
-        This method leverages asyncio's Semaphore to limit the number of
-        concurrent AI requests based on the `max_workers` configuration.
+        This method coordinates the concurrent processing of multiple queries
+        while respecting the max_workers limit through semaphore control.
 
         Args:
-            session (Any): The active database session.
-            queries (pd.DataFrame): DataFrame containing queries to process.
-            provider (OllamaProvider): The AI provider instance.
-            out_table (str): Name of the table to update with responses.
-            out_column (str): Name of the column to store responses.
-            in_column (str): Name of the column containing input queries.
+            session (Any): The active database session
+            df (pd.DataFrame): DataFrame containing queries to process
+            provider (OllamaProvider): The AI provider instance
+            out_table (str): Name of the table to update with responses
+            out_column (str): Name of the column to store responses
+            in_column (str): Name of the column containing input queries
+            format (str | None): Response format for validation
 
         Raises:
-            RuntimeError: If processing any of the queries fails.
+            RuntimeError: If processing any of the queries fails
         """
         try:
             semaphore = asyncio.Semaphore(self.max_workers)
@@ -236,7 +293,8 @@ class ResponseGenerationPipe(Pipe):
                                  f"Query length: {len(str(query))}")
                         await self._process_query(session, int(row_id),
                                                   str(query), provider,
-                                                  out_table, out_column)
+                                                  out_table, out_column,
+                                                  format)
                 except Exception as e:
                     Log.error(f"Query processing failed: {str(e)}")
                     raise
@@ -249,11 +307,11 @@ class ResponseGenerationPipe(Pipe):
 
     async def _process_query(self, session: Any, row_id: int, query: str,
                              provider: OllamaProvider, out_table: str,
-                             out_column: str):
+                             out_column: str, format: str | None):
         """Process a single query through the AI pipeline.
 
-        This method generates a response for the input query and updates the
-        corresponding database record with the generated response.
+        Generates a response and handles database updates with error handling
+        and retry logic.
 
         Args:
             session (Any): The active database session.
@@ -262,16 +320,71 @@ class ResponseGenerationPipe(Pipe):
             provider (OllamaProvider): The AI provider instance.
             out_table (str): Name of the table to update with the response.
             out_column (str): Name of the column to store the response.
+            format (str | None): The format to validate the response.
         """
-        response = await self.generate_response(query, provider)
-        await self._update_db(
-            session,
-            out_table,
-            row_id,
-            response,
-            out_column,
-        )
+        try:
+            response = await self.generate_response(query, provider, format)
+            await self._update_db(
+                session,
+                out_table,
+                row_id,
+                response,
+                out_column,
+            )
+        except Exception as e:
+            Log.warn(
+                f"Skipping row {row_id} due to unexpected error: {str(e)}")
+            await self._update_db(
+                session,
+                out_table,
+                row_id,
+                None,
+                out_column,
+            )
 
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2), reraise=True)
+    async def _update_db(self, session: Any, out_table: str, row_id: int,
+                         response: str, out_column: str) -> None:
+        """Update the database with the generated AI response.
+
+        Updates the specified table and column with retry logic on failure.
+
+        Args:
+            session (Any): The active database session
+            out_table (str): Name of the table to update
+            row_id (int): ID of the row to update
+            response (str): The generated AI response to store
+            out_column (str): Name of the column to store response
+
+        Raises:
+            RuntimeError: If database update fails after retries
+            ValueError: If row_id is None
+        """
+        try:
+            if row_id is None:
+                raise ValueError("Row ID cannot be None")
+
+            table = await self.db.ensure_table_exists(session, out_table)
+            table = await self.db.ensure_column_exists(session, table,
+                                                       out_column)
+            stmt = (update(table).where(table.c.id == row_id).values(
+                {out_column: response}))
+
+            Log.info(f"Updating DB - ID: {row_id}, "
+                     f"Table: {out_table}, "
+                     f"Column: {out_column}")
+
+            session.execute(stmt)
+            session.commit()
+            Log.info(f"Updated row with id {row_id} in '{out_table}' table")
+
+        except Exception as e:
+            Log.error(f"Database update failed: {str(e)}")
+            if session:
+                session.rollback()
+            raise RuntimeError(f"Failed to update database: {str(e)}") from e
+
+    # Utility Methods
     def log_df_state(self, df: pd.DataFrame, batch_size: int, in_column: str,
                      out_column: str) -> None:
         """Log the state of the DataFrame before processing.

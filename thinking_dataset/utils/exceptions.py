@@ -20,6 +20,11 @@ __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
 
 
+class XMLValidationError(Exception):
+    """Exception raised when XML validation fails in response processing."""
+    pass
+
+
 def exceptions(func: Callable) -> Callable:
     """
     Decorator to handle exceptions and log errors.
@@ -40,6 +45,9 @@ def exceptions(func: Callable) -> Callable:
                     key: val
                     for key, val in kwargs.items() if key != 'log'
                 })
+        except XMLValidationError as e:
+            Log.error(f"XML validation error: {e}", exc_info=True)
+            error_occurred = True
         except ValueError as e:
             Log.error(f"Validation error: {e}", exc_info=True)
             error_occurred = True

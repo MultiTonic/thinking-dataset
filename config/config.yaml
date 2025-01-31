@@ -60,7 +60,7 @@ pipelines:
     - pipe:
         type: "SubsetPipe"
         config:
-          rows: [ "all" ]
+          rows: [ 0, 100 ]
           columns: [ "all" ]
     - pipe:
         type: "AddIdPipe"
@@ -360,7 +360,7 @@ pipelines:
     name: "generate"
     description: "Generate synthetic data pipeline"
     config:
-      batch_size: 500
+      batch_size: 1
     pipes:
     - pipe:
         type: "QueryGenerationPipe"
@@ -386,15 +386,12 @@ pipelines:
           if_exists: "replace"
           max_workers: 10
           mock: False
+          format: "xml"
           output:
           - table: "cables"
             columns: [ "thinking" ]
           prompt:
             template: "{{paths.templates}}/thinking.md"
-    - pipe:
-        type: "ScrubOutputPipe"
-        config:
-          format: "xml"
 - pipeline:
     name: "export"
     description: "Default export pipeline"
