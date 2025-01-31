@@ -6,13 +6,13 @@ Functions:
     main: Main function to run all CLI commands in sequence.
 """
 
-import subprocess
-import sys
-
 __version__ = "0.0.2"
 __author__ = "MultiTonic Team"
 __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
+
+import subprocess
+import sys
 
 
 def main() -> None:

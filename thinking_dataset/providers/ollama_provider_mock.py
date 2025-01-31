@@ -38,7 +38,7 @@ class OllamaProviderMock(Provider):
         super().__init__(config)
         self.char_limit = char_limit
         self.response = self._generate_mock_response()
-        self.render_time = 5  # seconds to simulate rendering
+        self.render_time = 3  # seconds to simulate rendering
 
     def _generate_mock_response(self) -> str:
         """
@@ -47,16 +47,10 @@ class OllamaProviderMock(Provider):
         Returns:
             str: The generated mock response.
         """
-        think_text = TextUtils.generate_lorem_ipsum(paragraphs=3,
-                                                    char_limit=self.char_limit)
         output_text = TextUtils.generate_lorem_ipsum(
             paragraphs=5, char_limit=self.char_limit)
 
         response = f"""
-        <think>
-        {think_text}
-        </think>
-
         <output>
         {output_text}
         </output>

@@ -42,14 +42,13 @@ providers:
     type: "ollama"
     url: "http://localhost:11434"
     config:
-      #model: "deepseek-r1:8b"
-      # model: "llama3.2:3b"
       model: "llama3.1:latest"
+      # model: "llama3.2:3b"
       stream: False
       options:
         num_ctx: 64768
-        temperature: 0.8
-        repeat_penalty: 1.2
+        temperature: 1.5
+        repeat_penalty: 1
         num_thread: 64
 pipelines:
 - pipeline:
@@ -61,7 +60,7 @@ pipelines:
     - pipe:
         type: "SubsetPipe"
         config:
-          rows: [ "all" ]
+          rows: [ 0, 100 ]
           columns: [ "all" ]
     - pipe:
         type: "AddIdPipe"
@@ -361,7 +360,7 @@ pipelines:
     name: "generate"
     description: "Generate synthetic data pipeline"
     config:
-      batch_size: 500
+      batch_size: 10
     pipes:
     - pipe:
         type: "QueryGenerationPipe"
