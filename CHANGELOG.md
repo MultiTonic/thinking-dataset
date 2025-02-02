@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.2](https://github.com/MultiTonic/thinking-dataset/releases/tag/v0.0.2) - 2025-01-31
+
+### Added
+- Support for "all" rows in config with increased batch size to 1000
+- Schema-based element validation framework (removing default elements)
+- XML formatting for mock responses and enhanced response validation
+- Ellipsis support in QueryGenerationPipe for truncated outputs
+- Initialization module for assets/scripts package
+
+### Changed
+- Moved metadata to the top of QueryGenerationPipe
+- Enhanced XML validation and extraction logic in TemplateValidator
+- Streamlined logging by using the base Pipe class method
+- Unified method signatures and removed redundant returns
+- Improved code documentation and organization
+
+### Fixed
+- Removed unwanted "NoneNoneNone..." output on successful export command
+
+### Security
+- No notable updates
+
 ## [0.0.1](https://github.com/MultiTonic/thinking-dataset/releases/tag/v0.0.1) - 2025-01-27
 
 ### Added

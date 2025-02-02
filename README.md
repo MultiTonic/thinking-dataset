@@ -1,4 +1,4 @@
-# Thinking Dataset: Leveraging Real-World Data for Strategic Business Insights and STaR Case Study Generation
+# Thinking Dataset: Leveraging Real-World Data for Strategic Business Insights
 
 [![License](https://img.shields.io/github/license/MultiTonic/thinking-dataset)](LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
@@ -7,35 +7,31 @@
 [![Pytest](https://github.com/MultiTonic/thinking-dataset/actions/workflows/pytest.yml/badge.svg)](https://github.com/MultiTonic/thinking-dataset/actions/workflows/pytest.yml)
 
 ## Table of Contents
-
-- [**Overview**](#overview)
-- [**Features**](#features)
-- [**Installation**](#installation)
-- [**Usage**](#usage)
-- [**Quick Start**](#quick-start)
-- [**Project Structure**](#project-structure)
-- [**Contributing**](#contributing)
-- [**Resources**](#resources)
-- [**License**](#license)
-- [**Citations**](#citations)
-- [**Acknowledgements**](#acknowledgements)
-- [**Contact**](#contact)
+- [Overview](#overview)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [Resources](#resources)
+- [License](#license)
+- [Citations](#citations)
+- [Acknowledgements](#acknowledgements)
+- [Contact](#contact)
 
 ## Overview
-
-Transform your business data into strategic insights using our powerful Thinking Dataset technology. At its core, our STAR self-teaching engine combines multiple AI models to generate high-quality synthetic datasets, while our STaR Case Studies framework turns real-world data (like our Cablegate dataset) into actionable business narratives. This powerful combination helps you create more accurate, practical, and human-like datasets than traditional methods.
-
-For more details, see the [**Overview**](docs/00_OVERVIEW.md).
+Thinking Dataset leverages real-world data and efficient pipelines for business insights. We integrate robust data workflows (PDF to SQL ingestion), tactical TDD ([details](docs/02c_TESTING.md)), and a streamlined SQLite design ([details](docs/02b_DATABASE.md)). Multi-stage AI generates STaR case studies for actionable strategies.
 
 ## Features
-
-- **🔄 Data Pipeline**: Lightning-fast SQLite storage with seamless Parquet integration and HuggingFace CLI sync
-- **🎯 Quality Control**: Rich console outputs and intelligent error handling for robust data operations
-- **🔧 Development Ready**: Modern modular codebase with comprehensive test coverage and documentation
-- **🚀 Production Grade**: Advanced state machine for database operations and flexible environment management
-- **⚡ Performance**: Optimized for large-scale data processing with parallel execution capabilities
-- **🔐 Security**: Built-in credential management and secure API integrations
-- **📊 Analytics**: Advanced data transformation and analysis tools for business insights
+- 🔄 **End-to-End Pipeline**: Download, process, transform, and store large datasets.
+- 💾 **SQLite Backend**: Lightweight, fast, and easy to manage, with optional Parquet.
+- ✅ **Comprehensive Testing**: Thorough TDD coverage and validation checks.
+- 🖥️ **Flexible CLI**: Modular Click commands for quick execution of tasks.
+- 🔀 **Data Transformation**: Granular pipes for cleaning, merging, and deriving data.
+- 📚 **STaR Case Studies**: Generate synthetic scenarios alongside real data for deeper insights.
+- ⚡ **Parallel Execution**: Efficiently process big data with optional concurrency.
+- 🔒 **Secure Config**: Manage environment variables discretely with .env files.
 
 ## Quick Start
 
@@ -156,7 +152,7 @@ thinking-dataset/
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure your code adheres to the project's coding standards and includes appropriate tests. See [**Contributing**](CONTRIBUTING.md) for detailed guidelines.
+Contributions are welcome! Fork the repository, make your changes, and create a pull request. Ensure your code follows the project's standards and includes tests. See [**Contributing**](CONTRIBUTING.md) for guidelines.
 
 ## Resources
 
@@ -196,5 +192,5 @@ Special thanks to our contributors:
 
 For questions or support, please contact us at:
 
-- **Email**: info@datatonic.ai
+- **Email**: info@multitonics.ai
 - **Discord**: [Join our Discord](https://discord.gg/RgxcdVFjpz)
