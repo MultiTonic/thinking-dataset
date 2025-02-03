@@ -1,15 +1,6 @@
-"""Response Generation Pipeline Module.
+"""Response Generation Pipeline Module."""
 
-This module provides functionality for asynchronously generating AI responses
-from input queries stored in a database using configurable LLM providers.
-It supports different response formats including raw text and XML validation.
-
-Classes:
-    ResponseGenerationPipe: Handles asynchronous AI response generation with
-        optional format validation.
-"""
-
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __author__ = "MultiTonic Team"
 __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
@@ -41,22 +32,10 @@ from .pipe import Pipe
 
 
 class ResponseGenerationPipe(Pipe):
-    """Handle asynchronous generation of AI responses from input queries.
-
-    This class processes input queries through an AI provider and generates
-    responses with optional format validation. Methods are organized
-    as follows:
-    - Special methods (__init__)
-    - Public methods (flow, generate_response)
-    - Private methods (_process_queries, _process_query, etc.)
-    """
+    """Handle asynchronous generation of AI responses from input queries."""
 
     def __init__(self, config: dict) -> None:
-        """Initialize the ResponseGenerationPipe with configuration settings.
-
-        Args:
-            config (dict): Configuration dictionary containing pipe settings.
-        """
+        """Initialize ResponseGenerationPipe with configuration settings."""
         super().__init__(config)
         self.max_workers = self.config.get("max_workers", 4)
         self.db = Database()
@@ -66,28 +45,7 @@ class ResponseGenerationPipe(Pipe):
              df: pd.DataFrame,
              session: Any = None,
              **kwargs) -> pd.DataFrame:
-        """Execute the main pipeline flow for response generation.
-
-        Parameters
-        df : pd.DataFrame
-            The input DataFrame containing data to be processed.
-        session : Any, optional
-            The database session to be used for database operations,
-            by default None.
-        **kwargs : dict
-            Additional keyword arguments.
-
-        Returns:
-            pd.DataFrame: The DataFrame with the response generation results.
-
-        Raises:
-            Exception: If the provider processing fails.
-
-        Notes:
-            This method initializes the output column if it doesn't exist,
-            logs the current DataFrame state, and processes the query
-            generation and response asynchronously.
-        """
+        """Execute the main pipeline flow for response generation."""
         Log.info("Starting ResponseGenerationPipe")
         Log.info(f"Using max_workers: {self.max_workers}")
 
@@ -165,24 +123,7 @@ class ResponseGenerationPipe(Pipe):
                                provider: OllamaProvider, out_table: str,
                                out_column: str, in_column: str,
                                format: str | None, template: str | None):
-        """Process multiple queries concurrently with controlled concurrency.
-
-        This method coordinates the concurrent processing of multiple queries
-        while respecting the max_workers limit through semaphore control.
-
-        Args:
-            session (Any): The active database session
-            df (pd.DataFrame): DataFrame containing queries to process
-            provider (OllamaProvider): The AI provider instance
-            out_table (str): Name of the table to update with responses
-            out_column (str): Name of the column to store responses
-            in_column (str): Name of the column containing input queries
-            format (str | None): Response format for validation
-            template (str | None): Template for validation
-
-        Raises:
-            RuntimeError: If processing any of the queries fails
-        """
+        """Process queries concurrently with controlled concurrency."""
         try:
             semaphore = asyncio.Semaphore(self.max_workers)
 
@@ -193,15 +134,7 @@ class ResponseGenerationPipe(Pipe):
                 within the context of a semaphore to control concurrency. It
                 checks for valid row ID and query, logs the processing steps,
                 and calls another function to handle the actual
-                query processing.
-
-                Args:
-                    row (pd.Series): A pandas Series object representing a
-                        row from a DataFrame.
-                Raises:
-                    Exception: If query processing fails, an exception is
-                        logged and re-raised.
-                """
+                query processing."""
                 try:
                     async with semaphore:
                         row_id = row.at['id']
@@ -235,21 +168,7 @@ class ResponseGenerationPipe(Pipe):
                              provider: OllamaProvider, out_table: str,
                              out_column: str, format: str | None,
                              template: str | None):
-        """Process a single query through the AI pipeline.
-
-        Generates a response and handles database updates with error handling
-        and retry logic.
-
-        Args:
-            session (Any): The active database session.
-            row_id (int): ID of the row to update.
-            query (str): The input query string.
-            provider (OllamaProvider): The AI provider instance.
-            out_table (str): Name of the table to update with the response.
-            out_column (str): Name of the column to store the response.
-            format (str | None): The format to validate the response.
-            template (str | None): The template to validate the response.
-        """
+        """Process a single query through the AI pipeline."""
         try:
             response = await self.generate_response(query, provider, format,
                                                     template)
@@ -274,21 +193,7 @@ class ResponseGenerationPipe(Pipe):
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(2), reraise=True)
     async def _update_db(self, session: Any, out_table: str, row_id: int,
                          response: str, out_column: str) -> None:
-        """Update the database with the generated AI response.
-
-        Updates the specified table and column with retry logic on failure.
-
-        Args:
-            session (Any): The active database session
-            out_table (str): Name of the table to update
-            row_id (int): ID of the row to update
-            response (str): The generated AI response to store
-            out_column (str): Name of the column to store response
-
-        Raises:
-            RuntimeError: If database update fails after retries
-            ValueError: If row_id is None
-        """
+        """Update the database with the generated AI response."""
         try:
             if row_id is None:
                 raise ValueError("Row ID cannot be None")
