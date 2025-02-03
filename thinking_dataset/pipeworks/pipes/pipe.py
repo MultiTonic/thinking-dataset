@@ -10,6 +10,11 @@ Classes:
     Pipe: Abstract base class for all processing pipes.
 """
 
+__version__ = "0.0.3"
+__author__ = "MultiTonic Team"
+__copyright__ = "Copyright (c) 2025 MultiTonic Team"
+__license__ = "MIT"
+
 import importlib
 import signal
 import sys
@@ -23,11 +28,6 @@ from tqdm import tqdm
 
 from thinking_dataset.utils.command_utils import CommandUtils as utils
 from thinking_dataset.utils.log import Log
-
-__version__ = "0.0.2"
-__author__ = "MultiTonic Team"
-__copyright__ = "Copyright (c) 2025 MultiTonic Team"
-__license__ = "MIT"
 
 
 class Pipe(ABC):
@@ -101,15 +101,15 @@ class Pipe(ABC):
         Raises:
             ImportError: If pipe class cannot be loaded
         """
-        module_name = "thinking_dataset.pipeworks.pipes." + \
+        module_name = \
+            "thinking_dataset.pipeworks.pipes." + \
             utils.camel_to_snake(pipe_type)
-
         try:
             module = importlib.import_module(module_name)
             return getattr(module, pipe_type)
         except (ImportError, AttributeError) as e:
-            raise ImportError(f"Error loading pipe class {pipe_type} "
-                              f"from module {module_name}") from e
+            raise ImportError(f"Error loading pipe class {pipe_type} from "
+                              f"module {module_name}") from e
 
     def progress_apply(self, series: pd.Series, func: Callable,
                        desc: str) -> pd.Series:
@@ -180,25 +180,26 @@ class Pipe(ABC):
         sys.exit(0)
 
     @classmethod
-    def flush(cls, df: pd.DataFrame) -> pd.DataFrame:
-        """Create a new empty DataFrame with the same column structure.
+    def flush(cls,
+              df: pd.DataFrame,
+              use_all_columns: bool = False) -> pd.DataFrame:
+        """Create a new DataFrame with the proper column structure.
 
-        Args:
-            df (pd.DataFrame): Input DataFrame to get column structure from
-
-        Returns:
-            pd.DataFrame: New empty DataFrame with proper column structure
+        - If use_all_columns is True, return all columns,
+            ensuring 'id' is first.
+        - If False, return a DataFrame with a sequential 'id' column
+            based on batch size.
         """
-        # Reorder columns to have 'id' first if present
-        if 'id' in df.columns:
-            columns = [column for column in df.columns if column != 'id']
-            columns = ['id'] + columns
+        if use_all_columns:
+            if 'id' not in df.columns:
+                columns = ['id'] + list(df.columns)
+            else:
+                columns = ['id'] + [col for col in df.columns if col != 'id']
+            new_df = pd.DataFrame(columns=columns)
         else:
-            columns = list(df.columns)
-
-        # Create new empty DataFrame with correct structure
-        new_df = pd.DataFrame(columns=columns)
-
+            # Create a DataFrame with sequential IDs from 1 to batch size.
+            batch_size = cls.get_batch_size()
+            new_df = pd.DataFrame({'id': list(range(1, batch_size + 1))})
         Log.info(f"Flushed DataFrame with columns: {new_df.columns.tolist()}")
         return new_df
 

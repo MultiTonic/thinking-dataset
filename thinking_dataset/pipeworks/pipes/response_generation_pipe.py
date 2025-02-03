@@ -6,6 +6,7 @@ __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
 
 import asyncio
+import time
 from typing import Any
 from tenacity import (
     retry,
@@ -147,13 +148,31 @@ class ResponseGenerationPipe(Pipe):
                                 f"Skipping row - ID: {row_id}, Query: {query}")
                             return
 
-                        # Process valid query
-                        Log.info(f"Processing row - ID: {row_id}, "
-                                 f"Query length: {len(str(query))}")
-                        await self._process_query(session, int(row_id),
-                                                  str(query), provider,
-                                                  out_table, out_column,
-                                                  format, template)
+                        # Start processing timer
+                        start_time = time.perf_counter()
+
+                        # Await response and capture output chars generated
+                        response = await self._process_query(
+                            session, int(row_id), str(query), provider,
+                            out_table, out_column, format, template)
+                        duration = time.perf_counter() - start_time
+                        if response:
+                            # Assuming average 4 characters per token.
+                            output_tokens = len(response) / 4
+                            input_tokens = len(query) / 4
+                            avg_tokens_per_sec = (
+                                (input_tokens + output_tokens) /
+                                2) / duration if duration else 0
+                            Log.info(f"Completed ID: {row_id} "
+                                     f"in {duration:.2f} sec | "
+                                     f"Input: {input_tokens:.2f} tk | "
+                                     f"Output: {output_tokens:.2f} tk | "
+                                     f"Speed: {avg_tokens_per_sec:.2f} tk/sec")
+                        else:
+                            Log.info(f"Completed row - ID: {row_id} "
+                                     f"in {duration:.2f} sec | "
+                                     "No response generated")
+
                 except Exception as e:
                     Log.error(f"Query processing failed: {str(e)}")
                     raise
@@ -167,8 +186,8 @@ class ResponseGenerationPipe(Pipe):
     async def _process_query(self, session: Any, row_id: int, query: str,
                              provider: OllamaProvider, out_table: str,
                              out_column: str, format: str | None,
-                             template: str | None):
-        """Process a single query through the AI pipeline."""
+                             template: str | None) -> str:
+        """Process a query through the AI pipeline and return response."""
         try:
             response = await self.generate_response(query, provider, format,
                                                     template)
@@ -179,6 +198,7 @@ class ResponseGenerationPipe(Pipe):
                 response,
                 out_column,
             )
+            return response
         except Exception as e:
             Log.warn(
                 f"Skipping row {row_id} due to unexpected error: {str(e)}")
@@ -189,6 +209,7 @@ class ResponseGenerationPipe(Pipe):
                 None,
                 out_column,
             )
+            return ""
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(2), reraise=True)
     async def _update_db(self, session: Any, out_table: str, row_id: int,

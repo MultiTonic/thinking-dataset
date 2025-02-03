@@ -3,7 +3,7 @@
 <!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -> review -->
 <!-- @context: Professional diplomatic communication -->
 <!-- @spatial: Earth-based -->
-<!-- @temporal: 2020 to 2030 -->
+<!-- @temporal: 2025 to 2035 -->
 ---
 # Stage 1: Diplomatic Narrative Thinking
 
@@ -44,7 +44,7 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>0.0.2</version>
+  <version>0.0.3</version>
   <!-- @hint: Current stage in pipeline -->
   <stage>thinking</stage>
   <!-- @hint: Processing flow control -->
@@ -92,8 +92,8 @@
 - SPACE CONTEXT: "terrestrial"
 
 > @temporal:
-- START YEAR: 2020
-- END YEAR: 2030
+- START YEAR: 2025
+- END YEAR: 2035
 - ALTERNATE HISTORY: False
 - TECH LEVEL: "contemporary"
 - FUTURE CONTENT: False
@@ -182,7 +182,7 @@ stage = thinking
     <scenario>[Must be detailed diplomatic scenario]</scenario>
     <context>
       <location>[Specific geographic setting]</location>
-      <timeline>[Clear timeframe within 2020-2030]</timeline>
+      <timeline>[Clear timeframe within 2025-2035]</timeline>
       <atmosphere>[Detailed political/social environment]</atmosphere>
     </context>
     <direction>

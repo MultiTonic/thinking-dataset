@@ -3,7 +3,7 @@
 <!-- @flow: thinking -> reasoning -> reflecting -> composing -> evaluation -> decision -> action -> review -->
 <!-- @context: Professional diplomatic cable creation -->
 <!-- @spatial: Earth-based -->
-<!-- @temporal: 2020 to 2030 -->
+<!-- @temporal: 2025 to 2035 -->
 ---
 # Stage 4: Diplomatic Cable Composition
 
@@ -50,7 +50,7 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>1.0.8</version>
+  <version>0.0.3</version>
   <!-- @hint: Current stage in pipeline -->
   <stage>composing</stage>
   <!-- @hint: Processing flow control -->
@@ -100,8 +100,8 @@
 - SPACE CONTEXT: "terrestrial"
 
 > @temporal:
-- START YEAR: 2020
-- END YEAR: 2030
+- START YEAR: 2025
+- END YEAR: 2035
 - ALTERNATE HISTORY: False
 - TECH LEVEL: "contemporary"
 - FUTURE CONTENT: False

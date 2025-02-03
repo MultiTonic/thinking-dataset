@@ -23,7 +23,7 @@ def main() -> None:
         "thinking-dataset process",
         "thinking-dataset load",
         "thinking-dataset generate",
-        "thinking-dataset export",
+        # "thinking-dataset export",
         # "thinking-dataset upload",
     ]
 
