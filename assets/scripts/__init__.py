@@ -19,7 +19,7 @@ from .run_llama_cpp import (
 )
 from .run_hf_server import initialize as init_hf_server
 from .generate_text import main as generate_text
-from .run_cli_commands import run_command as run_cli_command
+from .run_cli_commands import main as run_cli_command
 from .run_tests_and_generate_report import main as run_tests
 from .uv.setup import main as setup_uv
 
