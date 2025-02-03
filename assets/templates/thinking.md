@@ -37,7 +37,7 @@
 <!-- @validation: Follow input configuration requirements -->
 ## Data Sources
 <!-- @hint: Use provided seeds for inspiration -->
-<inspirations>{{seeds}}</inspirations>
+<inspirations>{{seed}}</inspirations>
 ---
 
 <!-- @section: metadata -->

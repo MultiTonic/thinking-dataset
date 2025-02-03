@@ -49,9 +49,23 @@ class QueryGenerationPipe(Pipe):
 
         # Selection context logic: update DataFrame in one statement
         output = self._parse_output_configs()[0]
-        df = df.copy().assign(
-            id=[item["id"] for item in queries],
-            **{output.column: [item["query"] for item in queries]})
+        df = df.copy()
+
+        # Create base DataFrame with id and query columns
+        update_dict = {
+            'id': [item["id"] for item in queries],
+            output.column: [item["query"] for item in queries]
+        }
+
+        # Add source label columns (e.g., "seed")
+        for source in sources:
+            update_dict[source.label] = [
+                item[source.label] for item in queries
+            ]
+
+        # Update DataFrame with all columns at once
+        df = df.assign(**update_dict)
+
         self.log_df_state(df, f"Final - {output.table}.{output.column}")
         self._write_to_db(df, session, output.table, output.if_exists)
 
@@ -65,6 +79,24 @@ class QueryGenerationPipe(Pipe):
         Log.info(f"{prefix}DataFrame columns: {df.columns.tolist()}")
 
     # Protected methods
+    def _wrap_with_markdown_list(self, samples: List[str]) -> str:
+        """Join samples into a markdown list format.
+
+        Args:
+            samples (List[str]): List of sample texts
+
+        Returns:
+            str: Joined string with samples as markdown list items
+        """
+        return ''.join(f'\n- {sample}' for sample in samples)
+
+    def _get_query(self, template: str, source: InputSource,
+                   samples: List[str]) -> str:
+        """Generate a query by replacing labels with markdown list text."""
+        value = self._wrap_with_markdown_list(samples) + "\n"
+        pattern = r'{{\s*' + re.escape(source.label) + r'\s*}}'
+        return re.sub(pattern, value, template)
+
     def _generate_queries(self, template: str, batch_size: int,
                           sources: List[InputSource],
                           session: Any) -> List[dict]:
@@ -79,22 +111,19 @@ class QueryGenerationPipe(Pipe):
 
         queries = []
         for i in range(1, batch_size + 1):
+            record = {"id": i}
             query = template
             for source in sources:
                 df_source = source.fetch_source(session)
                 samples = source.get_samples(df_source, source.ellipsis)
                 query = self._get_query(query, source, samples)
-            queries.append({"id": i, "query": query})
+                record[source.label] = self._wrap_with_markdown_list(
+                    samples).strip()
+            record["query"] = query
+            queries.append(record)
 
         Log.info(f"Total queries generated: {len(queries)}")
         return queries
-
-    def _get_query(self, template: str, source: InputSource,
-                   seeds: List[str]) -> str:
-        """Generate query by replacing labeled placeholders with seed texts."""
-        value = '\n' + ''.join(f'- {seed}\n' for seed in seeds)
-        pattern = r'{{\s*' + re.escape(source.label) + r'\s*}}'
-        return re.sub(pattern, value, template)
 
     def _parse_source_configs(self) -> List[InputSource]:
         """Parse source configurations from config."""

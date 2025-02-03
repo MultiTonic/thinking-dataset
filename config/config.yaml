@@ -59,7 +59,7 @@ pipelines:
     - pipe:
         type: "SubsetPipe"
         config:
-          rows: [ 0, 100 ]
+          rows: [ "all" ]
           columns: [ "all" ]
     - pipe:
         type: "AddIdPipe"
@@ -359,7 +359,7 @@ pipelines:
     name: "generate"
     description: "Generate synthetic data pipeline"
     config:
-      batch_size: 1
+      batch_size: 1000
     pipes:
     - pipe:
         type: "QueryGenerationPipe"
@@ -369,7 +369,7 @@ pipelines:
           - source:
               table: "train-00000-of-00001"
               column: "cable"
-              label: "seeds"
+              label: "seed"
               amount: 3
               length: 2500
               offset: 0
