@@ -359,7 +359,7 @@ pipelines:
     name: "generate"
     description: "Generate synthetic data pipeline"
     config:
-      batch_size: 10
+      batch_size: 1
     pipes:
     - pipe:
         type: "QueryGenerationPipe"

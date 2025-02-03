@@ -12,7 +12,7 @@ from tenacity import (
     retry,
     stop_after_attempt,
     wait_fixed,
-    retry_if_result,
+    retry_if_exception_type,
 )
 
 import pandas as pd
@@ -42,10 +42,12 @@ class ResponseGenerationPipe(Pipe):
         self.db = Database()
 
     @with_db_session
-    def flow(self,
-             df: pd.DataFrame,
-             session: Any = None,
-             **kwargs) -> pd.DataFrame:
+    def flow(
+        self,
+        df: pd.DataFrame,
+        session: Any = None,
+        **kwargs,
+    ) -> pd.DataFrame:
         """Execute the main pipeline flow for response generation."""
         Log.info("Starting ResponseGenerationPipe")
         Log.info(f"Using max_workers: {self.max_workers}")
@@ -60,6 +62,8 @@ class ResponseGenerationPipe(Pipe):
         out_table = out_config["table"]
         out_column = out_config["columns"][0]
         mock = self.config.get("mock", False)
+
+        # Get format configuration
         format = self.config.get("format", None)
         if format:
             format = format.lower()
@@ -77,143 +81,186 @@ class ResponseGenerationPipe(Pipe):
         if out_column not in df.columns:
             df[out_column] = None
 
-        # Asynchronous process method
-        async def process() -> None:
-            """Asynchronously process the query generation and response."""
-            try:
-                provider = OllamaProvider.initialize(self.config, mock=mock)
-                await self._process_queries(session, df, provider, out_table,
-                                            out_column, in_column, format,
-                                            template)
-                Log.info("Provider processing completed successfully")
-            except Exception as e:
-                Log.error(f"Provider processing failed: {str(e)}")
-                session.rollback()
-                raise e
-
-        # Run the asynchronous process
-        asyncio.run(process())
+        # Call the local async process method
+        asyncio.run(
+            self._run_async_process(session, df, out_table, out_column,
+                                    in_column, format, template, mock))
 
         Log.info("Finished ResponseGenerationPipe")
         return df
 
-    @retry(stop=stop_after_attempt(3),
-           wait=wait_fixed(2),
-           retry=retry_if_result(lambda x: x is None))
-    async def generate_response(self, query: str, provider: OllamaProvider,
-                                format: str | None,
-                                template: str | None) -> str:
-        response = await provider.process_request_async(prompt=query)
+    async def _run_async_process(
+        self,
+        session: Any,
+        df: pd.DataFrame,
+        out_table: str,
+        out_column: str,
+        in_column: str,
+        format: str | None,
+        template: str | None,
+        mock: bool,
+    ) -> None:
+        """Asynchronously process the query generation and response."""
+        try:
+            provider = OllamaProvider.initialize(self.config, mock=mock)
+            await self._process_queries(session, df, provider, out_table,
+                                        out_column, in_column, format,
+                                        template)
+            Log.info("Provider processing completed successfully")
+        except Exception as e:
+            Log.error(f"Provider processing failed: {str(e)}")
+            session.rollback()
+            raise e
 
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(2),
+        retry=retry_if_exception_type(Exception),
+    )
+    async def generate_response(
+        self,
+        query: str,
+        provider: OllamaProvider,
+        format: str | None,
+        template: str | None,
+    ) -> str:
+        response = await provider.process_request_async(prompt=query)
+        response = self._format_response(response, template, format)
+        return response
+
+    def _format_response(
+        self,
+        response: str,
+        template: str | None,
+        format: str | None,
+    ) -> str:
+        """Format the response according to the specified format."""
         match format:
             case None:
                 return response
             case "xml":
                 try:
                     required_elements = \
-                        TemplateExtractor.extract_required_elements(template)
-                    content = ResponseValidator.extract_xml_content(
-                        response, required_elements)
-                    return content
+                        TemplateExtractor.extract_required_elements(
+                            template)
+                    response_formatted = \
+                        ResponseValidator.extract_xml_content(
+                            response, required_elements)
+                    return response_formatted
                 except (XMLExtractionError, XMLValidationError) as e:
                     raise XMLValidationError(f"XML format error: {str(e)}")
             case _:
                 return response
 
-    async def _process_queries(self, session: Any, df: pd.DataFrame,
-                               provider: OllamaProvider, out_table: str,
-                               out_column: str, in_column: str,
-                               format: str | None, template: str | None):
+    async def _process_queries(
+        self,
+        session: Any,
+        df: pd.DataFrame,
+        provider: OllamaProvider,
+        out_table: str,
+        out_column: str,
+        in_column: str,
+        format: str | None,
+        template: str | None,
+    ):
         """Process queries concurrently with controlled concurrency."""
         try:
             semaphore = asyncio.Semaphore(self.max_workers)
-
-            async def _process_semaphore(row: pd.Series):
-                """
-                Process a single query within the semaphore context.
-                This function processes a single row from a pandas DataFrame
-                within the context of a semaphore to control concurrency. It
-                checks for valid row ID and query, logs the processing steps,
-                and calls another function to handle the actual
-                query processing."""
-                try:
-                    async with semaphore:
-                        row_id = row.at['id']
-                        query = row.at[in_column]
-
-                        # Skip if no ID or empty/null query
-                        if pd.isna(row_id) or pd.isna(query) or str(
-                                query).strip() == '':
-                            Log.warn(
-                                f"Skipping row - ID: {row_id}, Query: {query}")
-                            return
-
-                        # Start processing timer
-                        start_time = time.perf_counter()
-
-                        # Await response and capture output chars generated
-                        response = await self._process_query(
-                            session, int(row_id), str(query), provider,
-                            out_table, out_column, format, template)
-                        duration = time.perf_counter() - start_time
-                        if response:
-                            # Assuming average 4 characters per token.
-                            output_tokens = len(response) / 4
-                            input_tokens = len(query) / 4
-                            avg_tokens_per_sec = (
-                                (input_tokens + output_tokens) /
-                                2) / duration if duration else 0
-                            Log.info(f"Completed ID: {row_id} "
-                                     f"in {duration:.2f} sec | "
-                                     f"Input: {input_tokens:.2f} tk | "
-                                     f"Output: {output_tokens:.2f} tk | "
-                                     f"Speed: {avg_tokens_per_sec:.2f} tk/sec")
-                        else:
-                            Log.info(f"Completed row - ID: {row_id} "
-                                     f"in {duration:.2f} sec | "
-                                     "No response generated")
-
-                except Exception as e:
-                    Log.error(f"Query processing failed: {str(e)}")
-                    raise
-
-            tasks = [_process_semaphore(row) for _, row in df.iterrows()]
+            tasks = [
+                self._handle_process(row, semaphore, session, provider,
+                                     out_table, out_column, in_column, format,
+                                     template) for _, row in df.iterrows()
+            ]
             await asyncio.gather(*tasks, return_exceptions=False)
         except Exception as e:
             raise RuntimeError(
                 f"Failed to process query batch: {str(e)}") from e
 
-    async def _process_query(self, session: Any, row_id: int, query: str,
-                             provider: OllamaProvider, out_table: str,
-                             out_column: str, format: str | None,
-                             template: str | None) -> str:
+    async def _handle_process(
+        self,
+        row: pd.Series,
+        semaphore: asyncio.Semaphore,
+        session: Any,
+        provider: OllamaProvider,
+        out_table: str,
+        out_column: str,
+        in_column: str,
+        format: str | None,
+        template: str | None,
+    ) -> None:
+        """Process a single row with metrics tracking."""
+        async with semaphore:
+            row_id = row.at['id']
+            query = row.at[in_column]
+
+            if pd.isna(row_id) or pd.isna(query) or str(query).strip() == '':
+                Log.warn(f"Skipping -- ID: {row_id}, Query: {query}")
+                return
+
+            start_time = time.perf_counter()
+            response = await self._process_query(
+                session,
+                int(row_id),
+                str(query),
+                provider,
+                out_table,
+                out_column,
+                format,
+                template,
+            )
+            duration = time.perf_counter() - start_time
+
+            if response:
+                output_tokens = len(response) / 4
+                input_tokens = len(query) / 4
+                avg_tokens_per_sec = ((input_tokens + output_tokens) /
+                                      2) / duration if duration else 0
+                Log.info(
+                    f"Completed -- ID: {row_id} in {duration:.2f} sec | "
+                    f"Input: {input_tokens:.2f} tk | "
+                    f"Output: {output_tokens:.2f} tk | "
+                    f"Speed: {avg_tokens_per_sec:.2f} tk/sec", )
+            else:
+                Log.info(f"Completed -- ID: {row_id} in {duration:.2f} sec | "
+                         "No response generated")
+
+    async def _process_query(
+        self,
+        session: Any,
+        row_id: int,
+        query: str,
+        provider: OllamaProvider,
+        out_table: str,
+        out_column: str,
+        format: str | None,
+        template: str | None,
+    ) -> str:
         """Process a query through the AI pipeline and return response."""
         try:
             response = await self.generate_response(query, provider, format,
                                                     template)
-            await self._update_db(
-                session,
-                out_table,
-                row_id,
-                response,
-                out_column,
-            )
+            await self._update_db(session, out_table, row_id, response,
+                                  out_column)
             return response
         except Exception as e:
             Log.warn(
                 f"Skipping row {row_id} due to unexpected error: {str(e)}")
-            await self._update_db(
-                session,
-                out_table,
-                row_id,
-                None,
-                out_column,
-            )
+            await self._update_db(session, out_table, row_id, None, out_column)
             return ""
 
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2), reraise=True)
-    async def _update_db(self, session: Any, out_table: str, row_id: int,
-                         response: str, out_column: str) -> None:
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(2),
+        reraise=True,
+    )
+    async def _update_db(
+        self,
+        session: Any,
+        out_table: str,
+        row_id: int,
+        response: str,
+        out_column: str,
+    ) -> None:
         """Update the database with the generated AI response."""
         try:
             if row_id is None:
@@ -225,16 +272,14 @@ class ResponseGenerationPipe(Pipe):
             stmt = (update(table).where(table.c.id == row_id).values(
                 {out_column: response}))
 
-            Log.info(f"Updating DB - ID: {row_id}, "
-                     f"Table: {out_table}, "
-                     f"Column: {out_column}")
-
             session.execute(stmt)
             session.commit()
-            Log.info(f"Updated row with id {row_id} in '{out_table}' table")
+            Log.info(
+                f"Updated -- ID: {row_id} | "
+                f"Table: {out_table} | "
+                f"Column: {out_column}", )
 
         except Exception as e:
-            Log.error(f"Database update failed: {str(e)}")
             if session:
                 session.rollback()
             raise RuntimeError(f"Failed to update database: {str(e)}") from e
