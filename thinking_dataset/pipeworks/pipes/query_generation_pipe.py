@@ -1,16 +1,6 @@
-"""Query Generation Pipeline Module.
+"""Query Generation Pipeline Module."""
 
-This module provides functionality for generating queries by combining template
-patterns with seed text samples from a configured data source.
-
-Functions:
-    None
-
-Classes:
-    QueryGenerationPipe: Handles query generation from templates and seeds.
-"""
-
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __author__ = "MultiTonic Team"
 __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
@@ -32,34 +22,10 @@ from .pipe import Pipe
 
 class QueryGenerationPipe(Pipe):
     """Pipe for generating queries by combining templates with source
-        text samples.
-
-    This pipe:
-    1. Fetches seed texts from a specified database table/column
-    2. Randomly samples multiple seeds of configured length
-    3. Combines seeds with a template to generate queries
-    4. Writes generated queries to output database table
-
-    Config:
-        input (list): Source table and column config for seeds
-        output (list): Target table and column config for queries
-        seed_amount (int): Number of seeds to use per query
-        seed_length (int): Length of each seed text
-        seed_offset (int): Offset into seed text to start from
-        batch_size (int): Number of queries to generate
-        if_exists (str): How to handle existing output table
-        prompt (dict): Template configuration
-        validate (bool): Whether to validate template content
-    """
+        text samples."""
 
     def log_df_state(self, df: pd.DataFrame, state: str = "") -> None:
-        """Log the current state of the DataFrame.
-
-        Args:
-            df (pd.DataFrame): DataFrame to log information about
-            state (str, optional): Description of the current
-                state. Defaults to "".
-        """
+        """Log the current state of the DataFrame."""
         prefix = f"{state} " if state else ""
         Log.info(f"{prefix}DataFrame shape: {df.shape}")
         Log.info(f"{prefix}DataFrame columns: {df.columns.tolist()}")
@@ -69,18 +35,7 @@ class QueryGenerationPipe(Pipe):
              df: pd.DataFrame,
              session: Any = None,
              **kwargs) -> pd.DataFrame:
-        """Execute the query generation pipeline.
-
-        Args:
-            df (pd.DataFrame): Input DataFrame
-            session: Database session
-
-        Returns:
-            pd.DataFrame: DataFrame with generated queries
-
-        Raises:
-            ValueError: If batch_size is not provided in pipeline config
-        """
+        """Execute the query generation pipeline."""
         Log.info("Starting QueryGenerationPipe")
 
         # Get configuration values
@@ -122,15 +77,7 @@ class QueryGenerationPipe(Pipe):
         return df
 
     def _validate(self, df: pd.DataFrame, column: str) -> None:
-        """Validate DataFrame and column requirements.
-
-        Args:
-            df (pd.DataFrame): DataFrame to validate
-            column (str): Column name to validate
-
-        Raises:
-            ValueError: If validation fails
-        """
+        """Validate DataFrame and column requirements."""
         if df.empty:
             raise ValueError("DataFrame is empty.")
         if column not in df.columns:
@@ -140,16 +87,7 @@ class QueryGenerationPipe(Pipe):
 
     def _prepare_df(self, template: str, out_column: str,
                     batch_size: int) -> pd.DataFrame:
-        """Prepare DataFrame with template and IDs.
-
-        Args:
-            template (str): Template string
-            out_column (str): Column name for queries
-            batch_size (int): Number of rows to generate
-
-        Returns:
-            pd.DataFrame: Prepared DataFrame with IDs and template
-        """
+        """Prepare DataFrame with template and IDs."""
         data = [{'id': i + 1, out_column: template} for i in range(batch_size)]
         df = pd.DataFrame(data)
         return df
@@ -160,21 +98,7 @@ class QueryGenerationPipe(Pipe):
                    size: int,
                    offset: int,
                    use_ellipsis: bool = False) -> List[str]:
-        """Get random seed texts from the input DataFrame.
-
-        Args:
-            seeds (pd.DataFrame): DataFrame containing seed texts
-            amount (int): Number of seeds to sample
-            size (int): Length of text to extract from each seed
-            offset (int): Starting position for text extraction
-            use_ellipsis (bool): Whether to add ellipsis to truncated text
-
-        Returns:
-            List[str]: List of extracted seed texts
-
-        Raises:
-            ValueError: If no seeds are available
-        """
+        """Get random seed texts from the input DataFrame."""
         seeds_length = len(seeds)
         if seeds_length == 0:
             raise ValueError("No seeds available to generate.")
@@ -190,16 +114,7 @@ class QueryGenerationPipe(Pipe):
 
     def _fetch_seeds(self, session: Any, table_name: str,
                      in_column: str) -> pd.DataFrame:
-        """Fetch seed texts from database table.
-
-        Args:
-            session: Database session
-            table_name (str): Source table name
-            in_column (str): Column containing seed texts
-
-        Returns:
-            pd.DataFrame: DataFrame containing seed texts
-        """
+        """Fetch seed texts from database table."""
         Log.info(f"Fetching seeds from {table_name}.{in_column}")
         table = Table(table_name, MetaData(), autoload_with=session.bind)
         seeds = pd.read_sql(select(table.c[in_column]), session.bind)
@@ -207,16 +122,7 @@ class QueryGenerationPipe(Pipe):
         return seeds
 
     def _get_query(self, template: str, seeds: List[str], label: str) -> str:
-        """Generate query by replacing labeled placeholders with seed texts.
-
-        Args:
-            template (str): Template string with labeled placeholders
-            seeds (List[str]): List of seed texts to inject
-            label (str): Label to match in template placeholders
-
-        Returns:
-            str: Template with replaced values
-        """
+        """Generate query by replacing labeled placeholders with seed texts."""
         value = '\n' + ''.join(f'- {seed}\n' for seed in seeds)
         pattern = r'{{\s*' + re.escape(label) + r'\s*}}'
         return re.sub(pattern, value, template)
@@ -225,21 +131,7 @@ class QueryGenerationPipe(Pipe):
                           size: int, offset: int, template: str,
                           batch_size: int, label: str,
                           use_ellipsis: bool) -> List[str]:
-        """Generate multiple queries using seed texts and template.
-
-        Args:
-            seeds_df (pd.DataFrame): DataFrame containing seed texts
-            seed_amount (int): Number of seeds per query
-            size (int): Length of text to extract from each seed
-            offset (int): Starting position for text extraction
-            template (str): Template string with placeholders
-            batch_size (int): Number of queries to generate
-            label (str): Label to match in template placeholders
-            use_ellipsis (bool): Whether to add ellipsis to truncated text
-
-        Returns:
-            List[str]: List of generated queries
-        """
+        """Generate multiple queries using seed texts and template."""
         queries = []
         for _ in tqdm(range(batch_size), desc="Generating Queries", unit="qu"):
             seeds = self._get_seeds(seeds_df, seed_amount, size, offset,
@@ -251,13 +143,6 @@ class QueryGenerationPipe(Pipe):
     @retry(stop=stop_after_attempt(5), wait=wait_fixed(2), reraise=True)
     def _write_to_db(self, df: pd.DataFrame, session: Any, out_table: str,
                      if_exists: str) -> None:
-        """Write DataFrame to database with retry logic.
-
-        Args:
-            df (pd.DataFrame): Data to write
-            session: Database session
-            out_table (str): Target table name
-            if_exists (str): How to handle existing table
-        """
+        """Write DataFrame to database with retry logic."""
         df.to_sql(out_table, session.bind, if_exists=if_exists, index=False)
         Log.info(f"Inserted {len(df)} rows into '{out_table}' table")

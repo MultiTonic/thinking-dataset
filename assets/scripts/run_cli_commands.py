@@ -24,7 +24,7 @@ def main() -> None:
         "thinking-dataset load",
         "thinking-dataset generate",
         "thinking-dataset export",
-        "thinking-dataset upload",
+        # "thinking-dataset upload",
     ]
 
     try:
