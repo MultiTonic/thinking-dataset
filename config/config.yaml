@@ -388,7 +388,7 @@ pipelines:
         config:
           provider: "localhost"
           if_exists: "replace"
-          max_workers: 10
+          max_workers: 1
           mock: False
           format: "xml"
           output:
