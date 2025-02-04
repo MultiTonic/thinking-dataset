@@ -166,7 +166,7 @@ stage = thinking
 **OUTPUT FORMAT:**
 <!ELEMENT output (initial-thought, unique-thoughts, final-synthesis)>
 <!ELEMENT initial-thought (scenario, context, direction)>
-[First creative scenario, context, and direction]
+[Unique creative scenario, context, and direction]
 <!ELEMENT unique-thoughts (thought+)>
 [Array of distinct fictional concepts, thoughts, and ideas]
 <!ELEMENT final-synthesis (selected-direction, rationale, development)>

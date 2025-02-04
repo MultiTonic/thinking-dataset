@@ -14,7 +14,7 @@ from typing import Callable, Any
 
 from thinking_dataset.utils.log import Log
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __author__ = "MultiTonic Team"
 __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
@@ -27,6 +27,11 @@ class XMLExtractionError(Exception):
 
 class XMLValidationError(Exception):
     """Exception raised when XML validation fails in response processing."""
+    pass
+
+
+class XMLLengthError(Exception):
+    """Exception raised when XML response does not meet min length."""
     pass
 
 
@@ -52,6 +57,9 @@ def exceptions(func: Callable) -> Callable:
                 })
         except XMLValidationError as e:
             Log.error(f"XML validation error: {e}", exc_info=True)
+            error_occurred = True
+        except XMLLengthError as e:
+            Log.error(f"XML length error: {e}", exc_info=True)
             error_occurred = True
         except ValueError as e:
             Log.error(f"Validation error: {e}", exc_info=True)

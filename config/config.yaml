@@ -366,7 +366,7 @@ pipelines:
         config:
           columns: [ "cable" ]
           min_chunk_size: 500
-          max_chunk_size: 10000
+          max_chunk_size: 2000
 - pipeline:
     name: "generate"
     description: "Generate synthetic data pipeline"
@@ -403,6 +403,7 @@ pipelines:
           max_workers: 1
           mock: False
           format: "xml"
+          min_length: 2000
           output:
           - table: "cables"
             columns: [ "thinking" ]

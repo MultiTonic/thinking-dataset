@@ -5,13 +5,13 @@ __author__ = "MultiTonic Team"
 __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
 
-import asyncio
 import time
+import asyncio
 from typing import Any
 from tenacity import (
     retry,
-    stop_after_attempt,
     wait_fixed,
+    stop_after_attempt,
     retry_if_exception_type,
 )
 
@@ -28,6 +28,7 @@ from thinking_dataset.utils.log import Log
 from thinking_dataset.utils.exceptions import (
     XMLExtractionError,
     XMLValidationError,
+    XMLLengthError,
 )
 from .pipe import Pipe
 
@@ -62,6 +63,7 @@ class ResponseGenerationPipe(Pipe):
         out_table = out_config["table"]
         out_column = out_config["columns"][0]
         mock = self.config.get("mock", False)
+        min_length = self.config.get("min_length", 0)
 
         # Get format configuration
         format = self.config.get("format", None)
@@ -84,7 +86,8 @@ class ResponseGenerationPipe(Pipe):
         # Call the local async process method
         asyncio.run(
             self._run_async_process(session, df, out_table, out_column,
-                                    in_column, format, template, mock))
+                                    in_column, format, template, mock,
+                                    min_length))
 
         Log.info("Finished ResponseGenerationPipe")
         return df
@@ -99,13 +102,14 @@ class ResponseGenerationPipe(Pipe):
         format: str | None,
         template: str | None,
         mock: bool,
+        min_length: int,
     ) -> None:
         """Asynchronously process the query generation and response."""
         try:
             provider = OllamaProvider.initialize(self.config, mock=mock)
             await self._process_queries(session, df, provider, out_table,
                                         out_column, in_column, format,
-                                        template)
+                                        template, min_length)
             Log.info("Provider processing completed successfully")
         except Exception as e:
             Log.error(f"Provider processing failed: {str(e)}")
@@ -123,16 +127,26 @@ class ResponseGenerationPipe(Pipe):
         provider: OllamaProvider,
         format: str | None,
         template: str | None,
+        min_length: int = 0,
     ) -> str:
         response = await provider.process_request_async(prompt=query)
-        response = self._format_response(response, template, format)
+        response = self._format_response(response, template, format,
+                                         min_length)
         return response
+
+    def _validate_response_length(self, response: str,
+                                  min_length: int) -> None:
+        """Validate response meets minimum length requirement if specified."""
+        if min_length > 0 and len(response) < min_length:
+            raise XMLLengthError(f"Response length {len(response)} is "
+                                 f"below minimum {min_length}")
 
     def _format_response(
         self,
         response: str,
         template: str | None,
         format: str | None,
+        min_length: int = 0,
     ) -> str:
         """Format the response according to the specified format."""
         match format:
@@ -140,6 +154,7 @@ class ResponseGenerationPipe(Pipe):
                 return response
             case "xml":
                 try:
+                    self._validate_response_length(response, min_length)
                     required_elements = \
                         TemplateExtractor.extract_required_elements(
                             template)
@@ -147,7 +162,8 @@ class ResponseGenerationPipe(Pipe):
                         ResponseValidator.extract_xml_content(
                             response, required_elements)
                     return response_formatted
-                except (XMLExtractionError, XMLValidationError) as e:
+                except (XMLExtractionError, XMLValidationError,
+                        XMLLengthError) as e:
                     raise XMLValidationError(f"XML format error: {str(e)}")
             case _:
                 return response
@@ -162,6 +178,7 @@ class ResponseGenerationPipe(Pipe):
         in_column: str,
         format: str | None,
         template: str | None,
+        min_length: int,
     ):
         """Process queries concurrently with controlled concurrency."""
         try:
@@ -169,12 +186,42 @@ class ResponseGenerationPipe(Pipe):
             tasks = [
                 self._handle_process(row, semaphore, session, provider,
                                      out_table, out_column, in_column, format,
-                                     template) for _, row in df.iterrows()
+                                     template, min_length)
+                for _, row in df.iterrows()
             ]
             await asyncio.gather(*tasks, return_exceptions=False)
         except Exception as e:
             raise RuntimeError(
                 f"Failed to process query batch: {str(e)}") from e
+
+    def _log_metrics(
+        self,
+        row_id: int,
+        duration: float,
+        query: str | None = None,
+        response: str | None = None,
+        error: Exception | None = None,
+    ) -> None:
+        """Log processing metrics and results."""
+        if error:
+            Log.warn(f"Failed -- ID: {row_id} in "
+                     f"{duration:.2f} sec | Error: {str(error)}")
+            return
+
+        if not response:
+            Log.info(f"Completed -- ID: {row_id} in {duration:.2f} sec | "
+                     "No response generated")
+            return
+
+        output_tokens = len(response) / 4
+        input_tokens = len(query or "") / 4
+        avg_tokens_per_sec = (
+            (input_tokens + output_tokens) / 2) / duration if duration else 0
+
+        Log.info(f"Completed -- ID: {row_id} in {duration:.2f} sec | "
+                 f"Input: {input_tokens:.2f} tk | "
+                 f"Output: {output_tokens:.2f} tk | "
+                 f"Speed: {avg_tokens_per_sec:.2f} tk/sec")
 
     async def _handle_process(
         self,
@@ -187,6 +234,7 @@ class ResponseGenerationPipe(Pipe):
         in_column: str,
         format: str | None,
         template: str | None,
+        min_length: int,
     ) -> None:
         """Process a single row with metrics tracking."""
         async with semaphore:
@@ -198,31 +246,25 @@ class ResponseGenerationPipe(Pipe):
                 return
 
             start_time = time.perf_counter()
-            response = await self._process_query(
-                session,
-                int(row_id),
-                str(query),
-                provider,
-                out_table,
-                out_column,
-                format,
-                template,
-            )
-            duration = time.perf_counter() - start_time
+            try:
+                response = await self._process_query(
+                    session,
+                    int(row_id),
+                    str(query),
+                    provider,
+                    out_table,
+                    out_column,
+                    format,
+                    template,
+                    min_length,
+                )
+                duration = time.perf_counter() - start_time
+                self._log_metrics(row_id, duration, query, response)
 
-            if response:
-                output_tokens = len(response) / 4
-                input_tokens = len(query) / 4
-                avg_tokens_per_sec = ((input_tokens + output_tokens) /
-                                      2) / duration if duration else 0
-                Log.info(
-                    f"Completed -- ID: {row_id} in {duration:.2f} sec | "
-                    f"Input: {input_tokens:.2f} tk | "
-                    f"Output: {output_tokens:.2f} tk | "
-                    f"Speed: {avg_tokens_per_sec:.2f} tk/sec", )
-            else:
-                Log.info(f"Completed -- ID: {row_id} in {duration:.2f} sec | "
-                         "No response generated")
+            except (XMLValidationError, XMLLengthError) as e:
+                duration = time.perf_counter() - start_time
+                self._log_metrics(row_id, duration, error=e)
+                raise
 
     async def _process_query(
         self,
@@ -234,11 +276,12 @@ class ResponseGenerationPipe(Pipe):
         out_column: str,
         format: str | None,
         template: str | None,
+        min_length: int = 0,
     ) -> str:
         """Process a query through the AI pipeline and return response."""
         try:
             response = await self.generate_response(query, provider, format,
-                                                    template)
+                                                    template, min_length)
             await self._update_db(session, out_table, row_id, response,
                                   out_column)
             return response
