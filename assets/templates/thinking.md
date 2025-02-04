@@ -176,7 +176,10 @@ stage = thinking
 <!-- @purpose: Define template for expected output format structure -->
 <!-- @validation: Must follow exact XML schema -->
 <!-- @requirements: All fields must be fictional -->
-**OUTPUT TEMPLATE:**
+<!-- @instruction: Use this example ONLY for structural inspiration -->
+<!-- @warning: DO NOT copy or repeat example content -->
+<!-- @note: Create unique, original content following format only -->
+**EXAMPLE OUTPUT TEMPLATE:**
 <output>
   <initial-thought>
     <scenario>[Must be detailed diplomatic scenario]</scenario>

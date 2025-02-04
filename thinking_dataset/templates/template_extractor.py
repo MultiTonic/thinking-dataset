@@ -26,7 +26,7 @@ class TemplateExtractor:
         Returns:
             Match object if template section found, None otherwise.
         """
-        return re.search(r'-->\s*\*\*OUTPUT TEMPLATE:\*\*', content)
+        return re.search(r'-->\s*\*\*EXAMPLE OUTPUT TEMPLATE:\*\*', content)
 
     @staticmethod
     def extract_xml_schema(content: str) -> str | None:

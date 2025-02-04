@@ -59,7 +59,7 @@ pipelines:
     - pipe:
         type: "SubsetPipe"
         config:
-          rows: [ "all" ]
+          rows: [ 0, 100 ]
           columns: [ "all" ]
     - pipe:
         type: "AddIdPipe"
@@ -355,11 +355,23 @@ pipelines:
             "vac": "voluntary advisory committee"
             "wipo": "world intellectual property organization"
             "wmd": "weapons of mass destruction"
+    - pipe:
+        type: "FilterBySizePipe"
+        config:
+          column_name: "cable"
+          min_size: 500
+          max_size: 0
+    - pipe:
+        type: "ChunkingPipe"
+        config:
+          columns: [ "cable" ]
+          min_chunk_size: 500
+          max_chunk_size: 10000
 - pipeline:
     name: "generate"
     description: "Generate synthetic data pipeline"
     config:
-      batch_size: 1000
+      batch_size: 10
     pipes:
     - pipe:
         type: "QueryGenerationPipe"
@@ -371,7 +383,7 @@ pipelines:
               column: "cable"
               label: "seed"
               amount: 3
-              length: 2500
+              length: 2000
               offset: 0
               ellipsis: "..."
               shuffle: True
