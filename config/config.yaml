@@ -371,7 +371,7 @@ pipelines:
     name: "generate"
     description: "Generate synthetic data pipeline"
     config:
-      batch_size: 1
+      batch_size: 100
     pipes:
     - pipe:
         type: "QueryGenerationPipe"
@@ -401,7 +401,7 @@ pipelines:
           if_exists: "replace"
           max_workers: 1
           mock: False
-          min_length: 2000
+          min_length: 3000
           output:
           - table: "cables"
             columns: [ "thinking" ]

@@ -7,7 +7,7 @@
 
 [REQUIREMENTS]
 > @inputs:
-- MIN WORDS: 2000
+- MIN WORDS: 3000
 - MAX WORDS: 5000
 - STYLE: professional diplomatic narrative
 
