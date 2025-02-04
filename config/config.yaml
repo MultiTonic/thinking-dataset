@@ -394,7 +394,6 @@ pipelines:
               if_exists: "replace"
           query:
             template: "{{paths.templates}}/thinking.md"
-            validate: True
     - pipe:
         type: "ResponseGenerationPipe"
         config:
@@ -402,7 +401,7 @@ pipelines:
           if_exists: "replace"
           max_workers: 1
           mock: False
-          format: "xml"
+          # format: "xml"
           min_length: 2000
           output:
           - table: "cables"
@@ -412,25 +411,36 @@ pipelines:
     - pipe:
         type: "QueryGenerationPipe"
         config:
-          flush: True
           input:
           - source:
               table: "cables"
-              column: "cable"
+              column: "seed"
               label: "seed"
-              amount: 3
-              length: 2000
-              offset: 0
-              ellipsis: "..."
-              shuffle: True
+          - source:
+              table: "cables"
+              column: "thinking"
+              label: "thinking"
           output:
           - source:
               table: "cables"
               column: "query"
               if_exists: "replace"
           query:
-            template: "{{paths.templates}}/thinking.md"
-            validate: True
+            template: "{{paths.templates}}/reasoning.md"
+    - pipe:
+        type: "ResponseGenerationPipe"
+        config:
+          provider: "localhost"
+          if_exists: "replace"
+          max_workers: 1
+          mock: False
+          # format: "xml"
+          min_length: 3000
+          output:
+          - table: "cables"
+            columns: [ "reasoning" ]
+          response:
+            template: "{{paths.templates}}/reasoning.md"
 - pipeline:
     name: "export"
     description: "Default export pipeline"
@@ -444,7 +454,7 @@ pipelines:
           shard_size: 1000000
           pattern: "{{dataset.name}}-{split_name}-{split_info}.{{dataset.type}}"
           path: "{{paths.export}}/{{paths.processed_data_train}}"
-          schema: [ "id", "query", "thinking" ]
+          schema: [ "id", "query", "thinking", "reasoning" ]
           drop_columns: True
           fill_value: "null"
 - pipeline:

@@ -4,7 +4,7 @@ Provides extraction capabilities for template files, handling the parsing
 and extraction of XML schemas and content sections.
 """
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __author__ = "MultiTonic Team"
 __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
@@ -17,23 +17,11 @@ class TemplateExtractor:
     """Extracts and processes XML content from templates."""
 
     @staticmethod
-    def find_template_start(content: str) -> re.Match[str] | None:
-        """Find the start position of the OUTPUT TEMPLATE section.
-
-        Args:
-            content: Raw template content to search.
-
-        Returns:
-            Match object if template section found, None otherwise.
-        """
-        return re.search(r'-->\s*\*\*EXAMPLE OUTPUT TEMPLATE:\*\*', content)
-
-    @staticmethod
     def extract_xml_schema(content: str) -> str | None:
-        """Extract XML schema between <output> tags.
+        """Extract XML schema between root-level output tags.
 
         Searches for and extracts the XML schema section from template content,
-        including the enclosing output tags.
+        only matching output tags that are not nested within other elements.
 
         Args:
             content: Raw template content containing XML schema.
@@ -41,18 +29,9 @@ class TemplateExtractor:
         Returns:
             Complete XML schema if found, None otherwise.
         """
-        template_start = TemplateExtractor.find_template_start(content)
-        if not template_start:
-            return None
-
-        template_text = content[template_start.end():]
-        pattern = r'<output>(.*?)</output>.*?---'
-        match = re.search(pattern, template_text, re.DOTALL)
-
-        if not match:
-            return None
-
-        return f"<output>{match.group(1)}</output>"
+        pattern = r'<output>(?:(?!</output>).)*?</output>'
+        match = re.search(pattern, content, re.DOTALL)
+        return match.group(0).strip() if match else None
 
     @staticmethod
     def extract_required_elements(template: str | None) -> set[str] | None:
@@ -62,26 +41,20 @@ class TemplateExtractor:
             template: Template containing XML structure, or None.
 
         Returns:
-            Set of required element tag names if template
-                provided, None otherwise.
+            Set of required element tag names if template provided,
+                None otherwise.
         """
         if not template:
             return None
 
         try:
-            template_start = TemplateExtractor.find_template_start(template)
-            if not template_start:
-                return None
-
-            template_text = template[template_start.end():]
-            pattern = r'<output>(.*?)</output>'
-            match = re.search(pattern, template_text, re.DOTALL)
+            pattern = r'<output>(?:(?!</output>).)*?</output>'
+            match = re.search(pattern, template, re.DOTALL)
 
             if not match:
                 return None
 
-            xml_str = f"<output>{match.group(1)}</output>"
-            root = ET.fromstring(xml_str)
+            root = ET.fromstring(match.group(0))
             return {child.tag for child in root}
 
         except (ET.ParseError, AttributeError):

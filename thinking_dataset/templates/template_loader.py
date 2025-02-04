@@ -27,7 +27,7 @@ class TemplateLoader:
 
     @staticmethod
     @lru_cache(maxsize=None)
-    def load(path: str, validate: bool = True) -> str:
+    def load(path: str, validate: bool = False) -> str:
         """Load a template file from the specified path.
 
         Args:

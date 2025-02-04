@@ -35,7 +35,7 @@ class QueryGenerationPipe(Pipe):
         # Get configuration values
         template = TemplateLoader.load(
             self.config["query"]["template"],
-            self.config["query"].get("validate", True))
+            self.config["query"].get("validate", False))
         batch_size = self.get_batch_size()
         sources = self._parse_source_configs()
 

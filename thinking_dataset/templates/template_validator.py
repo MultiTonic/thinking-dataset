@@ -5,7 +5,7 @@ required sections and proper XML formatting. Works in conjunction with
 TemplateExtractor for processing template content.
 """
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __author__ = "MultiTonic Team"
 __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
@@ -21,20 +21,28 @@ class TemplateValidator:
     """Validates template content against required criteria."""
 
     @staticmethod
-    def _validate_template(content: str) -> None:
+    def validate_template(content: str) -> None:
         """Validate that content contains required OUTPUT TEMPLATE section.
 
         Args:
             content: Raw template content to validate.
 
         Raises:
-            ValueError: When template is missing
-                required OUTPUT TEMPLATE section.
+            ValueError: When template is missing required sections.
         """
-        template_pattern = r'-->\s*\*\*EXAMPLE OUTPUT TEMPLATE:\*\*'
-        if not re.search(template_pattern, content):
-            raise ValueError(
-                "Template missing required OUTPUT TEMPLATE section")
+        # Check for required template sections
+        patterns = [
+            r'\[CRITICAL INSTRUCTIONS\]',
+            r'> @template-usage:',
+            r'\*\*EXAMPLE OUTPUT TEMPLATE:\*\*',
+            r'\[END\]\s*\*\*EXAMPLE OUTPUT TEMPLATE:\*\*',
+            r'<output>(?:(?!</output>).)*?</output>',
+        ]
+
+        for pattern in patterns:
+            if not re.search(pattern, content, re.DOTALL):
+                raise ValueError("Template missing required section "
+                                 f"matching pattern: {pattern}")
 
     @staticmethod
     def validate(content: str) -> bool:
@@ -55,7 +63,7 @@ class TemplateValidator:
             ValueError: When template is missing sections or has invalid XML.
         """
         # Check for OUTPUT TEMPLATE section
-        TemplateValidator._validate_template(content)
+        TemplateValidator.validate_template(content)
 
         # Extract XML template structure
         xml_template = TemplateExtractor.extract_xml_schema(content)
