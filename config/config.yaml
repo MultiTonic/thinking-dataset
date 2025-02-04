@@ -371,7 +371,7 @@ pipelines:
     name: "generate"
     description: "Generate synthetic data pipeline"
     config:
-      batch_size: 10
+      batch_size: 1
     pipes:
     - pipe:
         type: "QueryGenerationPipe"
@@ -409,6 +409,28 @@ pipelines:
             columns: [ "thinking" ]
           response:
             template: "{{paths.templates}}/thinking.md"
+    - pipe:
+        type: "QueryGenerationPipe"
+        config:
+          flush: True
+          input:
+          - source:
+              table: "cables"
+              column: "cable"
+              label: "seed"
+              amount: 3
+              length: 2000
+              offset: 0
+              ellipsis: "..."
+              shuffle: True
+          output:
+          - source:
+              table: "cables"
+              column: "query"
+              if_exists: "replace"
+          query:
+            template: "{{paths.templates}}/thinking.md"
+            validate: True
 - pipeline:
     name: "export"
     description: "Default export pipeline"

@@ -56,7 +56,7 @@
 <!-- @purpose: Template configuration and processing hints -->
 <metadata>
   <!-- @hint: Version control for template processing -->
-  <version>1.0.8</version>
+  <version>0.0.3</version>
   <!-- @hint: Current stage in pipeline -->
   <stage>reasoning</stage>
   <!-- @hint: Processing flow control -->
@@ -81,14 +81,10 @@
 <!-- @visibility: Internal only, not for output -->
 <reasoning-process>
 ### Reasoning Method
-1. **Input**:
-   > Review scope and gather key parameters
-2. **Structure**:
-   > Build core analytical framework
-3. **Build**:
-   > Develop supporting logic chain
-4. **Verify**:
-   > Confirm rigor and coherence
+1. **Input**: Review scope and gather key parameters
+2. **Structure**: Build core analytical framework
+3. **Build**: Develop supporting logic chain
+4. **Verify**: Confirm rigor and coherence
 </reasoning-process>
 
 <!-- @section: instructions -->
@@ -186,11 +182,14 @@ stage = reasoning
 <!ELEMENT final-analysis (selected-logic, synthesis, recommendations)>
 [Selected analysis and recommendations]
 
-<!-- @section: output-example -->
-<!-- @purpose: Define expected output structure -->
+<!-- @section: output-template -->
+<!-- @purpose: Define template for expected output format structure -->
 <!-- @validation: Must follow exact XML schema -->
 <!-- @requirements: All fields must be fictional -->
-**PROPER STRUCTURE EXAMPLE:**
+<!-- @instruction: Use this example ONLY for structural inspiration -->
+<!-- @warning: DO NOT copy or repeat example content -->
+<!-- @note: Create unique, original content following format only -->
+**EXAMPLE STRUCTURE EXAMPLE:**
 <output>
   <initial-analysis>
     <framework>
