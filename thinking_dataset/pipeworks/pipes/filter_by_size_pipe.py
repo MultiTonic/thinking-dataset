@@ -99,17 +99,16 @@ class FilterBySizePipe(Pipe):
         if not isinstance(max_size, (int, float)):
             raise ValueError("max_size must be a number")
 
-    @classmethod
-    def _get_config(cls) -> dict:
+    def _get_config(self) -> dict:
         """Get processing configuration.
 
         Returns:
             dict: Configuration parameters
         """
         return {
-            'column_name': cls.config.get("column_name", "pdf_content"),
-            'min_size': cls.config.get("min_size", 0),
-            'max_size': cls.config.get("max_size", 0)
+            'column_name': self.config.get("column_name", "pdf_content"),
+            'min_size': self.config.get("min_size", 0),
+            'max_size': self.config.get("max_size", 0)
         }
 
     @staticmethod

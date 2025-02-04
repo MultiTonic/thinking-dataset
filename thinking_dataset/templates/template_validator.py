@@ -31,7 +31,7 @@ class TemplateValidator:
             ValueError: When template is missing
                 required OUTPUT TEMPLATE section.
         """
-        template_pattern = r'-->\s*\*\*OUTPUT TEMPLATE:\*\*'
+        template_pattern = r'-->\s*\*\*EXAMPLE OUTPUT TEMPLATE:\*\*'
         if not re.search(template_pattern, content):
             raise ValueError(
                 "Template missing required OUTPUT TEMPLATE section")
