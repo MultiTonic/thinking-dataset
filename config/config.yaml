@@ -401,7 +401,6 @@ pipelines:
           if_exists: "replace"
           max_workers: 1
           mock: False
-          # format: "xml"
           min_length: 2000
           output:
           - table: "cables"
@@ -434,13 +433,128 @@ pipelines:
           if_exists: "replace"
           max_workers: 1
           mock: False
-          # format: "xml"
           min_length: 3000
           output:
           - table: "cables"
             columns: [ "reasoning" ]
           response:
             template: "{{paths.templates}}/reasoning.md"
+    - pipe:
+        type: "QueryGenerationPipe"
+        config:
+          input:
+          - source:
+              table: "cables"
+              column: "seed"
+              label: "seed"
+          - source:
+              table: "cables"
+              column: "thinking"
+              label: "thinking"
+          - source:
+              table: "cables"
+              column: "reasoning"
+              label: "reasoning"
+          output:
+          - source:
+              table: "cables"
+              column: "query"
+              if_exists: "replace"
+          query:
+            template: "{{paths.templates}}/reflecting.md"
+    - pipe:
+        type: "ResponseGenerationPipe"
+        config:
+          provider: "localhost"
+          if_exists: "replace"
+          max_workers: 1
+          mock: False
+          min_length: 3000
+          output:
+          - table: "cables"
+            columns: [ "reflecting" ]
+          response:
+            template: "{{paths.templates}}/reflecting.md"
+    - pipe:
+        type: "QueryGenerationPipe"
+        config:
+          input:
+          - source:
+              table: "cables"
+              column: "seed"
+              label: "seed"
+          - source:
+              table: "cables"
+              column: "thinking"
+              label: "thinking"
+          - source:
+              table: "cables"
+              column: "reasoning"
+              label: "reasoning"
+          - source:
+              table: "cables"
+              column: "reflecting"
+              label: "reflecting"
+          output:
+          - source:
+              table: "cables"
+              column: "query"
+              if_exists: "replace"
+          query:
+            template: "{{paths.templates}}/composing.md"
+    - pipe:
+        type: "ResponseGenerationPipe"
+        config:
+          provider: "localhost"
+          if_exists: "replace"
+          max_workers: 1
+          mock: False
+          min_length: 3000
+          output:
+          - table: "cables"
+            columns: [ "composing" ]
+          response:
+            template: "{{paths.templates}}/composing.md"
+    - pipe:
+        type: "QueryGenerationPipe"
+        config:
+          input:
+          - source:
+              table: "cables"
+              column: "thinking"
+              label: "thinking"
+          - source:
+              table: "cables"
+              column: "reasoning"
+              label: "reasoning"
+          - source:
+              table: "cables"
+              column: "reflecting"
+              label: "reflecting"
+          - source:
+              table: "cables"
+              column: "composing"
+              label: "composing"
+          output:
+          - source:
+              table: "cables"
+              column: "query"
+              if_exists: "replace"
+          query:
+            template: "{{paths.templates}}/evaluation.md"
+    - pipe:
+        type: "ResponseGenerationPipe"
+        config:
+          provider: "localhost"
+          if_exists: "replace"
+          max_workers: 1
+          mock: False
+          min_length: 3000
+          output:
+          - table: "cables"
+            columns: [ "evaluation" ]
+          response:
+            template: "{{paths.templates}}/evaluation.md"
 - pipeline:
     name: "export"
     description: "Default export pipeline"
@@ -454,7 +568,7 @@ pipelines:
           shard_size: 1000000
           pattern: "{{dataset.name}}-{split_name}-{split_info}.{{dataset.type}}"
           path: "{{paths.export}}/{{paths.processed_data_train}}"
-          schema: [ "id", "query", "thinking", "reasoning" ]
+          schema: [ "id", "query", "seeds", "thinking", "reasoning", "reflecting", "composing", "evaluation" ]
           drop_columns: True
           fill_value: "null"
 - pipeline:
