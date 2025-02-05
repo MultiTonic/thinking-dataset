@@ -6,7 +6,7 @@ Functions:
     main: Main function to run all CLI commands in sequence.
 """
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __author__ = "MultiTonic Team"
 __copyright__ = "Copyright (c) 2025 MultiTonic Team"
 __license__ = "MIT"
@@ -23,8 +23,8 @@ def main() -> None:
         "thinking-dataset process",
         "thinking-dataset load",
         "thinking-dataset generate",
-        # "thinking-dataset export",
-        # "thinking-dataset upload",
+        "thinking-dataset export",
+        "thinking-dataset upload",
     ]
 
     try:
