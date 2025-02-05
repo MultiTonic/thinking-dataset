@@ -14,64 +14,55 @@ CoT diplomatic decision maker. Role:
 @version: 0.0.3
 
 <!-- @data -->
-<inspirations>{{seed}}</inspirations>
-<thinking>{{thinking}}</thinking>
-<reasoning>{{reasoning}}</reasoning>
-<reflecting>{{reflecting}}</reflecting>
 <composing>{{composing}}</composing>
 <evaluation>{{evaluation}}</evaluation>
 
-[PARAMS]
-@inputs: 2000-5000 words
-@constraints: analytical, Earth-only, 2025-2035
-[END]
-
 [ANALYSIS FRAMEWORK]
-1. EVALUATION PROCESSING
-- Content assessment
-- Quality metrics
+1. DISPOSITION OPTIONS
+- Archive cable
+- Refine content
+- Implement actions
+- Discard draft
+- Request revision
+
+2. DECISION CRITERIA
+- Content quality
 - Strategic value
-- Implementation viability
+- Resource requirements
+- Implementation feasibility
+- Risk assessment
 
-2. DECISION POINTS
-- Action requirements
-- Resource needs
-- Timeline constraints
-- Risk factors
-
-3. STRATEGIC CHOICES
-- Implementation paths
+3. ACTION PLANNING
+- Next steps
 - Resource allocation
+- Timeline planning
 - Risk mitigation
-- Success metrics
 
 [DIRECTIVE]
-No explain. Generate strategic decisions:
+No explain. Generate disposition decisions:
 
-"Based on evaluation results..."
-"Strategic analysis indicates..."
+"Based on evaluation..."
+"Cable assessment indicates..."
+"Recommended action is..."
 "Implementation requires..."
-"Success metrics need..."
-"Risk factors include..."
 
-Decision rules:
-- PROCESS evaluation results
-- DETERMINE required actions
-- ALLOCATE resources
-- IDENTIFY risks
-- MAP implementation
-- SET metrics
+Decision requirements:
+- DETERMINE cable disposition
+- SELECT action path
+- SPECIFY requirements
+- OUTLINE timeline
+- IDENTIFY resources
+- ASSESS risks
 
 Format each decision:
-EVALUATION: [result summary]
-DECISION: [strategic choice]
-REQUIREMENTS: [needs/resources]
-METRICS: [success indicators]
+DISPOSITION: [archive/refine/implement/discard]
+RATIONALE: [decision basis]
+REQUIREMENTS: [needed resources]
+TIMELINE: [implementation schedule]
 
-Generate exactly 20 strategic decisions.
-Each must be concrete and actionable.
-Build comprehensive action plan.
-Focus on implementation path.
+Generate 20 disposition decisions.
+Each must be actionable.
+Focus on concrete next steps.
 End with [End] marker.
 
 <decision>

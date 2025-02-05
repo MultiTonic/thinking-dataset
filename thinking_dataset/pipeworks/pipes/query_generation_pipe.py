@@ -110,19 +110,26 @@ class QueryGenerationPipe(Pipe):
                 "No sources configured - returning template text directly")
             return [{
                 "id": i,
-                "query": template
+                "query": template,
+                "seed": ""
             } for i in range(1, batch_size + 1)]
 
         queries = []
         for i in range(1, batch_size + 1):
             record = {"id": i}
             query = template
+            seeds = []
+
             for source in sources:
                 df_source = source.fetch_source(session)
                 samples = source.get_samples(df_source, source.ellipsis)
                 query = self._get_query(query, source, samples)
                 record[source.label] = self._wrap_with_markdown_list(
                     samples).strip()
+                seeds.extend(samples)
+
+            # Add combined seeds and final query to record
+            record["seed"] = self._wrap_with_markdown_list(seeds).strip()
             record["query"] = query
             queries.append(record)
 
@@ -195,5 +202,9 @@ class QueryGenerationPipe(Pipe):
     def _write_to_db(self, df: pd.DataFrame, session: Any, out_table: str,
                      if_exists: str) -> None:
         """Write DataFrame to database with retry logic."""
+        # Ensure seed column exists
+        if 'seed' not in df.columns:
+            df['seed'] = ''
+
         df.to_sql(out_table, session.bind, if_exists=if_exists, index=False)
         Log.info(f"Inserted {len(df)} rows into '{out_table}' table")

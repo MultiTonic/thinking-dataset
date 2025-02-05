@@ -14,10 +14,6 @@ CoT diplomatic action executor. Role:
 @version: 0.0.3
 
 <!-- @data -->
-<inspirations>{{seed}}</inspirations>
-<thinking>{{thinking}}</thinking>
-<reasoning>{{reasoning}}</reasoning>
-<reflecting>{{reflecting}}</reflecting>
 <composing>{{composing}}</composing>
 <evaluation>{{evaluation}}</evaluation>
 <decision>{{decision}}</decision>
@@ -28,51 +24,49 @@ CoT diplomatic action executor. Role:
 [END]
 
 [ANALYSIS FRAMEWORK]
-1. IMPLEMENTATION STRATEGY
-- Action priorities
-- Resource allocation
-- Timeline management
-- Risk mitigation
+1. ACTION PLANNING
+- Implementation steps
+- Resource requirements
+- Timeline development
+- Risk management
 
-2. EXECUTION TRACKING
-- Progress monitoring
-- Milestone achievement
-- Adjustment needs
-- Success metrics
+2. EXECUTION FRAMEWORK
+- Task breakdown
+- Responsibility assignment
+- Milestone definition
+- Progress tracking
 
-3. OUTCOME MEASUREMENT
-- Effectiveness tracking
+3. SUCCESS METRICS
+- Performance indicators
+- Quality measures
 - Impact assessment
-- Performance metrics
-- Results validation
+- Outcome validation
 
 [DIRECTIVE]
-No explain. Generate action implementations:
+No explain. Generate action plan:
 
-"Implementing decision where..."
-"Action execution shows..."
-"Progress tracking indicates..."
-"Adjustments needed include..."
-"Outcomes demonstrate..."
+"Based on decision..."
+"Implementation requires..."
+"Success measured by..."
+"Risks mitigated through..."
 
-Implementation rules:
-- EXECUTE each decision
-- TRACK all actions
-- MONITOR progress
-- MEASURE results
-- ADJUST as needed
-- DOCUMENT outcomes
+Planning requirements:
+- DETAIL implementation steps
+- SPECIFY resources
+- SET timelines
+- DEFINE metrics
+- MAP dependencies
+- MANAGE risks
 
-Format each implementation:
-DECISION: [from decision stage]
-ACTION: [implementation steps]
-PROGRESS: [current status]
-RESULTS: [measured outcomes]
+Format each action:
+STEP: [implementation task]
+RESOURCES: [required inputs]
+TIMELINE: [completion targets]
+METRICS: [success indicators]
 
-Generate exactly 20 action implementations.
-Each must be specific and measurable.
-Build comprehensive execution record.
-Focus on concrete results.
+Generate 20 action steps.
+Build comprehensive plan.
+Focus on measurable outcomes.
 End with [End] marker.
 
 <action>

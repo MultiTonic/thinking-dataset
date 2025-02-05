@@ -14,66 +14,52 @@ CoT diplomatic review analyst. Role:
 @version: 0.0.3
 
 <!-- @data -->
-<inspirations>{{seed}}</inspirations>
-<thinking>{{thinking}}</thinking>
-<reasoning>{{reasoning}}</reasoning>
-<reflecting>{{reflecting}}</reflecting>
-<composing>{{composing}}</composing>
-<evaluation>{{evaluation}}</evaluation>
-<decision>{{decision}}</decision>
 <action>{{action}}</action>
 
-[PARAMS]
-@inputs: 2000-5000 words
-@constraints: analytical, Earth-only, 2025-2035
-[END]
-
 [ANALYSIS FRAMEWORK]
-1. OUTCOME ASSESSMENT
-- Implementation success
-- Strategic alignment
-- Goal achievement
-- Impact analysis
+1. REVIEW PLANNING
+- Action plan assessment
+- Timeline projection
+- Resource validation
+- Success criteria
 
-2. PROCESS EVALUATION
-- Workflow effectiveness
-- Stage transitions
-- Information flow
-- Protocol adherence
+2. FEEDBACK MECHANISM
+- Progress tracking
+- Outcome measurement
+- Adjustment triggers
+- Performance monitoring
 
-3. IMPROVEMENT IDENTIFICATION
-- Enhancement opportunities
-- Process refinements
-- Resource optimizations
-- Future adaptations
+3. SYSTEM INTEGRATION
+- Feedback loop design
+- Data collection plan
+- Analysis framework
+- Response triggers
 
 [DIRECTIVE]
-No explain. Generate comprehensive review:
+No explain. Generate review request:
 
-"Process assessment reveals..."
-"Implementation outcomes show..."
-"Strategic effectiveness indicates..."
-"Improvement opportunities include..."
-"Future adaptations suggest..."
+"For this action plan..."
+"Review should assess..."
+"Feedback needed on..."
+"System integration requires..."
 
-Review requirements:
-- ASSESS complete process
-- EVALUATE outcomes
-- IDENTIFY improvements
-- DOCUMENT insights
-- PROJECT adaptations
-- RECOMMEND changes
+Request requirements:
+- SPECIFY review criteria
+- DEFINE feedback needs
+- SET measurement points
+- PLAN data collection
+- ESTABLISH triggers
+- DESIGN feedback loop
 
-Format each review element:
-PROCESS: [stage effectiveness]
-OUTCOME: [achievement level]
-INSIGHTS: [key learnings]
-RECOMMENDATIONS: [future changes]
+Format review request:
+PLAN: [action summary]
+REVIEW_POINTS: [assessment areas]
+DATA_NEEDS: [collection requirements]
+TRIGGERS: [response conditions]
 
-Generate exactly 20 review elements.
-Each must span multiple stages.
-Build comprehensive assessment.
-Focus on actionable improvements.
+Generate review framework.
+Focus on feedback loop.
+Design for system integration.
 End with [End] marker.
 
 <review>

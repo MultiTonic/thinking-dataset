@@ -49,45 +49,48 @@ Chain of Thought (CoT) diplomatic analyst. Role:
 - Future patterns
 
 [DIRECTIVE]
-No explain. Generate FUTURE diplomatic scenarios set in 2025-2035:
+No explain. Generate UNCONVENTIONAL diplomatic scenarios set in 2025-2035:
 
-"Imagine unconventional diplomatic situation where..."
-"Consider unexpected tensions between..."
-"Explore emerging dynamics where..."
-"Project surprising developments where..."
-"Envision unique scenarios where..."
+"Imagine surprising diplomatic situation where..."
+"Envision unexpected alliance between..."
+"Consider shocking development where..."
+"Picture unusual dynamic where..."
+"Explore counterintuitive scenario where..."
 
 Scenario generation rules:
-- Create NOVEL diplomatic situations
-- Avoid standard international bodies
-- Focus on UNEXPECTED actors
-- Develop CREATIVE tensions
-- Build SURPRISING relationships
-- Maintain PLAUSIBLE contexts
-- Use NON-OBVIOUS connections
+- NO traditional diplomatic actors
+- NO international organizations
+- NO standard diplomatic themes
+- FOCUS on non-obvious entities
+- CREATE unexpected partnerships
+- DEVELOP surprising tensions
+- MAINTAIN plausibility
+
+Required elements:
+- Use tech companies, cultural groups, cities
+- Include virtual nations, digital communities
+- Consider activist networks, industry coalitions
+- Mix corporate entities with social movements
+- Combine unlikely regional partnerships
 
 Format each scenario EXACTLY as:
-SCENARIO [number]: [year] - "[creative title]"
-ACTORS: [unexpected primary] -> [surprising secondary]
-DYNAMIC: [unique pattern] -> [novel evolution]
-IMPACT: [immediate consequence] -> [unforeseen long-term effect]
+SCENARIO [number]: [year] - "[provocative title]"
+ACTORS: [unconventional entity] -> [surprising partner]
+DYNAMIC: [unexpected pattern] -> [counterintuitive evolution]
+IMPACT: [surprising immediate] -> [non-obvious long-term]
 
-Requirements:
-- Generate exactly 20 scenarios
-- Each under 50 words
-- All must be unexpected yet plausible
-- No conventional diplomatic situations
-- Avoid typical international organizations
-- Focus on surprising relationships
-- Build interconnected but unique scenarios
+Generate exactly 20 scenarios.
+Each under 50 words.
+All must be unexpected AND plausible.
+Build interconnected web of surprises.
 End with [End] marker.
 
 <thinking>
-SCENARIO 1: 2027 - "[unexpected diplomatic situation]"
-ACTORS: [surprising entity] -> [unconventional entity]
-DYNAMIC: [novel pattern] -> [creative evolution]
-IMPACT: [unexpected immediate] -> [surprising long-term]
-<!-- Generate 19 more creative scenarios following this format -->
+SCENARIO 1: 2027 - "Digital Democracy Uprising"
+ACTORS: Decentralized gamer collective -> Traditional monarchy
+DYNAMIC: Virtual governance expertise -> Constitutional evolution
+IMPACT: Hybrid ruling system -> New form of digital-physical sovereignty
+<!-- Generate 19 more truly creative scenarios -->
 [End]
 </thinking>
 

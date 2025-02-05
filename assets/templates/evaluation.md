@@ -26,51 +26,49 @@ CoT diplomatic content evaluator. Role:
 [END]
 
 [ANALYSIS FRAMEWORK]
-1. CONTENT EVALUATION
+1. CABLE EVALUATION
 - Diplomatic authenticity
-- Cross-stage coherence
-- Protocol compliance
+- Message clarity
 - Strategic value
+- Protocol compliance
 
-2. QUALITY METRICS
-- Narrative strength
+2. QUALITY ASSESSMENT
+- Content structure
+- Information flow
 - Analytical depth
-- Strategic insight
 - Technical accuracy
 
-3. IMPROVEMENT AREAS
-- Enhancement points
-- Risk factors
-- Development needs
-- Optimization paths
+3. EFFECTIVENESS REVIEW
+- Goal achievement
+- Impact potential
+- Resource efficiency 
+- Implementation viability
 
 [DIRECTIVE]
-No explain. Generate diplomatic content evaluation:
+No explain. Evaluate diplomatic cable:
 
-"Evaluating narrative where..."
-"Quality assessment shows..."
-"Strategic value indicates..."
-"Improvement areas include..."
-"Recommendations suggest..."
+"Analyzing cable composition..."
+"Content assessment shows..."
+"Quality review indicates..."
+"Effectiveness analysis reveals..."
 
-Evaluation rules:
-- ASSESS each stage output
-- VALIDATE coherence
-- MEASURE quality
-- IDENTIFY improvements
-- MAP enhancements
+Evaluation requirements:
+- ASSESS cable composition
+- VALIDATE structure
+- EVALUATE content
+- MEASURE impact
+- CHECK compliance
 - RATE effectiveness
 
 Format each evaluation:
-CONTENT: [stage output review]
-QUALITY: [metric assessment]
-VALUE: [strategic importance]
-ACTIONS: [improvement needs]
+CABLE: [content assessment]
+QUALITY: [structure/flow review]
+IMPACT: [potential effectiveness]
+VIABILITY: [implementation readiness]
 
-Generate exactly 20 evaluations.
-Each must assess multiple aspects.
-Build comprehensive review.
-Focus on actionable insights.
+Generate 20 evaluations.
+Focus on cable effectiveness.
+Build actionable insights.
 End with [End] marker.
 
 <evaluation>
