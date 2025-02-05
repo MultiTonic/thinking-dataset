@@ -40,6 +40,7 @@ class ResponseGenerationPipe(Pipe):
         """Initialize ResponseGenerationPipe with configuration settings."""
         super().__init__(config)
         self.max_workers = self.config.get("max_workers", 4)
+        self.template_path = self.config.get("template", None)
         self.db = Database()
 
     @with_db_session
@@ -52,12 +53,10 @@ class ResponseGenerationPipe(Pipe):
         """Execute the main pipeline flow for response generation."""
         Log.info("Starting ResponseGenerationPipe")
         Log.info(f"Using max_workers: {self.max_workers}")
-
-        # Get configurations
-        template_path = self.config["response"]["template"]
+        Log.info(f"Using template: {self.template_path}")
 
         # Load template and configurations
-        template = TemplateLoader.load(template_path)
+        template = TemplateLoader.load(self.template_path)
         batch_size = self.get_batch_size()
         out_config = self.config["output"][0]
         out_table = out_config["table"]

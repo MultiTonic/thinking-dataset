@@ -23,6 +23,12 @@ class QueryGenerationPipe(Pipe):
     """Pipe for generating queries by combining templates with
        source text samples."""
 
+    def __init__(self, config: dict) -> None:
+        """Initialize QueryGenerationPipe with configuration settings."""
+        super().__init__(config)
+        self.template_path = self.config.get("template", None)
+        self.validate = self.config.get("validate", None)
+
     # Public methods
     @with_db_session
     def flow(self,
@@ -33,9 +39,7 @@ class QueryGenerationPipe(Pipe):
         Log.info("Starting QueryGenerationPipe")
 
         # Get configuration values
-        template = TemplateLoader.load(
-            self.config["query"]["template"],
-            self.config["query"].get("validate", False))
+        template = TemplateLoader.load(self.template_path, self.validate)
         batch_size = self.get_batch_size()
         sources = self._parse_source_configs()
 
