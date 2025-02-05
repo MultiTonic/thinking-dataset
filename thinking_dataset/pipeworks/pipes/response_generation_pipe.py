@@ -39,7 +39,7 @@ class ResponseGenerationPipe(Pipe):
     def __init__(self, config: dict) -> None:
         """Initialize ResponseGenerationPipe with configuration settings."""
         super().__init__(config)
-        self.max_workers = self.config.get("max_workers", 4)
+        self.max_workers = self.config.get("max_workers", 1)
         self.template_path = self.config.get("template", None)
         self.db = Database()
 
@@ -58,9 +58,9 @@ class ResponseGenerationPipe(Pipe):
         # Load template and configurations
         template = TemplateLoader.load(self.template_path)
         batch_size = self.get_batch_size()
-        out_config = self.config["output"][0]
-        out_table = out_config["table"]
-        out_column = out_config["columns"][0]
+        out_source = self.config["output"][0]["source"]
+        out_table = out_source["table"]
+        out_column = out_source["column"]
         mock = self.config.get("mock", False)
         min_length = self.config.get("min_length", 0)
 

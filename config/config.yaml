@@ -137,13 +137,12 @@ pipelines:
         config:
           provider: "localhost"
           if_exists: "replace"
-          max_workers: 1
-          mock: False
-          min_length: 3000
           template: "{{paths.templates}}/thinking.md"
           output:
-          - table: "cables"
-            columns: [ "thinking" ]
+          - source:
+              table: "cables"
+              column: "thinking"
+              if_exists: "replace"
 - pipeline:
     name: "export"
     description: "Default export pipeline"

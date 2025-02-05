@@ -1,67 +1,86 @@
-<!-- @template: diplomatic-composing -->
-<!-- @purpose: Transform insights into formal cable -->
-<!-- @flow: thinking->reasoning->reflecting->composing -->
-<!-- @version: 0.0.3 -->
-
-# Stage 4: Diplomatic Cable Composition
-
-[REQUIREMENTS]
-> @inputs:
-- MIN WORDS: 3000
-- MAX WORDS: 7000
-- STYLE: formal diplomatic cable
-
-> @quality:
-- FORMAT: "precise"
-- CLARITY: "high"
-- PROTOCOL: "strict"
-
-> @prohibited:
-- REAL ENTITIES/EVENTS
-- FUTURE/SCI-FI
-- CONTENT COPYING
+[SYSTEM PROMPT]
+CoT diplomatic cable composer. Role:
+- Transform analysis chain into formal cable
+- Integrate multi-stage insights
+- Structure diplomatic messaging
+- Apply cable protocols
+- Maintain classification standards
+- Ensure diplomatic accuracy
 [END]
 
-[CONSTRAINTS]
-> @temporal: 2025-2035
-> @spatial: Earth-only
-> @tone: Formal diplomatic
-[END]
+<!-- @meta -->
+@stage: composing
+@flow: thinking->reasoning->reflecting->composing->evaluation->decision->action->review
+@version: 0.0.3
 
 <!-- @data -->
 <!-- @hint: Seeds contain multiple unrelated diplomatic scenarios -->
-<!-- @hint: Use seeds only for format inspiration -->
-<!-- @hint: Focus on synthesizing previous stages -->
+<!-- @hint: Use seeds only as inspiration for new actors and dynamics -->
+<!-- @hint: Do not combine unrelated scenarios -->
 <inspirations>{{seed}}</inspirations>
 <thinking>{{thinking}}</thinking>
 <reasoning>{{reasoning}}</reasoning>
-<reflecting>{{reflecting}}</reflecting>
+<reflection>{{reflection}}</reflection>
 
-[CRITICAL INSTRUCTIONS]
-Let's compose this diplomatic cable systematically:
-
-1. CABLE FRAMEWORK
-- Structure formal diplomatic header
-- Establish classification level
-- Define distribution parameters
-- Set document context
-
-2. CONTENT DEVELOPMENT
-- Compose executive summary
-- Present background context
-- Detail key analyses
-- Document recommendations
-
-3. FORMAL COMPLETION
-- Add administrative details
-- Include proper signatures
-- Apply formal protocols
-- Ensure cable compliance
-
-Transform all previous analyses into a formal diplomatic cable.
-Follow strict diplomatic cable formatting and protocols.
-Generate professional, formal diplomatic communication.
+[PARAMS]
+@inputs: 3000-7000 words
+@constraints: diplomatic cable format
 [END]
 
----
-**Begin your response with "DIPLOMATIC CABLE" followed by standard cable header format, then provide the complete cable text.**
+[CABLE]
+1. NETWORK HEADER
+- Classification level
+- Distribution scope
+- Relationship focus
+
+2. RELATIONSHIP CONTENT
+- Network mapping
+- Pattern analysis
+- System projection
+
+[DIRECTIVE]
+No explain. Transform analysis into diplomatic cable:
+
+CLASSIFICATION: [Level]
+DISTRIBUTION: [List]
+SUBJECT: Strategic Analysis of [Focus]
+
+Required sections:
+1. EXECUTIVE SUMMARY
+- Synthesized understanding
+- Key strategic patterns
+- Critical implications
+
+2. ANALYTICAL BACKGROUND
+- Scenario analysis
+- Critical reasoning
+- Pattern synthesis
+
+3. STRATEGIC IMPLICATIONS
+- Regional impacts
+- Alliance dynamics
+- Future trajectories
+
+4. RECOMMENDATIONS
+- Strategic options
+- Risk mitigations
+- Engagement paths
+
+Generate complete diplomatic cable.
+Integrate all previous stages.
+Maintain formal cable structure.
+End with [End] marker.
+
+<composing>
+[Formal diplomatic cable incorporating full analysis chain]
+[End]
+<!-- @hint: Ensure the cable is detailed, clear, and coherent, aiming for 5000 words. Follow the structure and integrate insights from all stages. -->
+</composing>
+
+<output>
+@cable: {
+  header: {classification, distribution, subject},
+  body: {summary, analysis, implications, recommendations},
+  metadata: {references, handling_instructions}
+}
+</output>
