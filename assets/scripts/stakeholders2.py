@@ -13,12 +13,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 # Create base directories
 BASE_DIR = Path(os.getcwd())
-DATA_DIR = BASE_DIR / "case_studies"
+DATA_DIR = BASE_DIR / "data" / "case_studies"
 LOG_DIR = BASE_DIR / "logs"
 
-# Create necessary directories
-DATA_DIR.mkdir(exist_ok=True)
-LOG_DIR.mkdir(exist_ok=True)
+# Create necessary directories with parents
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 # Update logging configuration
 logging.basicConfig(level=logging.INFO,
@@ -103,7 +103,7 @@ class RunPodClientManager:
         try:
             message = {'role': 'user', 'content': 'Test connection'}
             await endpoint.client.chat(
-                model="yi-34b-chat",  # Adjust model name as needed
+                model="deepseek-r1:8b",  # Adjust model name as needed
                 messages=[message])
             return True
         except Exception as e:
@@ -131,7 +131,7 @@ class CaseStudyGenerator:
 
     def __init__(
             self,
-            model_name: str = "yi-34b-chat",  # Adjust model name as needed
+            model_name: str = "deepseek-r1:8b",  # Adjust model name as needed
             batch_size: int = 5,
             save_interval: int = 100,
             temperature: float = 0.75,
@@ -216,21 +216,19 @@ class CaseStudyGenerator:
                     f"Using endpoint {endpoint.endpoint} for {language} generation"
                 )
 
-                response = await endpoint.client.chat(model=self.model_name,
-                                                      messages=[{
-                                                          "role":
-                                                          "user",
-                                                          "content":
-                                                          prompt_text
-                                                      }],
-                                                      options={
-                                                          "temperature":
-                                                          self.temperature,
-                                                          "max_tokens":
-                                                          self.max_tokens,
-                                                          "top_p": 0.95,
-                                                          "presence_penalty": 0
-                                                      })
+                response = await endpoint.client.chat(
+                    model=self.model_name,
+                    messages=[{
+                        "role": "user",
+                        "content": prompt_text
+                    }],
+                    options={
+                        "temperature": self.temperature,
+                        #"max_tokens":
+                        #self.max_tokens,
+                        "top_p": 0.95,
+                        #"presence_penalty": 0
+                    })
 
                 return response['message']['content'].strip()
 
@@ -286,7 +284,7 @@ async def main():
         logger.info(f"Loaded {total_items} items from dataset")
 
         generator = CaseStudyGenerator(
-            model_name="yi-34b-chat",  # Adjust model name as needed
+            model_name="deepseek-r1:8b",  # Adjust model name as needed
             batch_size=5,
             save_interval=5,
             temperature=0.75,
