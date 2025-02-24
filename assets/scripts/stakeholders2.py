@@ -103,7 +103,8 @@ class RunPodClientManager:
         try:
             message = {'role': 'user', 'content': 'Test connection'}
             await endpoint.client.chat(
-                model="deepseek-r1:8b",  # Adjust model name as needed
+                model=
+                "p3nGu1nZz/tonic-casestudy-en-8b",  # Adjust model name as needed
                 messages=[message])
             return True
         except Exception as e:
@@ -131,11 +132,12 @@ class CaseStudyGenerator:
 
     def __init__(
             self,
-            model_name: str = "deepseek-r1:8b",  # Adjust model name as needed
-            batch_size: int = 5,
-            save_interval: int = 100,
-            temperature: float = 0.75,
-            max_tokens: int = 3950):
+            model_name:
+        str = "p3nGu1nZz/tonic-casestudy-en-8b",  # Adjust model name as needed
+            batch_size: int = 1,
+            save_interval: int = 1,
+            temperature: float = 1,
+            max_tokens: int = 16384):
         self.model_name = model_name
         self.batch_size = batch_size
         self.save_interval = save_interval
@@ -284,11 +286,12 @@ async def main():
         logger.info(f"Loaded {total_items} items from dataset")
 
         generator = CaseStudyGenerator(
-            model_name="deepseek-r1:8b",  # Adjust model name as needed
-            batch_size=5,
-            save_interval=5,
-            temperature=0.75,
-            max_tokens=3950)
+            model_name=
+            "p3nGu1nZz/tonic-casestudy-en-8b",  # Adjust model name as needed
+            batch_size=1,
+            save_interval=1,
+            temperature=1,
+            max_tokens=16384)
 
         # Test connections
         if not await generator.client_manager.test_connections():
