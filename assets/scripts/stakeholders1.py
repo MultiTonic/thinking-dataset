@@ -27,7 +27,7 @@ from rich.panel import Panel
 import logging
 
 MODEL_NAME = "deepseek-r1-distill-llama-70b"
-BATCH_SIZE = 2
+BATCH_SIZE = 5
 SAVE_INTERVAL = 10
 MAX_TOKENS = 3950
 TEMPERATURE = 0.75
@@ -75,11 +75,6 @@ SCALEWAY_CONFIGS = [{
     "c752b005-1f62-4112-9205-920d519216e6",
     "base_url":
     "https://api.scaleway.ai/444c4241-bfe4-42ac-b397-4b47cbb9d3c1/v1"
-}, {
-    "api_key":
-    "c752b005-1f62-4112-9205-920d519216e6",
-    "base_url":
-    "https://api.scaleway.ai/31eb293d-4b23-4f43-aca8-bb0494d2f679/v1"
 }, {
     "api_key":
     "9ba8e980-e480-484e-8d55-12c9172d63c2",
@@ -421,11 +416,52 @@ class CaseStudyGenerator:
 
         logger.info(f"Saved interim batch {batch_idx} for both languages")
 
+    async def retry_language_generation(self,
+                                        prompt: Dict[str, str],
+                                        language: str,
+                                        row: Dict[str, Any],
+                                        max_retries: int = 3) -> str:
+        """Retry individual language generation until success or max retries."""
+        for attempt in range(max_retries):
+            try:
+                result = await self.generate_case_study(prompt, language)
+                if result:  # Only return if we got a valid result
+                    return result
+                await asyncio.sleep(2**attempt)  # Exponential backoff
+            except Exception as e:
+                logger.error(
+                    f"Attempt {attempt + 1} failed for {language}: {str(e)}")
+                if attempt == max_retries - 1:
+                    raise
+                await asyncio.sleep(2**attempt)
+        return None
+
+    async def save_single_generation(self, result: str, metadata: Dict[str,
+                                                                       Any],
+                                     language: str) -> Path:
+        """Save single generation result to temp directory."""
+        filename = f"generation_{self.response_counter:06d}_{language}.json"
+        filepath = TEMP_DIR / filename
+
+        data = {
+            'case_study': result,
+            'original_info': metadata['original_info'],
+            'stakeholders': metadata.get('stakeholders', {}),
+            'endpoint': 'scaleway',
+            'language': language,
+            'timestamp': time.time()
+        }
+
+        interim_dataset = Dataset.from_list([data])
+        interim_dataset.save_to_disk(str(filepath))
+        self.response_counter += 1
+        return filepath
+
     async def process_language_generation(
             self, prompt: Dict[str, str], language: str,
             row: Dict[str, Any]) -> Dict[str, Any]:
-        """Remove status parameter and simplify."""
-        result = await self.generate_case_study(prompt, language)
+        """Process generation with retries for each language."""
+        result = await self.retry_language_generation(prompt, language, row)
         if not result:
             return None
 
@@ -434,23 +470,14 @@ class CaseStudyGenerator:
             'stakeholder': row.get('stakeholders',
                                    {}).get('stakeholder', [''])[0],
             'motivation': row.get('stakeholders', {}).get('motivation',
-                                                          [''])[0]
+                                                          [''])[0],
+            'stakeholders': row.get('stakeholders', {})
         }
 
-        saved_path = self.save_response(result, metadata, language)
+        # Save to temp directory
+        saved_path = await self.save_single_generation(result, metadata,
+                                                       language)
         logger.info(f"Saved {language} response to {saved_path}")
-
-        # Save interim result for this specific generation
-        interim_data = [{
-            'case_study': result,
-            'original_info': metadata['original_info'],
-            'stakeholders': row.get('stakeholders', {}),
-            'endpoint': 'scaleway'
-        }]
-
-        interim_dataset = Dataset.from_list(interim_data)
-        interim_save_path = DATA_DIR / f"interim_single_{self.response_counter}_{language}"
-        interim_dataset.save_to_disk(str(interim_save_path))
 
         return {'result': result, 'saved_path': saved_path}
 
@@ -467,21 +494,32 @@ class CaseStudyGenerator:
             saved_paths = []
 
             for prompt in prompts:
-                # Remove console.status context manager
-                en_task = self.process_language_generation(prompt, 'en', row)
-                cn_task = self.process_language_generation(prompt, 'cn', row)
-                en_result, cn_result = await asyncio.gather(en_task, cn_task)
+                # Process languages sequentially to ensure both succeed
+                en_result = await self.process_language_generation(
+                    prompt, 'en', row)
+                cn_result = await self.process_language_generation(
+                    prompt, 'cn', row)
 
-                if en_result:
+                # Only proceed if both generations succeeded
+                if en_result and cn_result:
                     en_outputs.append(en_result['result'])
-                    saved_paths.append(en_result['saved_path'])
-
-                if cn_result:
                     cn_outputs.append(cn_result['result'])
-                    saved_paths.append(cn_result['saved_path'])
+                    saved_paths.extend(
+                        [en_result['saved_path'], cn_result['saved_path']])
+                else:
+                    logger.error(
+                        f"Failed to generate both languages for stakeholder {stakeholder}"
+                    )
+                    continue
 
             duration = time.time() - start_time
             logger.info(f"Completed processing in {duration:.2f}s")
+
+            if not (en_outputs
+                    and cn_outputs):  # Only return if we have both languages
+                raise ValueError(
+                    "Failed to generate complete pair of translations")
+
             return {
                 'case_study_en': en_outputs,
                 'case_study_cn': cn_outputs,
