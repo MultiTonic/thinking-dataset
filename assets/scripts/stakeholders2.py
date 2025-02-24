@@ -134,10 +134,10 @@ class CaseStudyGenerator:
             self,
             model_name:
         str = "p3nGu1nZz/tonic-casestudy-en-8b",  # Adjust model name as needed
-            batch_size: int = 1,
+            batch_size: int = 2,
             save_interval: int = 10,
             temperature: float = 1,
-            max_tokens: int = 16384):
+            max_tokens: int = 8192):
         self.model_name = model_name
         self.batch_size = batch_size
         self.save_interval = save_interval
@@ -288,10 +288,10 @@ async def main():
         generator = CaseStudyGenerator(
             model_name=
             "p3nGu1nZz/tonic-casestudy-en-8b",  # Adjust model name as needed
-            batch_size=1,
+            batch_size=2,
             save_interval=10,
             temperature=1,
-            max_tokens=16384)
+            max_tokens=8192)
 
         # Test connections
         if not await generator.client_manager.test_connections():
