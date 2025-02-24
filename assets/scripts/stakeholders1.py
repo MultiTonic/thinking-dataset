@@ -1,31 +1,26 @@
 # flake8: noqa
 
-# Standard library imports
-import asyncio
 import os
 import re
 import time
+import random
+import logging
+import asyncio
+import requests
 from functools import lru_cache
 from pathlib import Path
-from typing import List, Dict, Any
-
-# Third-party imports - Data & ML
+from typing import List, Dict, Any, Tuple
 from datasets import load_dataset, DatasetDict, Dataset
 from huggingface_hub import login
 from openai import OpenAI
-import requests
-
-# Third-party imports - Utilities
-from tenacity import (retry, stop_after_attempt, wait_exponential,
-                      retry_if_exception_type, before_sleep_log, after_log)
-
-# Third-party imports - Rich console
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.traceback import install as install_rich_traceback
 from rich.panel import Panel
-import logging
+from tenacity import (retry, stop_after_attempt, wait_exponential,
+                      retry_if_exception_type, before_sleep_log, after_log)
 
+HF_TOKEN = "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"
 MODEL_NAME = "deepseek-r1-distill-llama-70b"
 BATCH_SIZE = 5
 SAVE_INTERVAL = 10
@@ -36,12 +31,10 @@ PRESENCE_PENALTY = 0
 REQUEST_TIMEOUT = 30
 MAX_RETRIES = 3
 CACHE_SIZE = 100
-
+MAX_CONCURRENT_TASKS = 5
+MAX_OUTPUT_RECORDS = 1000
 REQUEST_DELAY = 1.0
 RATE_LIMIT_DELAY = 60.0
-MAX_CONCURRENT_REQUESTS = 3
-
-HF_TOKEN = "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"
 
 SYSTEM_PROMPT_URLS = {
     'en':
@@ -155,19 +148,15 @@ class ScalewayClientManager:
             for config in configs
         ]
         self.last_request_time = 0
+        self._semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
 
-    def get_client(self) -> OpenAI:
-        client = self.clients[self.current_index]
-        self.rotate_key()
-        return client
-
-    def get_current_config(self) -> Dict[str, str]:
-        return self.configs[self.current_index]
-
-    def rotate_key(self):
-        self.current_index = (self.current_index + 1) % len(self.configs)
-        config = self.get_current_config()
-        logger.info(f"Rotated to API key with base URL {config['base_url']}")
+    async def get_next_client(self) -> Tuple[OpenAI, Dict[str, str]]:
+        async with self._semaphore:
+            client = self.clients[self.current_index]
+            config = self.configs[self.current_index]
+            self.current_index = (self.current_index + 1) % len(self.configs)
+            logger.info(f"Using API endpoint: {config['base_url']}")
+            return client, config
 
 
 class TokenTracker:
@@ -204,17 +193,15 @@ class CaseStudyGenerator:
         self.batch_size = batch_size
         self.save_interval = save_interval
         self.client_manager = ScalewayClientManager(SCALEWAY_CONFIGS)
+        self.semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
+        self.active_tasks = 0
+        self.response_counter = 0
+        self.token_tracker = TokenTracker()
+        self._setup_prompts()
 
-        console.print("[yellow]Fetching system prompts from GitHub...[/]")
-        try:
-            self.system_prompt_en = fetch_system_prompt('en')
-            self.system_prompt_cn = fetch_system_prompt('cn')
-            console.print("[green]Successfully loaded system prompts[/]")
-        except Exception:
-            console.print(
-                "[red]Failed to load system prompts, cannot continue[/]")
-            raise
-
+    def _setup_prompts(self):
+        self.system_prompt_en = fetch_system_prompt('en')
+        self.system_prompt_cn = fetch_system_prompt('cn')
         self.prompt_template_en = """
         {case_study_info}
         Stakeholder: {stakeholder} {motivation}
@@ -226,9 +213,6 @@ class CaseStudyGenerator:
         """
         self.fallback_prompt_cn = """{case_study_info}
         """
-
-        self.response_counter = 0
-        self.token_tracker = TokenTracker()
 
     @lru_cache(maxsize=CACHE_SIZE)
     def prepare_prompt_template(self, case_study_info: str, stakeholder: str,
@@ -278,16 +262,18 @@ class CaseStudyGenerator:
             logger.error(f"Error preparing prompts: {str(e)}")
             return [{'en': '', 'cn': ''}]
 
-    def save_response(self, response: str, metadata: Dict[str, Any],
-                      lang: str) -> Path:
-        filename = f"{self.response_counter:06d}_{lang}.txt"
+    async def save_single_generation(self, result: str, metadata: Dict[str,
+                                                                       Any],
+                                     language: str) -> Path:
+        """Save single generation as simple text file."""
+        filename = f"generation_{self.response_counter:06d}_{language}.txt"
         filepath = TEMP_DIR / filename
 
-        content = (f"Original Info: {metadata.get('original_info', '')}\n"
-                   f"Stakeholder: {metadata.get('stakeholder', '')}\n"
-                   f"Motivation: {metadata.get('motivation', '')}\n"
-                   f"Language: {lang}\n"
-                   f"Response:\n{response}\n")
+        content = (f"Original Info: {metadata['original_info']}\n"
+                   f"Stakeholder: {metadata['stakeholder']}\n"
+                   f"Motivation: {metadata['motivation']}\n"
+                   f"Language: {language}\n"
+                   f"Response:\n{result}\n")
 
         filepath.write_text(content, encoding='utf-8')
         self.response_counter += 1
@@ -309,8 +295,7 @@ class CaseStudyGenerator:
                                     (current_time -
                                      self.client_manager.last_request_time))
 
-            client = self.client_manager.get_client()
-            config = self.client_manager.get_current_config()
+            client, config = await self.client_manager.get_next_client()
             logger.info(f"Making API request to {config['base_url']}")
 
             response = client.chat.completions.create(
@@ -436,52 +421,36 @@ class CaseStudyGenerator:
                 await asyncio.sleep(2**attempt)
         return None
 
-    async def save_single_generation(self, result: str, metadata: Dict[str,
-                                                                       Any],
-                                     language: str) -> Path:
-        """Save single generation result to temp directory."""
-        filename = f"generation_{self.response_counter:06d}_{language}.json"
-        filepath = TEMP_DIR / filename
+    async def process_with_semaphore(self, prompt: Dict[str,
+                                                        str], language: str,
+                                     row: Dict[str, Any]) -> Dict[str, Any]:
+        """Process a single generation with semaphore control."""
+        # Add initial random delay
+        initial_delay = random.uniform(1, 10)
+        await asyncio.sleep(initial_delay)
 
-        data = {
-            'case_study': result,
-            'original_info': metadata['original_info'],
-            'stakeholders': metadata.get('stakeholders', {}),
-            'endpoint': 'scaleway',
-            'language': language,
-            'timestamp': time.time()
-        }
+        async with self.semaphore:
+            self.active_tasks += 1
+            logger.info(
+                f"Active tasks: {self.active_tasks} (started after {initial_delay:.1f}s delay)"
+            )
+            try:
+                prompt_text = prompt['en'] if language == 'en' else prompt['cn']
+                system_prompt = self.system_prompt_en if language == 'en' else self.system_prompt_cn
 
-        interim_dataset = Dataset.from_list([data])
-        interim_dataset.save_to_disk(str(filepath))
-        self.response_counter += 1
-        return filepath
+                if not prompt_text:
+                    raise ValueError(f"Empty prompt for {language}")
 
-    async def process_language_generation(
-            self, prompt: Dict[str, str], language: str,
-            row: Dict[str, Any]) -> Dict[str, Any]:
-        """Process generation with retries for each language."""
-        result = await self.retry_language_generation(prompt, language, row)
-        if not result:
-            return None
+                logger.info(f"Starting generation for {language}")
+                result = await self._make_completion_request(
+                    prompt_text, system_prompt)
+                return result
 
-        metadata = {
-            'original_info': row.get('case_study_info', ''),
-            'stakeholder': row.get('stakeholders',
-                                   {}).get('stakeholder', [''])[0],
-            'motivation': row.get('stakeholders', {}).get('motivation',
-                                                          [''])[0],
-            'stakeholders': row.get('stakeholders', {})
-        }
-
-        # Save to temp directory
-        saved_path = await self.save_single_generation(result, metadata,
-                                                       language)
-        logger.info(f"Saved {language} response to {saved_path}")
-
-        return {'result': result, 'saved_path': saved_path}
+            finally:
+                self.active_tasks -= 1
 
     async def process_row(self, row: Dict[str, Any]) -> Dict[str, List[str]]:
+        """Process row with improved concurrency."""
         try:
             start_time = time.time()
             stakeholder = row.get('stakeholders', {}).get('stakeholder',
@@ -494,29 +463,26 @@ class CaseStudyGenerator:
             saved_paths = []
 
             for prompt in prompts:
-                # Process languages sequentially to ensure both succeed
-                en_result = await self.process_language_generation(
+                # First process English to ensure we want to proceed
+                en_result = await self.process_with_semaphore(
                     prompt, 'en', row)
-                cn_result = await self.process_language_generation(
+                if not en_result:
+                    continue
+
+                # Then kick off Chinese in parallel with other tasks
+                cn_result = await self.process_with_semaphore(
                     prompt, 'cn', row)
 
-                # Only proceed if both generations succeeded
                 if en_result and cn_result:
                     en_outputs.append(en_result['result'])
                     cn_outputs.append(cn_result['result'])
                     saved_paths.extend(
                         [en_result['saved_path'], cn_result['saved_path']])
-                else:
-                    logger.error(
-                        f"Failed to generate both languages for stakeholder {stakeholder}"
-                    )
-                    continue
 
             duration = time.time() - start_time
             logger.info(f"Completed processing in {duration:.2f}s")
 
-            if not (en_outputs
-                    and cn_outputs):  # Only return if we have both languages
+            if not (en_outputs and cn_outputs):
                 raise ValueError(
                     "Failed to generate complete pair of translations")
 
@@ -537,9 +503,17 @@ class CaseStudyGenerator:
             self, batch: List[Dict[str, Any]], batch_idx: int,
             all_case_studies: List[Dict[str,
                                         Any]]) -> List[Dict[str, List[str]]]:
+        """Process batch maintaining controlled concurrency."""
         try:
-            tasks = [self.process_row(row) for row in batch]
-            results = await asyncio.gather(*tasks)
+            # Process one row first to validate the batch
+            first_result = await self.process_row(batch[0])
+            results = [first_result]
+
+            if len(batch) > 1:
+                # Then process remaining rows in parallel
+                other_results = await asyncio.gather(*(self.process_row(row)
+                                                       for row in batch[1:]))
+                results.extend(other_results)
 
             if len(all_case_studies) + len(results) >= self.save_interval:
                 await self.save_interim_results(all_case_studies + results,
@@ -593,23 +567,47 @@ async def ensure_dataset_exists(name: str) -> str:
 
 
 async def main():
+    processed_count = 0
     try:
         console.print("[bold green]Starting case study generation[/]")
         dataset_name = await ensure_dataset_exists(DATASET_NAME)
         dataset = load_dataset(SOURCE_DATASET, split=DATASET_SPLIT)
-        total_items = len(dataset)  # Define total_items here
+        total_items = min(len(dataset), MAX_OUTPUT_RECORDS)
+
+        # Debug dataset structure
+        sample_row = dataset[0]
+        logger.info(f"Dataset sample row: {sample_row}")
+        logger.info(f"Dataset sample type: {type(sample_row)}")
 
         generator = CaseStudyGenerator()
         generator.token_tracker.set_total_requests(total_items)
 
-        content_items = [dict(row) for row in dataset]
+        # Safely convert dataset rows to dictionaries
+        content_items = []
+        for idx, row in enumerate(dataset[:total_items]):
+            try:
+                if isinstance(row, str):
+                    # Handle string rows
+                    row_dict = {'case_study_info': row}
+                else:
+                    # Handle dictionary rows
+                    row_dict = row if isinstance(row, dict) else dict(row)
+
+                content_items.append(row_dict)
+                logger.info(f"Processed row {idx + 1}/{total_items}")
+            except Exception as e:
+                logger.error(f"Error processing row {idx}: {str(e)}")
+                continue
+
+        if not content_items:
+            raise ValueError("No valid items found in dataset")
+
         batches = [
             content_items[i:i + generator.batch_size]
             for i in range(0, len(content_items), generator.batch_size)
         ]
 
         all_case_studies = []
-        processed_count = 0
 
         for batch_idx, batch in enumerate(batches):
             try:
@@ -654,7 +652,7 @@ async def main():
         console.print(
             Panel.fit(
                 f"[bold cyan]Final Statistics[/]\n\n"
-                f"Total Items Processed: {processed_count}/{total_items}\n"  # Now total_items is defined
+                f"Total Items Processed: {processed_count}/{total_items}\n"
                 f"Total Input Tokens: {stats['total_input_tokens']:.0f}\n"
                 f"Total Output Tokens: {stats['total_output_tokens']:.0f}\n"
                 f"Average Tokens/minute: {stats['tokens_per_minute']:.1f}\n"
