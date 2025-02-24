@@ -135,7 +135,7 @@ class CaseStudyGenerator:
             model_name:
         str = "p3nGu1nZz/tonic-casestudy-en-8b",  # Adjust model name as needed
             batch_size: int = 1,
-            save_interval: int = 1,
+            save_interval: int = 10,
             temperature: float = 1,
             max_tokens: int = 16384):
         self.model_name = model_name
@@ -289,7 +289,7 @@ async def main():
             model_name=
             "p3nGu1nZz/tonic-casestudy-en-8b",  # Adjust model name as needed
             batch_size=1,
-            save_interval=1,
+            save_interval=10,
             temperature=1,
             max_tokens=16384)
 
