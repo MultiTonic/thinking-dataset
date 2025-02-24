@@ -36,15 +36,17 @@ login(token=HF_TOKEN)
 # RunPod endpoints: 4 per language (replace with actual endpoints)
 RUNPOD_ENDPOINTS = [
     # English endpoints
-    ("endpoint-en-1.runpod.net", "en"),
-    ("endpoint-en-2.runpod.net", "en"),
-    ("endpoint-en-3.runpod.net", "en"),
-    ("endpoint-en-4.runpod.net", "en"),
+    # ("https://endpoint-en-1.runpod.net", "en"),
+    # ("https://endpoint-en-2.runpod.net", "en"),
+    # ("https://endpoint-en-3.runpod.net", "en"),
+    # ("https://endpoint-en-4.runpod.net", "en"),
+    ("http://localhost:11434", "en"),  # dev
     # Chinese endpoints
-    ("endpoint-cn-1.runpod.net", "cn"),
-    ("endpoint-cn-2.runpod.net", "cn"),
-    ("endpoint-cn-3.runpod.net", "cn"),
-    ("endpoint-cn-4.runpod.net", "cn"),
+    # ("https://endpoint-cn-1.runpod.net", "cn"),
+    # ("https://endpoint-cn-2.runpod.net", "cn"),
+    # ("https://endpoint-cn-3.runpod.net", "cn"),
+    # ("https://endpoint-cn-4.runpod.net", "cn"),
+    ("http://localhost:11434", "cn"),  # dev
 ]
 
 
@@ -53,7 +55,7 @@ class RunPodEndpoint:
     def __init__(self, endpoint: str, language: str):
         self.endpoint = endpoint
         self.language = language
-        self.client = AsyncClient(host=f"https://{endpoint}")
+        self.client = AsyncClient(host=f"{endpoint}")
         self.is_active = True
         self.last_used = 0
 
