@@ -35,17 +35,17 @@ HF_TOKEN = "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"
 login(token=HF_TOKEN)
 
 # Scaleway API keys and base URLs as a list of tuples
-### UNCOMMENT TO USE REAL SCALEWAY API KEYS AND BASE URLS ###
-# SCALWAY_CONFIGS = [
-#     ("aedfc8cc-c3fc-408b-8724-8561b90e6c51",
-#      "https://api.scaleway.ai/4a1f7f6d-712d-4d1b-ae6c-8a8377df9f8e/v1"),
-#     ("f03456f3-3143-4f0e-a667-2cfac1c24ff1",
-#      "https://api.scaleway.ai/76f74175-f023-4fd0-a884-63975787c13c/v1"),
-#     ("f8879976-7908-40e6-a88a-5761f88aae16",
-#      "https://api.scaleway.ai/774f5a61-5f80-4f59-90f2-da7f3f48ba30/v1"
-#      ),  # Replace with real key and URL
-#     #   ("backup_key_3_here", "https://api.scaleway.ai/backup_endpoint_3_here/v1")   # Replace with real key and URL
-# ]
+
+SCALWAY_CONFIGS = [
+    ("aedfc8cc-c3fc-408b-8724-8561b90e6c51",
+     "https://api.scaleway.ai/4a1f7f6d-712d-4d1b-ae6c-8a8377df9f8e/v1"),
+    ("f03456f3-3143-4f0e-a667-2cfac1c24ff1",
+     "https://api.scaleway.ai/76f74175-f023-4fd0-a884-63975787c13c/v1"),
+    ("f8879976-7908-40e6-a88a-5761f88aae16",
+     "https://api.scaleway.ai/774f5a61-5f80-4f59-90f2-da7f3f48ba30/v1"
+     ),  # Replace with real key and URL
+    #   ("backup_key_3_here", "https://api.scaleway.ai/backup_endpoint_3_here/v1")   # Replace with real key and URL
+]
 
 
 class ScalewayClientManager:
