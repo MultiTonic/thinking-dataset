@@ -37,9 +37,12 @@ async def x(s,m):
         except Exception as e:l.info(f"Endpoint Fail! {s['n']}: {str(e)}");raise
 async def m(a):
     try:
+        r=f"run_{int(t.time())}"
         p=os.path.abspath(a.output);h=a.log_dir or os.path.join(p,"logs")
-        g={"out":p,"log":h,"workers":a.workers or 5,"ends":len(d['endpoints'])}
-        [i(f"{m}")for m in[f"Output path: {g['out']}",f"Log path: {g['log']}",f"Workers: {g['workers']}",f"Endpoints: {g['ends']}"]]
+        dd=os.path.join(p,"data");cs=os.path.join(dd,"case_studies");tm=os.path.join(dd,"temp")
+        [os.makedirs(x,exist_ok=1)for x in[dd,cs,tm]]
+        g={"rid":r,"out":p,"log":h,"data":dd,"case_studies":cs,"temp":tm,"workers":a.workers or 5,"ends":len(d['endpoints'])}
+        [i(x)for x in[f"Run ID: {g['rid']}",f"Output: {g['out']}",f"Log: {g['log']}",f"Data: {g['data']}",f"Cases: {g['case_studies']}",f"Temp: {g['temp']}",f"Workers: {g['workers']}",f"Endpoints: {g['ends']}"]]
         if not isinstance(d,dict)or'endpoints'not in d:raise ValueError("Invalid config")
         s=io.Semaphore(g['workers']);i(f"Starting tests with {g['workers']} parallel workers")
         q=await ta.gather(*[x(e,s)for e in d["endpoints"]],desc="Test")
