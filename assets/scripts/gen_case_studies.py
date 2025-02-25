@@ -23,7 +23,7 @@ async def f():
         if r.status_code==200:
             j=r.json()
             i("Config fetched successfully")
-            return{k:j[k]for k in['endpoints','model','source','destination','system_prompts','prompt_templates','max_tokens','temperature']if k in j}
+            return{k:j[k]for k in['endpoints','model','source','dest','system_prompts','prompt_templates','max_tokens','temp']if k in j}
         i(f"Failed to fetch config: {r.status_code}",0);return None
     except Exception as e:i(f"Error fetching config: {e}",0);return None
 @retry(stop=sa(T),wait=wait_random(min=.1,max=D),reraise=True)
@@ -48,9 +48,10 @@ async def w():
         i(f"Dataset loaded successfully:")
         i(f"- source: {s}")
         i(f"- records: {len(ds)}")
-        i(f"- type: {type(ds).__name__}")
         return ds
-    except Exception as e:i(f"Error loading dataset '{s}': {e}",0);return None
+    except Exception as e:
+        i(f"Error loading dataset '{s}': {e}",0)
+        return None
 async def m(a):
     try:
         r=str(int(t.time()))
@@ -72,9 +73,16 @@ async def m(a):
         if not ds:raise ValueError("Failed to load dataset")
     except Exception as e:i(f"Fatal error: {str(e)}",1);raise e
 if __name__=="__main__": 
-    p=ap.ArgumentParser();[p.add_argument(a,**k)for a,k in[("--config",{"default":G}),("--output",{"default":os.getcwd()}),("--log-dir",{}),("--workers",{"type":int})]];a=p.parse_args();G=a.config
+    p=ap.ArgumentParser()
+    [p.add_argument(a,**k)for a,k in[("--config",{"default":G}),("--output",{"default":os.getcwd()}),("--log-dir",{}),("--workers",{"type":int})]]
+    a=p.parse_args();G=a.config
     try:
         p=os.path.join(os.getcwd(),"logs")
+        global c,l
         c,l=log(a.log_dir or p)
-        d=io.run(f());io.run(m(a))if d else c.error("No config")
-    except Exception as e:c.error(f"F:{e}");exit(1)
+        global d
+        d=io.run(f())
+        io.run(m(a))if d else c.error("No config")
+    except Exception as e:
+        c.error(f"F:{e}")
+        exit(1)
