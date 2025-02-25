@@ -46,9 +46,13 @@ async def w():
         s=d.get('src')
         if not s:raise ValueError("No source dataset in config")
         ds=load_dataset(s,split="english")
+        total_records = len(ds)
+        total_stakeholders = sum(len(row.get('stakeholders', {}).get('stakeholder', [])) for row in ds)
         i(f"Dataset loaded successfully:")
         i(f"- source: {s}")
-        i(f"- records: {len(ds)}")
+        i(f"- total records: {total_records}")
+        i(f"- total stakeholders: {total_stakeholders}")
+        i(f"- average stakeholders per record: {total_stakeholders/total_records:.2f}")
         return ds
     except Exception as e:
         i(f"Error loading dataset '{s}': {e}",0)
@@ -73,6 +77,112 @@ async def u(r:list,d:str)->bool:
 async def z(n:str)->bool:
     try:return bool(HfApi().dataset_info(n))
     except:return False
+
+async def prepare_prompt(case_study_info: str, stakeholder: str, motivation: str, lang: str) -> str:
+    """Prepare a single prompt with stakeholder info."""
+    if not case_study_info or not stakeholder:
+        return None
+    
+    template = d['prompts'].get(lang, "")
+    if not template:
+        i(f"No template found for language: {lang}", 0)
+        return None
+        
+    return template.format(
+        case_study_info=case_study_info.strip(),
+        stakeholder=stakeholder.strip(),
+        motivation=motivation.strip() or "Unknown motivations or intentions"
+    )
+
+async def expand_dataset(dataset) -> list:
+    """Expand dataset records based on stakeholders."""
+    expanded = []
+    skipped = 0
+    valid = 0
+    total_original = len(dataset)
+    stakeholder_counts = []
+    
+    for idx, row in enumerate(dataset):
+        try:
+            info = row.get('case_study_info', '')
+            stakeholders = row.get('stakeholders', {})
+            s_list = stakeholders.get('stakeholder', [])
+            m_list = stakeholders.get('motivation', [])
+            
+            if s_list and m_list and len(s_list) == len(m_list):
+                valid += 1
+                stakeholder_counts.append(len(s_list))
+                for s_idx, (stakeholder, motivation) in enumerate(zip(s_list, m_list)):
+                    expanded.append({
+                        'case_study_info': info,
+                        'stakeholder': stakeholder,
+                        'motivation': motivation,
+                        'original_idx': idx,
+                        'stakeholder_idx': s_idx
+                    })
+            else:
+                skipped += 1
+                i(f"Skipping record {idx}: Invalid stakeholders structure", 0)
+        except Exception as e:
+            i(f"Error expanding record {idx}: {e}", 0)
+            skipped += 1
+    
+    avg_stakeholders = sum(stakeholder_counts)/len(stakeholder_counts) if stakeholder_counts else 0
+    max_stakeholders = max(stakeholder_counts) if stakeholder_counts else 0
+            
+    i(f"Dataset expansion statistics:")
+    i(f"- Original records: {total_original}")
+    i(f"- Valid records: {valid}")
+    i(f"- Skipped records: {skipped}")
+    i(f"- Total stakeholders: {len(expanded)}")
+    i(f"- Average stakeholders per valid record: {avg_stakeholders:.2f}")
+    i(f"- Max stakeholders in a record: {max_stakeholders}")
+    i(f"- Success rate: {(valid/total_original*100):.1f}%")
+    return expanded
+
+async def prepare_all_prompts(records: list) -> list:
+    """Prepare prompts for all records in both languages."""
+    prepared = []
+    failed = 0
+    total = len(records)
+    
+    for record in records:
+        try:
+            # Prepare prompts for both languages
+            en_prompt = await prepare_prompt(
+                record['case_study_info'],
+                record['stakeholder'],
+                record['motivation'],
+                'en'
+            )
+            zh_prompt = await prepare_prompt(
+                record['case_study_info'],
+                record['stakeholder'],
+                record['motivation'],
+                'zh'
+            )
+            
+            if en_prompt and zh_prompt:
+                prepared.append({
+                    **record,
+                    'prompts': {
+                        'en': en_prompt,
+                        'zh': zh_prompt
+                    }
+                })
+            else:
+                failed += 1
+        except Exception as e:
+            i(f"Error preparing prompts for record: {e}", 0)
+            failed += 1
+            
+    i(f"Prompt preparation statistics:")
+    i(f"- Total records processed: {total}")
+    i(f"- Successfully prepared: {len(prepared)}")
+    i(f"- Failed preparations: {failed}")
+    i(f"- Success rate: {(len(prepared)/total*100):.1f}%")
+    return prepared
+
 async def m(a):
     try:
         r=str(int(t.time()))
@@ -92,6 +202,13 @@ async def m(a):
         i("Loading dataset...")
         ds=await w()
         if not ds:raise ValueError("Failed to load dataset")
+        
+        i("Expanding dataset records...")
+        expanded = await expand_dataset(ds)
+        
+        i("Preparing prompts...")
+        prepared = await prepare_all_prompts(expanded)
+        
         dest=d.get('dest')
         if not dest:raise ValueError("No destination dataset in config")
         results=[]
