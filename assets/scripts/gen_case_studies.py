@@ -3,7 +3,8 @@ from openai import AsyncOpenAI as ai
 from tenacity import retry,wait_random,stop_after_attempt as sa
 from tqdm.asyncio import tqdm_asyncio as ta
 from asyncio import TimeoutError
-from datasets import load_dataset
+from datasets import load_dataset, Dataset, DatasetDict
+from huggingface_hub import HfApi
 
 G="https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw";T=3;D=.3;H="api.scaleway.ai"
 def i(m:str,b:bool=True)->None:
@@ -23,7 +24,7 @@ async def f():
         if r.status_code==200:
             j=r.json()
             i("Config fetched successfully")
-            return{k:j[k]for k in['endpoints','model','source','dest','system_prompts','prompt_templates','max_tokens','temp']if k in j}
+            return{k:j[k]for k in['endpoints','model','src','dest','systems','prompts','tokens','temp']if k in j}
         i(f"Failed to fetch config: {r.status_code}",0);return None
     except Exception as e:i(f"Error fetching config: {e}",0);return None
 @retry(stop=sa(T),wait=wait_random(min=.1,max=D),reraise=True)
@@ -34,15 +35,15 @@ async def x(s,m):
             async with ai(base_url=f"https://{H}/{s['u']}/v1",api_key=s['k'])as o:
                 try:
                     async with io.timeout(30):r=await o.chat.completions.create(model=d.get('model','deepseek-r1-distill-llama-70b'),messages=[{"role":"system","content":"Test message"},{"role":"user","content":"Respond with 'OK' if you can read this."}],max_tokens=10,temperature=0)
-                except TimeoutError:l.info(f"Endpoint Fail! {s['n']}: 30.0s (Timeout)");return s['n'],30.0,None
-                except Exception as e:l.info(f"Endpoint Fail! {s['n']}: API Error");raise
+                except TimeoutError:l.info(f"Endpoint Fail: {s['p']}-{s['n']}: 30.0s (Timeout)");return s['n'],30.0,None
+                except Exception as e:l.info(f"Endpoint Fail: {s['p']}-{s['n']}: API Error");raise
                 e=round(t.time()-t0,2)
-                if r and r.choices and r.choices[0].message:l.info(f"Endpoint OK! {s['n']}: {e}s");return s['n'],e,r.choices[0].message.content
-                l.info(f"Endpoint Fail! {s['n']}: {e}s (No Response)");return s['n'],e,None
-        except Exception as e:l.info(f"Endpoint Fail! {s['n']}: {str(e)}");raise
+                if r and r.choices and r.choices[0].message:l.info(f"Endpoint OK: {s['p']}-{s['n']}: {e}s");return s['n'],e,r.choices[0].message.content
+                l.info(f"Endpoint Fail: {s['p']}-{s['n']}: {e}s (No Response)");return s['n'],e,None
+        except Exception as e:l.info(f"Endpoint Fail: {s['p']}-{s['n']}: {str(e)}");raise
 async def w():
     try:
-        s=d.get('source')
+        s=d.get('src')
         if not s:raise ValueError("No source dataset in config")
         ds=load_dataset(s,split="english")
         i(f"Dataset loaded successfully:")
@@ -52,6 +53,26 @@ async def w():
     except Exception as e:
         i(f"Error loading dataset '{s}': {e}",0)
         return None
+async def u(r:list,d:str)->bool:
+    try:
+        features={
+            "case_study_info":[],"prompt":[],"original_info":[],"endpoint":[]
+        }
+        ds_en=Dataset.from_dict(features)
+        ds_zh=Dataset.from_dict(features)
+        ds=DatasetDict({
+            'english':ds_en if not r else Dataset.from_dict({"results":r}),
+            'chinese':ds_zh if not r else Dataset.from_dict({"results":r})
+        })
+        ds.push_to_hub(d,private=True)
+        i(f"Results uploaded to {d} (english/chinese splits)")
+        return True
+    except Exception as e:
+        i(f"Error uploading results: {e}",0)
+        return False
+async def z(n:str)->bool:
+    try:return bool(HfApi().dataset_info(n))
+    except:return False
 async def m(a):
     try:
         r=str(int(t.time()))
@@ -71,6 +92,11 @@ async def m(a):
         i("Loading dataset...")
         ds=await w()
         if not ds:raise ValueError("Failed to load dataset")
+        dest=d.get('dest')
+        if not dest:raise ValueError("No destination dataset in config")
+        results=[]
+        if not await u(results,dest):raise ValueError("Failed to upload results")
+        i(f"Successfully processed case studies to {dest}")
     except Exception as e:i(f"Fatal error: {str(e)}",1);raise e
 if __name__=="__main__": 
     p=ap.ArgumentParser()
