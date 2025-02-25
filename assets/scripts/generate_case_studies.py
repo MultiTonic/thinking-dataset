@@ -24,7 +24,7 @@ async def _t(s,sem):
             t0=t.time()
             async with ai(base_url=f"https://{HA}/{s['u']}/v1",api_key=s['k'])as o:
                 r=await o.chat.completions.create(model=c["model"],messages=c["messages"],
-                    max_tokens=c.get("max_tokens",1),temperature=c.get("temperature",0.6))
+                    max_tokens=c.get("max_tokens",4096),temperature=c.get("temperature",1))
                 rt=round(t.time()-t0,2)
                 fl.info(f"OK:{s['n']} [{rt}s]");return s['n'],rt
         except Exception as x:fl.info(f"Err:{s['n']}:{x}");return s['n'],None
