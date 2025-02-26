@@ -263,7 +263,7 @@ async def save_metadata(processed_count: int, save_interval: int, total_records:
             "current_batch": processed_count // save_interval,
         }
         
-        metadata_path = os.path.join(dirs["data_dir"], "processing_metadata.json")
+        metadata_path = os.path.join(dirs["run_dir"], "processing_metadata.json")
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=2)
         
@@ -276,7 +276,7 @@ async def save_metadata(processed_count: int, save_interval: int, total_records:
 async def load_metadata():
     """Load processing metadata if it exists."""
     try:
-        metadata_path = os.path.join(dirs["data_dir"], "processing_metadata.json")
+        metadata_path = os.path.join(dirs["run_dir"], "processing_metadata.json")
         if not os.path.exists(metadata_path):
             return None
         
@@ -297,8 +297,8 @@ async def load_metadata():
 async def clear_metadata():
     """Clear the processing metadata file."""
     try:
-        metadata_path = os.path.join(dirs["data_dir"], "processing_metadata.json")
-        if os.path.exists(metadata_path):
+        metadata_path = os.path.join(dirs["run_dir"], "processing_metadata.json")
+        if (os.path.exists(metadata_path)):
             os.remove(metadata_path)
             log("Cleared processing metadata")
         return True
@@ -725,12 +725,18 @@ async def setup_directories(args):
     run_id = str(int(time.time()))
     output_path = os.path.abspath(args.output)
     log_dir = args.log_dir or os.path.join(output_path, "logs")
+    
+    # Create run-specific directory structure
     data_dir = os.path.join(output_path, "data")
-    case_studies_dir = os.path.join(output_path, "data/case_studies")
-    temp_dir = os.path.join(output_path, "data/temp")
-    checkpoints_dir = os.path.join(output_path, "data/checkpoints")
-    for directory in [data_dir, case_studies_dir, temp_dir, checkpoints_dir]:
+    run_dir = os.path.join(data_dir, run_id)
+    case_studies_dir = os.path.join(run_dir, "case_studies")
+    temp_dir = os.path.join(run_dir, "temp")
+    checkpoints_dir = os.path.join(run_dir, "checkpoints")
+    
+    # Create all directories
+    for directory in [data_dir, run_dir, case_studies_dir, temp_dir, checkpoints_dir]:
         os.makedirs(directory, exist_ok=True)
+        
     en_dir = os.path.join(temp_dir, "en")
     zh_dir = os.path.join(temp_dir, "zh")
     for directory in [en_dir, zh_dir]:
@@ -739,7 +745,7 @@ async def setup_directories(args):
     # Cap workers to the smaller of max_records, save_interval, or specified workers
     max_records = args.max_records if args.max_records > 0 else float('inf')
     save_interval = args.save_interval if args.save_interval > 0 else float('inf')
-    requested_workers = args.workers or 5
+    requested_workers = args.workers or 1
     
     # Find the minimum of all values, with a minimum of 1 worker
     workers_cap = min(max_records, save_interval, requested_workers, len(config['endpoints']))
@@ -753,6 +759,7 @@ async def setup_directories(args):
         "output_path": output_path,
         "log_dir": log_dir,
         "data_dir": data_dir,
+        "run_dir": run_dir,
         "case_studies_dir": case_studies_dir,
         "checkpoints_dir": checkpoints_dir,
         "temp_dir": temp_dir,
