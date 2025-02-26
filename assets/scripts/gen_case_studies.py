@@ -13,8 +13,8 @@ MAX_RETRIES = 3
 MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
 REQUEST_COUNTER = 0
-ENDPOINT_COOLDOWN = 10
-SAVE_INTERVAL = 1
+ENDPOINT_COOLDOWN = 60
+SAVE_INTERVAL = 10
 
 def log(message: str, console_output: bool = True) -> None:
     file_logger.info(message)
