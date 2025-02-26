@@ -191,7 +191,7 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language):
                             {"role": "user", "content": prompt}
                         ],
                         max_tokens=config.get('max_tokens', 4096),
-                        temperature=config.get('tempurature', 0.7),
+                        temperature=config.get('temperature', 0.7),
                         top_p=0.95,
                         presence_penalty=0
                     )
