@@ -1,7 +1,6 @@
 import argparse as ap, os, asyncio, logging, time, requests, random
 from openai import AsyncOpenAI
 from tenacity import retry, wait_random, stop_after_attempt, retry_if_exception
-from tqdm.asyncio import tqdm_asyncio
 from asyncio import TimeoutError
 from datasets import load_dataset, Dataset, DatasetDict
 from huggingface_hub import HfApi
@@ -9,13 +8,13 @@ from functools import lru_cache
 import json
 
 DEFAULT_CONFIG_URL = "https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw"
-MAX_WORKERS = 5
+MAX_WORKERS = 12
 MAX_RETRIES = 5
 MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
 REQUEST_COUNTER = 0
 ENDPOINT_COOLDOWN = 60
-SAVE_INTERVAL = 10
+SAVE_INTERVAL = 1
 REQUEST_TIMEOUT = 300
 TEST_TIMEOUT = 30
 
@@ -847,7 +846,6 @@ async def test_endpoints(workers_count):
             test_results.append((endpoint.get('p', 'unknown'), endpoint.get('n', 'unknown'), 0.0, None))
         else:
             provider, name, test_time, response = result
-            # Consider rate limited endpoints as working endpoints
             is_ok = response == "OK" or response == "RATE_LIMITED"
             status_text = "OK" if response == "OK" else "Rate Limited" if response == "RATE_LIMITED" else "Failed"
             log(f"Tested endpoint {i+1}/{len(config['endpoints'])}: {provider}-{name} - {status_text}")
@@ -862,7 +860,6 @@ async def test_endpoints(workers_count):
             status = "OK" if result == "OK" else "Fail"
             console_logger.info(f"- endpoint {status}! [ {provider}-{name}: {test_time}s ]")
     
-    # Calculate statistics for successful endpoints (including rate limited ones)
     valid_times = [tt for _, _, tt, result in test_results if result == "OK" and tt]
     if valid_times:
         avg_time = round(sum(valid_times) / len(valid_times), 2)
@@ -881,7 +878,6 @@ async def test_endpoints(workers_count):
         success_rate = (stats["success"] / stats["total"]) * 100 if stats["total"] > 0 else 0
         console_logger.info(f"- {provider}: {stats['success']}/{stats['total']} endpoints ok ({success_rate:.1f}%)")
     
-    # Return number of successful endpoints (including rate limited ones)
     return sum(1 for _, _, _, result in test_results if result == "OK" or result == "RATE_LIMITED")
 
 async def main(args):
