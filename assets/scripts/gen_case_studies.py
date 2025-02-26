@@ -14,6 +14,7 @@ MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
 REQUEST_COUNTER = 0
 ENDPOINT_COOLDOWN = 10
+SAVE_INTERVAL = 1
 
 def log(message: str, console_output: bool = True) -> None:
     file_logger.info(message)
@@ -121,23 +122,41 @@ async def test_endpoint(endpoint_config, semaphore):
             file_logger.info(f"Endpoint Fail: {provider}-{name}: {str(e)}")
             raise
 
-async def load_source_dataset():
+async def load_source_dataset(offset=0, max_records=0):
     try:
         source = config.get('src')
         if not source:
             raise ValueError("No source dataset in config")
-        dataset = load_dataset(source, split="english")
-        total_records = len(dataset)
+        
+        full_dataset = load_dataset(source, split="english")
+        total_records = len(full_dataset)
+        
+        if offset > 0 or max_records > 0:
+            if offset >= total_records:
+                log(f"Error: Offset {offset} exceeds dataset size {total_records}")
+                return None
+                
+            end_idx = total_records if max_records == 0 else min(offset + max_records, total_records)
+            dataset = full_dataset.select(range(offset, end_idx))
+            
+            log(f"Using dataset slice: records {offset} to {end_idx-1} (out of {total_records} total)")
+        else:
+            dataset = full_dataset
+            log(f"Using complete dataset: {total_records} records")
+        
+        selected_records = len(dataset)
         total_stakeholders = sum(
             len(record.get('stakeholders', {}).get('stakeholder', []))
             for record in dataset
         )
+        
         log(f"Dataset loaded successfully:")
         log(f"- source: {source}")
-        log(f"- total records: {total_records}")
-        log(f"- total stakeholders: {total_stakeholders}")
+        log(f"- total source records: {total_records}")
+        log(f"- selected records: {selected_records}")
+        log(f"- total stakeholders in selection: {total_stakeholders}")
         log(f"- total generations needed: {total_stakeholders * 2}")
-        log(f"- average stakeholders per record: {total_stakeholders/total_records:.2f}")
+        log(f"- average stakeholders per selected record: {total_stakeholders/selected_records:.2f}")
         return dataset
     except Exception as e:
         log(f"Error loading dataset '{config.get('src')}': {e}", False)
@@ -716,6 +735,19 @@ async def setup_directories(args):
     zh_dir = os.path.join(temp_dir, "zh")
     for directory in [en_dir, zh_dir]:
         os.makedirs(directory, exist_ok=True)
+    
+    # Cap workers to the smaller of max_records, save_interval, or specified workers
+    max_records = args.max_records if args.max_records > 0 else float('inf')
+    save_interval = args.save_interval if args.save_interval > 0 else float('inf')
+    requested_workers = args.workers or 5
+    
+    # Find the minimum of all values, with a minimum of 1 worker
+    workers_cap = min(max_records, save_interval, requested_workers, len(config['endpoints']))
+    effective_workers = max(1, int(workers_cap))
+    
+    if effective_workers < requested_workers:
+        log(f"Capping workers from {requested_workers} to {effective_workers} based on max_records/save_interval")
+    
     return {
         "run_id": run_id,
         "output_path": output_path,
@@ -726,7 +758,7 @@ async def setup_directories(args):
         "temp_dir": temp_dir,
         "temp_dir_en": en_dir,
         "temp_dir_zh": zh_dir,
-        "workers": args.workers or 5,
+        "workers": effective_workers,
         "endpoints_count": len(config['endpoints'])
     }
 
@@ -765,9 +797,9 @@ async def main(args):
         
         # Check for existing metadata
         metadata = await load_metadata()
-        if metadata and args.resume:
+        if (metadata and args.resume):
             log("Resuming from previous processing session")
-        elif metadata and not args.resume:
+        elif (metadata and not args.resume):
             log("Found existing metadata but --resume flag not specified. Starting from beginning.")
             await clear_metadata()
             
@@ -786,7 +818,7 @@ async def main(args):
         endpoints = init_endpoints(config['endpoints'])
         await test_endpoints(dirs["workers"])
         log("Loading dataset...")
-        dataset = await load_source_dataset()
+        dataset = await load_source_dataset(args.offset, args.max_records)
         if not dataset:
             raise ValueError("Failed to load dataset")
         log("Expanding dataset records...")
@@ -810,12 +842,14 @@ async def main(args):
 
 if __name__ == "__main__":
     parser = ap.ArgumentParser()
-    parser.add_argument("--config", default=DEFAULT_CONFIG_URL)
-    parser.add_argument("--output", default=os.getcwd())
-    parser.add_argument("--log-dir")
-    parser.add_argument("--workers", type=int)
-    parser.add_argument("--save-interval", type=int, default=10)
-    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--config", default=DEFAULT_CONFIG_URL, help="URL to the configuration file")
+    parser.add_argument("--output", default=os.getcwd(), help="Output directory for case studies")
+    parser.add_argument("--log-dir", help="Directory to save log files")
+    parser.add_argument("--workers", type=int, help="Number of parallel workers for endpoint testing")
+    parser.add_argument("--save-interval", type=int, default=SAVE_INTERVAL, help="Interval to save intermediate results")
+    parser.add_argument("--resume", action="store_true", help="Resume from previous processing session")
+    parser.add_argument("--max-records", type=int, default=0, help="Maximum number of records to process")
+    parser.add_argument("--offset", type=int, default=0, help="Offset to start processing records from")
     args = parser.parse_args()
     DEFAULT_CONFIG_URL = args.config
     try:
