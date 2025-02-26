@@ -1,6 +1,6 @@
 import argparse as ap, os, asyncio, logging, time, requests, random
 from openai import AsyncOpenAI
-from tenacity import retry, wait_random, stop_after_attempt
+from tenacity import retry, wait_random, stop_after_attempt, retry_if_exception
 from tqdm.asyncio import tqdm_asyncio
 from asyncio import TimeoutError
 from datasets import load_dataset, Dataset, DatasetDict
@@ -9,29 +9,44 @@ from functools import lru_cache
 import json
 
 DEFAULT_CONFIG_URL = "https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw"
-MAX_RETRIES = 3
+MAX_WORKERS = 5
+MAX_RETRIES = 5
 MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
 REQUEST_COUNTER = 0
 ENDPOINT_COOLDOWN = 60
 SAVE_INTERVAL = 10
+REQUEST_TIMEOUT = 300
 
 def log(message: str, console_output: bool = True) -> None:
-    file_logger.info(message)
-    if (console_output):
-        console_logger.info(message)
+    try:
+        file_logger.info(message)
+        if (console_output):
+            try:
+                console_logger.info(message)
+            except UnicodeEncodeError:
+                safe_message = message.encode('ascii', errors='replace').decode('ascii')
+                console_logger.info(safe_message)
+    except Exception as e:
+        try:
+            print(f"[LOGGING ERROR] Failed to log message: {str(e)}")
+        except:
+            pass
 
 def setup_loggers(log_path: str) -> tuple[logging.Logger, logging.Logger]:
     os.makedirs(log_path, exist_ok=True)
     console_logger, file_logger = logging.getLogger("console"), logging.getLogger("file")
-    for logger, handler in [
-        (console_logger, logging.StreamHandler()),
-        (file_logger, logging.FileHandler(os.path.join(log_path, f"cs_{int(time.time())}.log")))
-    ]:
-        logger.setLevel(logging.INFO)
-        logger.propagate = False
-        handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", "%X"))
-        logger.addHandler(handler)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", "%X"))
+    console_logger.addHandler(console_handler)
+    console_logger.setLevel(logging.INFO)
+    console_logger.propagate = False
+    log_file = os.path.join(log_path, f"cs_{int(time.time())}.log")
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", "%X"))
+    file_logger.addHandler(file_handler)
+    file_logger.setLevel(logging.INFO)
+    file_logger.propagate = False
     return console_logger, file_logger
 
 async def fetch_config():
@@ -41,12 +56,31 @@ async def fetch_config():
         if response.status_code == 200:
             config_json = response.json()
             log("Config fetched successfully")
-            return {
-                key: config_json[key] 
-                for key in ['endpoints', 'model', 'src', 'dest', 'systems', 'prompts', 
-                           'max_tokens', 'temperature', 'hf_token'] 
-                if key in config_json
-            }
+            required_keys = ['endpoints', 'model', 'src', 'dest', 'systems', 'prompts']
+            missing_keys = [key for key in required_keys if key not in config_json]
+            if missing_keys:
+                log(f"Warning: Config is missing some required keys: {', '.join(missing_keys)}", True)
+            if 'systems' in config_json:
+                if not all(lang in config_json['systems'] for lang in ['en', 'zh']):
+                    log("Warning: Config is missing system prompts for 'en' or 'zh'", True)
+            if 'prompts' in config_json:
+                if not all(lang in config_json['prompts'] for lang in ['en', 'zh']):
+                    log("Warning: Config is missing prompt templates for 'en' or 'zh'", True)
+            if 'endpoints' in config_json and isinstance(config_json['endpoints'], list):
+                valid_endpoints = []
+                for idx, endpoint in enumerate(config_json['endpoints']):
+                    if not all(key in endpoint for key in ['p', 'u', 'k']):
+                        log(f"Warning: Endpoint {idx+1} is missing required keys", False)
+                    else:
+                        valid_endpoints.append(endpoint)
+                if len(valid_endpoints) == 0:
+                    log("Error: No valid endpoints found in config", True)
+                elif len(valid_endpoints) < len(config_json['endpoints']):
+                    log(f"Warning: Only {len(valid_endpoints)} of {len(config_json['endpoints'])} endpoints are valid", True)
+                    config_json['endpoints'] = valid_endpoints
+            else:
+                log("Error: 'endpoints' key is missing or not a list", True)
+            return config_json
         log(f"Failed to fetch config: {response.status_code}", False)
         return None
     except Exception as e:
@@ -67,11 +101,9 @@ def init_endpoints(endpoints_config):
 def get_next_endpoint(endpoints):
     now = time.time()
     available_endpoints = []
-    
     for i, endpoint in enumerate(endpoints):
         if not endpoint['in_use'] and now - endpoint['last_call'] >= ENDPOINT_COOLDOWN:
             available_endpoints.append((i, endpoint))
-    
     if not available_endpoints:
         soonest_ready = min(endpoints, key=lambda e: e['last_call'] + ENDPOINT_COOLDOWN if not e['in_use'] else float('inf'))
         idx = endpoints.index(soonest_ready)
@@ -80,11 +112,22 @@ def get_next_endpoint(endpoints):
             log(f"All endpoints busy or cooling down, will wait {wait_time:.2f}s for next available")
             time.sleep(wait_time)
         return idx
-    
     available_endpoints.sort(key=lambda x: x[1]['last_call'])
     return available_endpoints[0][0]
 
-@retry(stop=stop_after_attempt(MAX_RETRIES), wait=wait_random(min=0.1, max=MAX_RETRY_DELAY), reraise=True)
+class ResponseTooShortError(Exception):
+    def __init__(self, actual_length, min_length):
+        self.actual_length = actual_length
+        self.min_length = min_length
+        self.message = f"Response length {actual_length} is shorter than minimum required length {min_length}"
+        super().__init__(self.message)
+
+def check_min_length(response_text: str, min_length: int):
+    if min_length and len(response_text) < min_length:
+        raise ResponseTooShortError(len(response_text), min_length)
+    return True
+
+@retry(stop=stop_after_attempt(MAX_RETRIES), wait=wait_random(min=1, max=5), reraise=True)
 async def test_endpoint(endpoint_config, semaphore):
     async with semaphore:
         try:
@@ -96,7 +139,7 @@ async def test_endpoint(endpoint_config, semaphore):
                 api_key=endpoint_config['k']
             ) as client:
                 try:
-                    async with asyncio.timeout(30):
+                    async with asyncio.timeout(REQUEST_TIMEOUT):
                         response = await client.chat.completions.create(
                             model=config.get('model', 'deepseek-r1-distill-llama-70b'),
                             messages=[
@@ -107,10 +150,14 @@ async def test_endpoint(endpoint_config, semaphore):
                             temperature=0
                         )
                 except TimeoutError:
-                    file_logger.info(f"Endpoint Fail: {provider}-{name}: 30.0s (Timeout)")
-                    return provider, name, 30.0, None
-                except Exception:
-                    file_logger.info(f"Endpoint Fail: {provider}-{name}: API Error")
+                    file_logger.info(f"Endpoint Fail: {provider}-{name}: {REQUEST_TIMEOUT}s (Timeout)")
+                    return provider, name, REQUEST_TIMEOUT, None
+                except Exception as e:
+                    err_msg = str(e)
+                    file_logger.info(f"Endpoint Fail: {provider}-{name}: API Error - {err_msg}")
+                    if "429" in err_msg or "TOO MANY TOKENS" in err_msg:
+                        log(f"Rate limit hit for endpoint {provider}-{name}, backing off...")
+                        await asyncio.sleep(10)
                     raise
                 elapsed_time = round(time.time() - start_time, 2)
                 if response and response.choices and response.choices[0].message:
@@ -127,29 +174,23 @@ async def load_source_dataset(offset=0, max_records=0):
         source = config.get('src')
         if not source:
             raise ValueError("No source dataset in config")
-        
         full_dataset = load_dataset(source, split="english")
         total_records = len(full_dataset)
-        
         if offset > 0 or max_records > 0:
             if offset >= total_records:
                 log(f"Error: Offset {offset} exceeds dataset size {total_records}")
                 return None
-                
             end_idx = total_records if max_records == 0 else min(offset + max_records, total_records)
             dataset = full_dataset.select(range(offset, end_idx))
-            
             log(f"Using dataset slice: records {offset} to {end_idx-1} (out of {total_records} total)")
         else:
             dataset = full_dataset
             log(f"Using complete dataset: {total_records} records")
-        
         selected_records = len(dataset)
         total_stakeholders = sum(
             len(record.get('stakeholders', {}).get('stakeholder', []))
             for record in dataset
         )
-        
         log(f"Dataset loaded successfully:")
         log(f"- source: {source}")
         log(f"- total source records: {total_records}")
@@ -162,7 +203,10 @@ async def load_source_dataset(offset=0, max_records=0):
         log(f"Error loading dataset '{config.get('src')}': {e}", False)
         return None
 
-@retry(stop=stop_after_attempt(MAX_RETRIES), wait=wait_random(min=0.1, max=MAX_RETRY_DELAY), reraise=True)
+def should_retry_on_too_short(exception):
+    return isinstance(exception, ResponseTooShortError) or retry_if_exception(exception)
+
+@retry(stop=stop_after_attempt(MAX_RETRIES), wait=wait_random(min=0.1, max=MAX_RETRY_DELAY), retry=should_retry_on_too_short, reraise=True)
 async def generate_case_study(prompt, system_prompt, endpoint_idx, language):
     global REQUEST_COUNTER, endpoints
     try:
@@ -172,22 +216,26 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language):
         provider = endpoint_config.get('p', 'unknown')
         name = endpoint_config.get('n', 'unknown')
         language_name = "English" if language == 'en' else "Chinese"
-        
         REQUEST_COUNTER += 1
         request_id = REQUEST_COUNTER
-        
+        min_length = config.get('min_length', 0)
         log(f"[{request_id}] Starting {language_name} generation using {provider}-{name}")
-        
         async with AsyncOpenAI(
             base_url=f"https://{API_BASE_URL}/{endpoint_config['u']}/v1",
             api_key=endpoint_config['k']
         ) as client:
             try:
-                async with asyncio.timeout(30):
+                if language == 'en':
+                    used_system_prompt = config['systems'].get('en', system_prompt)
+                    log(f"[{request_id}] Using {language_name} system prompt: {used_system_prompt[:50]}...")
+                else:
+                    used_system_prompt = config['systems'].get('zh', system_prompt)
+                    log(f"[{request_id}] Using Chinese system prompt (showing text may cause encoding issues)")
+                async with asyncio.timeout(REQUEST_TIMEOUT):
                     response = await client.chat.completions.create(
                         model=config.get('model', 'deepseek-r1-distill-llama-70b'),
                         messages=[
-                            {"role": "system", "content": system_prompt},
+                            {"role": "system", "content": used_system_prompt},
                             {"role": "user", "content": prompt}
                         ],
                         max_tokens=config.get('max_tokens', 4096),
@@ -196,18 +244,27 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language):
                         presence_penalty=0
                     )
             except TimeoutError:
-                file_logger.info(f"[{request_id}] Generation Fail: {provider}-{name}: 30.0s (Timeout)")
+                file_logger.info(f"[{request_id}] Generation Fail: {provider}-{name}: {REQUEST_TIMEOUT}s (Timeout)")
                 endpoint_config['last_call'] = time.time()
                 endpoint_config['in_use'] = False
-                return "", 30.0
+                return "", REQUEST_TIMEOUT
             except Exception as e:
-                file_logger.info(f"[{request_id}] Generation Fail: {provider}-{name}: API Error - {str(e)}")
+                err_msg = str(e)
+                file_logger.info(f"[{request_id}] Generation Fail: {provider}-{name}: API Error - {err_msg}")
                 endpoint_config['last_call'] = time.time()
                 endpoint_config['in_use'] = False
+                if "429" in err_msg or "TOO MANY TOKENS" in err_msg:
+                    log(f"Rate limit hit for endpoint {provider}-{name}, backing off...")
+                    await asyncio.sleep(10)
                 raise
             elapsed_time = round(time.time() - start_time, 2)
             if response and response.choices and response.choices[0].message:
                 result = response.choices[0].message.content
+                if min_length > 0 and len(result) < min_length:
+                    log(f"[{request_id}] Response too short: {len(result)}/{min_length} characters")
+                    endpoint_config['last_call'] = time.time()
+                    endpoint_config['in_use'] = False
+                    raise ResponseTooShortError(len(result), min_length)
                 file_logger.info(f"[{request_id}] Generation OK: {provider}-{name}: {elapsed_time}s - {len(result)} chars")
                 temp_dir = os.path.join(dirs["temp_dir"], language)
                 os.makedirs(temp_dir, exist_ok=True)
@@ -218,7 +275,6 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language):
                     log(f"[{request_id}] Saved {language_name} response to {filepath}")
                 except Exception as e:
                     log(f"[{request_id}] Error saving response to file: {str(e)}", False)
-                
                 endpoint_config['last_call'] = time.time()
                 endpoint_config['in_use'] = False
                 return result, elapsed_time
@@ -226,6 +282,9 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language):
             endpoint_config['last_call'] = time.time()
             endpoint_config['in_use'] = False
             return "", elapsed_time
+    except ResponseTooShortError as e:
+        file_logger.info(f"[{request_id}] Generation too short: {provider}-{name}: {e.message}")
+        raise
     except Exception as e:
         file_logger.info(f"Generation Fail: {provider}-{name}: {str(e)}")
         elapsed_time = round(time.time() - start_time, 3) if 'start_time' in locals() else 0.0
@@ -250,7 +309,6 @@ def format_endpoint(config):
         return provider
 
 async def save_metadata(processed_count: int, save_interval: int, total_records: int, destination: str):
-    """Save metadata about the current processing state to enable resumption."""
     try:
         metadata = {
             "last_update_time": time.time(),
@@ -262,11 +320,9 @@ async def save_metadata(processed_count: int, save_interval: int, total_records:
             "run_id": dirs["run_id"],
             "current_batch": processed_count // save_interval,
         }
-        
         metadata_path = os.path.join(dirs["run_dir"], "processing_metadata.json")
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=2)
-        
         log(f"Saved processing metadata (processed {processed_count}/{total_records} records)")
         return True
     except Exception as e:
@@ -274,28 +330,23 @@ async def save_metadata(processed_count: int, save_interval: int, total_records:
         return False
 
 async def load_metadata():
-    """Load processing metadata if it exists."""
     try:
         metadata_path = os.path.join(dirs["run_dir"], "processing_metadata.json")
         if not os.path.exists(metadata_path):
             return None
-        
         with open(metadata_path, 'r') as f:
             metadata = json.load(f)
-        
         last_update = time.strftime('%Y-%m-%d %H:%M:%S', 
                                    time.localtime(metadata.get("last_update_time", 0)))
         log(f"Found existing processing metadata from {last_update}")
         log(f"- Previously processed: {metadata.get('processed_count', 0)}/{metadata.get('total_records', 0)} records")
         log(f"- Previous destination: {metadata.get('destination', 'unknown')}")
-        
         return metadata
     except Exception as e:
         log(f"Warning: Failed to load metadata: {str(e)}", False)
         return None
 
 async def clear_metadata():
-    """Clear the processing metadata file."""
     try:
         metadata_path = os.path.join(dirs["run_dir"], "processing_metadata.json")
         if (os.path.exists(metadata_path)):
@@ -316,20 +367,13 @@ async def save_intermediate_results(english_records, chinese_records, english_fa
             dataset_splits['english_failed'] = Dataset.from_list(english_failed_records)
         if chinese_failed_records:
             dataset_splits['chinese_failed'] = Dataset.from_list(chinese_failed_records)
-        
         dataset_dict = DatasetDict(dataset_splits)
-        
-        # Save local checkpoint
         save_path = os.path.join(dirs["checkpoints_dir"], f"checkpoint_{batch_idx}")
         dataset_dict.save_to_disk(save_path)
         log(f"Saved checkpoint to {save_path}")
-        
-        # Save copy to case_studies directory for the final results
         case_studies_path = os.path.join(dirs["case_studies_dir"], "latest")
         dataset_dict.save_to_disk(case_studies_path)
         log(f"Updated latest case studies at {case_studies_path}")
-        
-        # Update the main destination dataset on HF with current progress
         hf_token = config.get('hf_token')
         if hf_token:
             try:
@@ -337,12 +381,9 @@ async def save_intermediate_results(english_records, chinese_records, english_fa
                 log(f"Updated destination dataset with progress: {destination}")
             except Exception as e:
                 log(f"Could not update HF dataset, but local checkpoint saved: {str(e)}")
-        
-        # Add metadata saving at the end of this function
         processed_count = batch_idx * len(english_records)
-        total_records = len(english_records) * len(chinese_records)  # Estimate total
+        total_records = len(english_records) * len(chinese_records)
         await save_metadata(processed_count, dirs.get("save_interval", 10), total_records, destination)
-        
         return True
     except Exception as e:
         log(f"Error saving intermediate results: {str(e)}")
@@ -354,8 +395,6 @@ async def upload_results(prepared_records: list, destination: str, save_interval
         chinese_records = []
         english_failed_records = []
         chinese_failed_records = []
-        
-        # Look for existing metadata to determine starting point
         resume_from = 0
         metadata = await load_metadata()
         if metadata and args.resume:
@@ -364,12 +403,10 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                 log(f"Resuming from record {resume_from} (out of {len(prepared_records)} total records)")
             else:
                 log(f"Warning: Found metadata but destination mismatch. Starting from beginning.")
-
         en_temp_dir = os.path.join(dirs["temp_dir"], "en")
         zh_temp_dir = os.path.join(dirs["temp_dir"], "zh")
         os.makedirs(en_temp_dir, exist_ok=True)
         os.makedirs(zh_temp_dir, exist_ok=True)
-        
         def process_records(records, start_id=1):
             processed = []
             for idx, record in enumerate(records):
@@ -384,96 +421,122 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                     "endpoint": record.get("endpoint", "")
                 })
             return processed
-            
-        async def process_language_record(record, language, idx, total):
-            language_key = 'en' if language == 'english' else 'zh'
-            error_key = f"{language_key}_error"
-            target_list = english_records if language == 'english' else chinese_records
-            failed_list = english_failed_records if language == 'english' else chinese_failed_records
-            language_name = "English" if language == 'english' else "Chinese"
-            system_prompt = config['systems'].get(language_key)
-            
-            log(f"Processing record {idx+1}/{total} - {language_name}")
-            
-            if 'prompts' in record and language_key in record['prompts'] and record['prompts'][language_key]:
-                try:
-                    endpoint_idx = get_next_endpoint(endpoints)
-                    endpoint_config = endpoints[endpoint_idx]
-                    endpoint_formatted = format_endpoint(endpoint_config)
-                    
-                    case_study_info, elapsed_time = await generate_case_study(
-                        record['prompts'][language_key], 
-                        system_prompt,
-                        endpoint_idx,
-                        language_key
-                    )
-                    target_list.append({
-                        "case_study_info": case_study_info,
-                        "original_info": record['case_study_info'],
-                        "prompt": record['prompts'][language_key],
-                        "stakeholder": record.get('stakeholder', ''),
-                        "motivation": record.get('motivation', ''),
-                        "elapsed_time": elapsed_time,
-                        "endpoint": endpoint_formatted
-                    })
-                    log(f"Completed record {idx+1}/{total} - {language_name} - {elapsed_time:.2f}s")
-                except Exception as e:
-                    error_msg = str(e)
-                    log(f"Error generating {language_name} for record {idx+1}/{total}: {error_msg}")
-                    file_logger.error(f"Generation error for {language}: {error_msg}")
+        async def process_language_record(record, language, idx, total, semaphore):
+            async with semaphore:
+                language_key = 'en' if language == 'english' else 'zh'
+                error_key = f"{language_key}_error"
+                target_list = english_records if language == 'english' else chinese_records
+                failed_list = english_failed_records if language == 'english' else chinese_failed_records
+                language_name = "English" if language == 'english' else "Chinese"
+                system_prompt = config['systems'].get(language_key, "")
+                if not system_prompt:
+                    error_msg = f"Missing system prompt for {language_name}"
+                    log(f"Error: {error_msg}")
                     failed_list.append({
                         "case_study_info": "",
                         "original_info": record['case_study_info'],
-                        "prompt": record['prompts'][language_key],
+                        "prompt": "",
                         "stakeholder": record.get('stakeholder', ''),
                         "motivation": record.get('motivation', ''),
                         "elapsed_time": 0.0,
                         "endpoint": f"error - {error_msg}"
                     })
-            else:
-                error_msg = record.get(error_key, f"Failed to generate {language} prompt")
-                log(f"Missing prompt for record {idx+1}/{total} - {language_name}: {error_msg}")
-                failed_list.append({
-                    "case_study_info": "",
-                    "original_info": record['case_study_info'],
-                    "prompt": "",
-                    "stakeholder": record.get('stakeholder', ''),
-                    "motivation": record.get('motivation', ''),
-                    "elapsed_time": 0.0,
-                    "endpoint": f"error - {error_msg}"
-                })
-        
+                    return False
+                log(f"Processing record {idx+1}/{total} - {language_name}")
+                if 'prompts' in record and language_key in record['prompts'] and record['prompts'][language_key]:
+                    try:
+                        endpoint_idx = get_next_endpoint(endpoints)
+                        endpoint_config = endpoints[endpoint_idx]
+                        endpoint_formatted = format_endpoint(endpoint_config)
+                        case_study_info, elapsed_time = await generate_case_study(
+                            record['prompts'][language_key], 
+                            system_prompt,
+                            endpoint_idx,
+                            language_key
+                        )
+                        result = {
+                            "case_study_info": case_study_info,
+                            "original_info": record['case_study_info'],
+                            "prompt": record['prompts'][language_key],
+                            "stakeholder": record.get('stakeholder', ''),
+                            "motivation": record.get('motivation', ''),
+                            "elapsed_time": elapsed_time,
+                            "endpoint": endpoint_formatted
+                        }
+                        if language == 'english':
+                            english_records.append(result)
+                        else:
+                            chinese_records.append(result)
+                        log(f"Completed record {idx+1}/{total} - {language_name} - {elapsed_time:.2f}s")
+                        return True
+                    except Exception as e:
+                        error_msg = str(e)
+                        log(f"Error generating {language_name} for record {idx+1}/{total}: {error_msg}")
+                        file_logger.error(f"Generation error for {language}: {error_msg}")
+                        failed_list.append({
+                            "case_study_info": "",
+                            "original_info": record['case_study_info'],
+                            "prompt": record['prompts'][language_key],
+                            "stakeholder": record.get('stakeholder', ''),
+                            "motivation": record.get('motivation', ''),
+                            "elapsed_time": 0.0,
+                            "endpoint": f"error - {error_msg}"
+                        })
+                        return False
+                else:
+                    error_msg = record.get(error_key, f"Failed to generate {language} prompt")
+                    log(f"Missing prompt for record {idx+1}/{total} - {language_name}: {error_msg}")
+                    failed_list.append({
+                        "case_study_info": "",
+                        "original_info": record['case_study_info'],
+                        "prompt": "",
+                        "stakeholder": record.get('stakeholder', ''),
+                        "motivation": record.get('motivation', ''),
+                        "elapsed_time": 0.0,
+                        "endpoint": f"error - {error_msg}"
+                    })
+                    return False
         total_records = len(prepared_records)
         log(f"Starting to process {total_records} records")
-        
-        # Skip already processed records if resuming
         start_idx = resume_from
-        
-        for idx, record in enumerate(prepared_records[start_idx:], start=start_idx):
-            await process_language_record(record, 'english', idx, total_records)
-            await process_language_record(record, 'chinese', idx, total_records)
-            if (idx + 1) % 10 == 0 or idx == start_idx or idx == total_records - 1:
-                log(f"Progress: {idx+1}/{total_records} records processed ({(idx+1)/total_records*100:.1f}%)")
-                log(f"- Successful: EN:{len(english_records)} CN:{len(chinese_records)}")
-                log(f"- Failed: EN:{len(english_failed_records)} CN:{len(chinese_failed_records)}")
-            if save_interval > 0 and (idx + 1) % save_interval == 0:
-                log(f"Saving intermediate results at checkpoint {(idx + 1) // save_interval}")
+        records_to_process = prepared_records[start_idx:]
+        semaphore = asyncio.Semaphore(dirs["workers"])
+        log(f"Using semaphore with {dirs['workers']} workers for concurrent processing")
+        for batch_start in range(0, len(records_to_process), dirs["workers"]):
+            batch_end = min(batch_start + dirs["workers"], len(records_to_process))
+            batch = records_to_process[batch_start:batch_end]
+            batch_size = len(batch)
+            log(f"Processing batch of {batch_size} records ({batch_start+start_idx+1} to {batch_end+start_idx})")
+            tasks = []
+            for i, record in enumerate(batch):
+                idx = batch_start + start_idx + i
+                tasks.append(process_language_record(record, 'english', idx, total_records, semaphore))
+                tasks.append(process_language_record(record, 'chinese', idx, total_records, semaphore))
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    record_idx = batch_start + start_idx + (i // 2)
+                    language = 'english' if i % 2 == 0 else 'chinese'
+                    log(f"Error in batch processing record {record_idx+1} ({language}): {str(result)}")
+            current_idx = batch_end + start_idx
+            log(f"Progress: {current_idx}/{total_records} records processed ({current_idx/total_records*100:.1f}%)")
+            log(f"- Successful: EN:{len(english_records)} CN:{len(chinese_records)}")
+            log(f"- Failed: EN:{len(english_failed_records)} CN:{len(chinese_failed_records)}")
+            if save_interval > 0 and current_idx % save_interval == 0:
+                log(f"Saving intermediate results at checkpoint {current_idx // save_interval}")
                 processed_en = process_records(english_records, 1)
                 processed_cn = process_records(chinese_records, 1)
                 processed_en_failed = process_records(english_failed_records, 1)
                 processed_cn_failed = process_records(chinese_failed_records, 1)
-                
                 await save_intermediate_results(
                     processed_en, 
                     processed_cn, 
                     processed_en_failed, 
                     processed_cn_failed, 
-                    (idx + 1) // save_interval,
+                    current_idx // save_interval,
                     destination
                 )
-                # Save metadata for resume capability
-                await save_metadata(idx + 1, save_interval, total_records, destination)
-
+                await save_metadata(current_idx, save_interval, total_records, destination)
         english_records = process_records(english_records, 1)
         chinese_records = process_records(chinese_records, 1)
         english_failed_records = process_records(english_failed_records, 1)
@@ -487,7 +550,6 @@ async def upload_results(prepared_records: list, destination: str, save_interval
         log(f"- Failed Chinese records: {len(chinese_failed_records)} ({len(chinese_failed_records)/total_records*100:.1f}%)")
         log(f"- Total successful records: {len(english_records) + len(chinese_records)}")
         log(f"- Total failed records: {len(english_failed_records) + len(chinese_failed_records)}")
-        
         try:
             dataset_splits = {
                 'english': Dataset.from_list(english_records),
@@ -532,7 +594,6 @@ async def upload_results(prepared_records: list, destination: str, save_interval
             if chinese_failed_records:
                 log(f"- Chinese failed: {len(chinese_failed_records)}")
         
-        # Clear metadata at the end if successful
         await clear_metadata()
         
         return True
@@ -555,11 +616,21 @@ async def prepare_prompt(case_study_info: str, stakeholder: str, motivation: str
     if not prompt_template or not system_prompt:
         log(f"No template/system found for language: {language}", False)
         return None
-    return prompt_template.format(
-        case_study_info=case_study_info.strip(),
-        stakeholder=stakeholder.strip(),
-        motivation=motivation.strip() or "Unknown motivations or intentions"
-    )
+    case_study_info = case_study_info.strip()
+    stakeholder = stakeholder.strip()
+    motivation = motivation.strip() or "Unknown motivations or intentions"
+    try:
+        return prompt_template.format(
+            case_study_info=case_study_info,
+            stakeholder=stakeholder,
+            motivation=motivation
+        )
+    except KeyError as e:
+        log(f"Error formatting prompt: Missing key {e} in template", False)
+        return f"{case_study_info}\n\nStakeholder: {stakeholder}\nMotivation: {motivation}"
+    except Exception as e:
+        log(f"Error formatting prompt: {str(e)}", False)
+        return None
 
 @lru_cache(maxsize=1024)
 def clean_stakeholder(stakeholder_text: str) -> str:
@@ -577,7 +648,7 @@ def clean_stakeholder(stakeholder_text: str) -> str:
         if not line.strip():
             continue
         cleaned_line = line.strip()
-        cleaned_line = cleaned_line.lstrip('-').lstrip('*').lstrip('•').strip()
+        cleaned_line = cleaned_line.lstrip("-").lstrip("*").lstrip("•").strip()
         if cleaned_line and cleaned_line[0].isdigit() and cleaned_line.find('.') > 0:
             try:
                 cleaned_line = cleaned_line[cleaned_line.find('.')+1:].strip()
@@ -725,35 +796,24 @@ async def setup_directories(args):
     run_id = str(int(time.time()))
     output_path = os.path.abspath(args.output)
     log_dir = args.log_dir or os.path.join(output_path, "logs")
-    
-    # Create run-specific directory structure
     data_dir = os.path.join(output_path, "data")
     run_dir = os.path.join(data_dir, run_id)
     case_studies_dir = os.path.join(run_dir, "case_studies")
     temp_dir = os.path.join(run_dir, "temp")
     checkpoints_dir = os.path.join(run_dir, "checkpoints")
-    
-    # Create all directories
     for directory in [data_dir, run_dir, case_studies_dir, temp_dir, checkpoints_dir]:
         os.makedirs(directory, exist_ok=True)
-        
     en_dir = os.path.join(temp_dir, "en")
     zh_dir = os.path.join(temp_dir, "zh")
     for directory in [en_dir, zh_dir]:
         os.makedirs(directory, exist_ok=True)
-    
-    # Cap workers to the smaller of max_records, save_interval, or specified workers
     max_records = args.max_records if args.max_records > 0 else float('inf')
     save_interval = args.save_interval if args.save_interval > 0 else float('inf')
-    requested_workers = args.workers or 1
-    
-    # Find the minimum of all values, with a minimum of 1 worker
+    requested_workers = args.workers or MAX_WORKERS
     workers_cap = min(max_records, save_interval, requested_workers, len(config['endpoints']))
     effective_workers = max(1, int(workers_cap))
-    
     if effective_workers < requested_workers:
         log(f"Capping workers from {requested_workers} to {effective_workers} based on max_records/save_interval")
-    
     return {
         "run_id": run_id,
         "output_path": output_path,
@@ -772,10 +832,20 @@ async def setup_directories(args):
 async def test_endpoints(workers_count):
     semaphore = asyncio.Semaphore(workers_count)
     log(f"Starting endpoint tests with {workers_count} parallel workers")
-    test_results = await tqdm_asyncio.gather(
-        *[test_endpoint(endpoint, semaphore) for endpoint in config["endpoints"]],
-        desc="Testing endpoints"
-    )
+    test_results = []
+    tasks = []
+    for i, endpoint in enumerate(config["endpoints"]):
+        tasks.append(test_endpoint(endpoint, semaphore))
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    for i, result in enumerate(results):
+        endpoint = config["endpoints"][i]
+        if isinstance(result, Exception):
+            log(f"Error testing endpoint {i+1}/{len(config['endpoints'])}: {str(result)}")
+            test_results.append((endpoint.get('p', 'unknown'), endpoint.get('n', 'unknown'), 0.0, None))
+        else:
+            provider, name, test_time, response = result
+            log(f"Tested endpoint {i+1}/{len(config['endpoints'])}: {provider}-{name} - {'OK' if response else 'Failed'}")
+            test_results.append(result)
     console_logger.info("Test results:")
     for provider, name, test_time, result in test_results:
         status = "OK" if result == "OK" else "Fail"
@@ -795,45 +865,50 @@ async def test_endpoints(workers_count):
     for provider, stats in provider_stats.items():
         success_rate = (stats["success"] / stats["total"]) * 100 if stats["total"] > 0 else 0
         console_logger.info(f"- {provider}: {stats['success']}/{stats['total']} endpoints ok ({success_rate:.1f}%)")
+    return sum(1 for _, _, _, result in test_results if result == "OK")
 
 async def main(args):
     try:
         global dirs, endpoints, config
-        
-        # Override config source and destination if provided via command line
         if args.source:
             log(f"Overriding source dataset from '{config.get('src', 'none')}' to '{args.source}'")
             config['src'] = args.source
-            
         if args.dest:
             log(f"Overriding destination dataset from '{config.get('dest', 'none')}' to '{args.dest}'")
             config['dest'] = args.dest
-            
         dirs = await setup_directories(args)
-        dirs["save_interval"] = args.save_interval  # Store save_interval in dirs for access elsewhere
-        
-        # Check for existing metadata
+        dirs["save_interval"] = args.save_interval
         metadata = await load_metadata()
         if (metadata and args.resume):
             log("Resuming from previous processing session")
         elif (metadata and not args.resume):
             log("Found existing metadata but --resume flag not specified. Starting from beginning.")
             await clear_metadata()
-            
         for key, value in dirs.items():
             log(f"{key.replace('_', ' ').title()}: {value}")
-        required_keys = ['model', 'max_tokens', 'temperature', 'systems', 'prompts']
-        missing_keys = [key for key in required_keys if key not in config]
-        if missing_keys:
-            raise ValueError(f"Missing required config keys: {', '.join(missing_keys)}")
-        log(f"Config loaded:")
-        for key in ['model', 'max_tokens', 'temperature']:
-            if key in config:
-                log(f"- {key}: {config[key]}")
+        log(f"Config loaded with {len(config.get('endpoints', []))} endpoints")
+        log(f"- Model: {config.get('model', 'not specified')}")
+        log(f"- Max tokens: {config.get('max_tokens', 'not specified')}")
+        log(f"- Temperature: {config.get('temperature', 'not specified')}")
+        log(f"- Source dataset: {config.get('src', 'not specified')}")
+        log(f"- Destination dataset: {config.get('dest', 'not specified')}")
+        log(f"- Has HF token: {'Yes' if 'hf_token' in config and config['hf_token'] else 'No'}")
+        log(f"- Request timeout: {REQUEST_TIMEOUT}s")
+        for lang, lang_name in [('en', 'English'), ('zh', 'Chinese')]: 
+            system_ok = lang in config.get('systems', {})
+            prompt_ok = lang in config.get('prompts', {})
+            if not system_ok or not prompt_ok:
+                log(f"Warning: {lang_name} support incomplete - System: {system_ok}, Prompt: {prompt_ok}")
         if not isinstance(config, dict) or 'endpoints' not in config:
-            raise ValueError("Invalid config")
+            raise ValueError("Invalid config: must contain 'endpoints' key")
         endpoints = init_endpoints(config['endpoints'])
-        await test_endpoints(dirs["workers"])
+        working_endpoints = await test_endpoints(dirs["workers"])
+        if working_endpoints == 0:
+            raise ValueError("No working endpoints found. Cannot proceed.")
+        log(f"Found {working_endpoints} working endpoints out of {len(config['endpoints'])} total")
+        if working_endpoints < dirs["workers"]:
+            dirs["workers"] = max(1, working_endpoints)
+            log(f"Reduced worker count to {dirs['workers']} based on available endpoints")
         log("Loading dataset...")
         dataset = await load_source_dataset(args.offset, args.max_records)
         if not dataset:
@@ -858,6 +933,8 @@ async def main(args):
         raise e
 
 if __name__ == "__main__":
+    if os.name == 'nt':
+        os.environ['PYTHONIOENCODING'] = 'utf-8'
     parser = ap.ArgumentParser()
     parser.add_argument("--config", default=DEFAULT_CONFIG_URL, help="URL to the configuration file")
     parser.add_argument("--output", default=os.getcwd(), help="Output directory for case studies")
