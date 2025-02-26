@@ -44,7 +44,7 @@ async def fetch_config():
             return {
                 key: config_json[key] 
                 for key in ['endpoints', 'model', 'src', 'dest', 'systems', 'prompts', 
-                           'max_tokens', 'tempurature', 'hf_token'] 
+                           'max_tokens', 'temperature', 'hf_token'] 
                 if key in config_json
             }
         log(f"Failed to fetch config: {response.status_code}", False)
@@ -815,12 +815,12 @@ async def main(args):
             
         for key, value in dirs.items():
             log(f"{key.replace('_', ' ').title()}: {value}")
-        required_keys = ['model', 'max_tokens', 'tempurature', 'systems', 'prompts']
+        required_keys = ['model', 'max_tokens', 'temperature', 'systems', 'prompts']
         missing_keys = [key for key in required_keys if key not in config]
         if missing_keys:
             raise ValueError(f"Missing required config keys: {', '.join(missing_keys)}")
         log(f"Config loaded:")
-        for key in ['model', 'max_tokens', 'tempurature']:
+        for key in ['model', 'max_tokens', 'temperature']:
             if key in config:
                 log(f"- {key}: {config[key]}")
         if not isinstance(config, dict) or 'endpoints' not in config:
