@@ -17,6 +17,7 @@ REQUEST_COUNTER = 0
 ENDPOINT_COOLDOWN = 60
 SAVE_INTERVAL = 10
 REQUEST_TIMEOUT = 300
+TEST_TIMEOUT = 30
 
 def log(message: str, console_output: bool = True) -> None:
     try:
@@ -139,7 +140,7 @@ async def test_endpoint(endpoint_config, semaphore):
                 api_key=endpoint_config['k']
             ) as client:
                 try:
-                    async with asyncio.timeout(REQUEST_TIMEOUT):
+                    async with asyncio.timeout(TEST_TIMEOUT):
                         response = await client.chat.completions.create(
                             model=config.get('model', 'deepseek-r1-distill-llama-70b'),
                             messages=[
@@ -150,8 +151,8 @@ async def test_endpoint(endpoint_config, semaphore):
                             temperature=0
                         )
                 except TimeoutError:
-                    file_logger.info(f"Endpoint Fail: {provider}-{name}: {REQUEST_TIMEOUT}s (Timeout)")
-                    return provider, name, REQUEST_TIMEOUT, None
+                    file_logger.info(f"Endpoint Fail: {provider}-{name}: {TEST_TIMEOUT}s (Timeout)")
+                    return provider, name, TEST_TIMEOUT, None
                 except Exception as e:
                     err_msg = str(e)
                     file_logger.info(f"Endpoint Fail: {provider}-{name}: API Error - {err_msg}")
@@ -833,7 +834,7 @@ async def setup_directories(args):
 
 async def test_endpoints(workers_count):
     semaphore = asyncio.Semaphore(workers_count)
-    log(f"Starting endpoint tests with {workers_count} parallel workers")
+    log(f"Starting endpoint tests with {workers_count} parallel workers (timeout: {TEST_TIMEOUT}s)")
     test_results = []
     tasks = []
     for i, endpoint in enumerate(config["endpoints"]):
@@ -909,7 +910,8 @@ async def main(args):
         log(f"- Source dataset: {config.get('src', 'not specified')}")
         log(f"- Destination dataset: {config.get('dest', 'not specified')}")
         log(f"- Has HF token: {'Yes' if 'hf_token' in config and config['hf_token'] else 'No'}")
-        log(f"- Request timeout: {REQUEST_TIMEOUT}s")
+        log(f"- Generation request timeout: {REQUEST_TIMEOUT}s")
+        log(f"- Endpoint testing timeout: {TEST_TIMEOUT}s")
         for lang, lang_name in [('en', 'English'), ('zh', 'Chinese')]: 
             system_ok = lang in config.get('systems', {})
             prompt_ok = lang in config.get('prompts', {})
