@@ -810,12 +810,15 @@ async def setup_directories(args):
     for directory in [en_dir, zh_dir]:
         os.makedirs(directory, exist_ok=True)
     max_records = args.max_records if args.max_records > 0 else float('inf')
-    save_interval = args.save_interval if args.save_interval > 0 else float('inf')
     requested_workers = args.workers or MAX_WORKERS
-    workers_cap = min(max_records, save_interval, requested_workers, len(config['endpoints']))
+    workers_cap = min(requested_workers, len(config['endpoints']))
+    if max_records < workers_cap:
+        workers_cap = max_records
     effective_workers = max(1, int(workers_cap))
     if effective_workers < requested_workers:
-        log(f"Capping workers from {requested_workers} to {effective_workers} based on max_records/save_interval")
+        log(f"Capping workers from {requested_workers} to {effective_workers} based on available endpoints/max_records")
+    save_interval = args.save_interval if args.save_interval > 0 else float('inf')
+    
     return {
         "run_id": run_id,
         "output_path": output_path,
@@ -828,7 +831,8 @@ async def setup_directories(args):
         "temp_dir_en": en_dir,
         "temp_dir_zh": zh_dir,
         "workers": effective_workers,
-        "endpoints_count": len(config['endpoints'])
+        "endpoints_count": len(config['endpoints']),
+        "save_interval": save_interval  # Store save_interval separately
     }
 
 async def test_endpoints(workers_count):
@@ -889,8 +893,13 @@ async def main(args):
         if args.dest:
             log(f"Overriding destination dataset from '{config.get('dest', 'none')}' to '{args.dest}'")
             config['dest'] = args.dest
+        
+        # Get directories config with proper worker count
         dirs = await setup_directories(args)
-        dirs["save_interval"] = args.save_interval
+        
+        # No longer need to set save_interval separately here as it's already in dirs
+        # dirs["save_interval"] = args.save_interval  # This line can be removed
+
         metadata = await load_metadata()
         if (metadata and args.resume):
             log("Resuming from previous processing session")
