@@ -791,7 +791,17 @@ async def test_endpoints(workers_count):
 
 async def main(args):
     try:
-        global dirs, endpoints
+        global dirs, endpoints, config
+        
+        # Override config source and destination if provided via command line
+        if args.source:
+            log(f"Overriding source dataset from '{config.get('src', 'none')}' to '{args.source}'")
+            config['src'] = args.source
+            
+        if args.dest:
+            log(f"Overriding destination dataset from '{config.get('dest', 'none')}' to '{args.dest}'")
+            config['dest'] = args.dest
+            
         dirs = await setup_directories(args)
         dirs["save_interval"] = args.save_interval  # Store save_interval in dirs for access elsewhere
         
@@ -850,6 +860,8 @@ if __name__ == "__main__":
     parser.add_argument("--resume", action="store_true", help="Resume from previous processing session")
     parser.add_argument("--max-records", type=int, default=0, help="Maximum number of records to process")
     parser.add_argument("--offset", type=int, default=0, help="Offset to start processing records from")
+    parser.add_argument("--source", help="Override source dataset name (e.g., DataTonic/dark_thoughts_stakeholders_80)")
+    parser.add_argument("--dest", help="Override destination dataset name (e.g., DataTonic/dark_thoughts_casestudy_r1_scaleway_A2)")
     args = parser.parse_args()
     DEFAULT_CONFIG_URL = args.config
     try:
