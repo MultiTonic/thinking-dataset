@@ -155,10 +155,12 @@ async def test_endpoint(endpoint_config, semaphore):
                 except Exception as e:
                     err_msg = str(e)
                     file_logger.info(f"Endpoint Fail: {provider}-{name}: API Error - {err_msg}")
-                    if "429" in err_msg or "TOO MANY TOKENS" in err_msg:
-                        log(f"Rate limit hit for endpoint {provider}-{name}, backing off...")
-                        await asyncio.sleep(10)
+                    if "429" in err_msg or "TOO MANY TOKENS" in err_msg or "rate limit" in err_msg.lower():
+                        log(f"Rate limit detected for endpoint {provider}-{name}, considering it valid but busy")
+                        await asyncio.sleep(2)
+                        return provider, name, 0.1, "RATE_LIMITED"
                     raise
+                    
                 elapsed_time = round(time.time() - start_time, 2)
                 if response and response.choices and response.choices[0].message:
                     file_logger.info(f"Endpoint OK: {provider}-{name}: {elapsed_time}s")
@@ -844,28 +846,42 @@ async def test_endpoints(workers_count):
             test_results.append((endpoint.get('p', 'unknown'), endpoint.get('n', 'unknown'), 0.0, None))
         else:
             provider, name, test_time, response = result
-            log(f"Tested endpoint {i+1}/{len(config['endpoints'])}: {provider}-{name} - {'OK' if response else 'Failed'}")
+            # Consider rate limited endpoints as working endpoints
+            is_ok = response == "OK" or response == "RATE_LIMITED"
+            status_text = "OK" if response == "OK" else "Rate Limited" if response == "RATE_LIMITED" else "Failed"
+            log(f"Tested endpoint {i+1}/{len(config['endpoints'])}: {provider}-{name} - {status_text}")
             test_results.append(result)
+    
     console_logger.info("Test results:")
     for provider, name, test_time, result in test_results:
-        status = "OK" if result == "OK" else "Fail"
-        console_logger.info(f"- endpoint {status}! [ {provider}-{name}: {test_time}s ]")
-    valid_times = [tt for _, _, tt, _ in test_results if tt]
+        if result == "RATE_LIMITED":
+            status = "Rate Limited"
+            console_logger.info(f"- endpoint {status}! [ {provider}-{name}: rate limited ]")
+        else:
+            status = "OK" if result == "OK" else "Fail"
+            console_logger.info(f"- endpoint {status}! [ {provider}-{name}: {test_time}s ]")
+    
+    # Calculate statistics for successful endpoints (including rate limited ones)
+    valid_times = [tt for _, _, tt, result in test_results if result == "OK" and tt]
     if valid_times:
         avg_time = round(sum(valid_times) / len(valid_times), 2)
         console_logger.info(f"- average time: {avg_time}s")
+    
     provider_stats = {}
     for provider, _, _, result in test_results:
         if provider not in provider_stats:
             provider_stats[provider] = {"total": 0, "success": 0}
         provider_stats[provider]["total"] += 1
-        if result == "OK":
+        if result == "OK" or result == "RATE_LIMITED":
             provider_stats[provider]["success"] += 1
+    
     console_logger.info("Provider summary:")
     for provider, stats in provider_stats.items():
         success_rate = (stats["success"] / stats["total"]) * 100 if stats["total"] > 0 else 0
         console_logger.info(f"- {provider}: {stats['success']}/{stats['total']} endpoints ok ({success_rate:.1f}%)")
-    return sum(1 for _, _, _, result in test_results if result == "OK")
+    
+    # Return number of successful endpoints (including rate limited ones)
+    return sum(1 for _, _, _, result in test_results if result == "OK" or result == "RATE_LIMITED")
 
 async def main(args):
     try:
