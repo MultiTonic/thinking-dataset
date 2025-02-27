@@ -6,14 +6,14 @@ from datasets import load_dataset, Dataset, DatasetDict
 from functools import lru_cache
 
 DEFAULT_CONFIG_URL = "https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw"
-MAX_WORKERS = 10
+MAX_WORKERS = 12
 MAX_RETRIES = 3
 MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
 REQUEST_COUNTER = 0
-ENDPOINT_COOLDOWN = 120
+ENDPOINT_COOLDOWN = 90
 CHECKPOINT_INTERVAL = 100
-REQUEST_TIMEOUT = 300
+REQUEST_TIMEOUT = 600
 TEST_TIMEOUT = 30
 
 def log(message: str, console_output: bool = True) -> None:
