@@ -443,7 +443,7 @@ async def clear_metadata():
         log(f"Warning: Failed to clear metadata: {str(e)}", False)
         return False
 
-async def save_intermediate_results_unified(successful_records, failed_records, batch_idx, destination):
+async def save_intermediate_results_unified(successful_records, failed_records, processed_count, destination):
     """Save intermediate results with unified record schema."""
     try:
         # Split by language
@@ -477,7 +477,7 @@ async def save_intermediate_results_unified(successful_records, failed_records, 
             dataset_splits['chinese_failed'] = Dataset.from_list(chinese_failed)
             
         dataset_dict = DatasetDict(dataset_splits)
-        save_path = os.path.join(dirs["checkpoints_dir"], f"checkpoint_{batch_idx}")
+        save_path = os.path.join(dirs["checkpoints_dir"], f"checkpoint_{processed_count}")
         dataset_dict.save_to_disk(save_path)
         log(f"Saved checkpoint to {save_path}")
         
@@ -708,6 +708,7 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
         log(f"Using semaphore with {dirs['workers']} workers for concurrent processing")
         
         total_successful_case_studies = 0
+        total_processed_case_studies = 0  # Track ALL processed case studies regardless of success
         case_study_counter = 0
         
         # Process all batches without checkpointing between batches
@@ -728,6 +729,9 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                 
             results = await asyncio.gather(*tasks, return_exceptions=True)
             for i, result in enumerate(results):
+                # Count each attempted case study generation regardless of success
+                total_processed_case_studies += 1
+                
                 if isinstance(result, Exception):
                     record_idx = batch_start + start_idx + (i // 2)
                     language = 'english' if i % 2 == 0 else 'chinese'
@@ -735,35 +739,33 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                     source_record_idx = record.get('original_idx', -1)
                     stakeholder_idx = record.get('stakeholder_idx', -1)
                     log(f"Error in batch processing - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({language}): {str(result)}")
+                
+                # Check if we should save a checkpoint based on TOTAL processed case studies
+                if checkpoint_interval > 0 and total_processed_case_studies > 0 and (total_processed_case_studies % checkpoint_interval == 0):
+                    log(f"Saving checkpoint after {total_processed_case_studies} total case studies ({len(successful_records)} successful)")
+                    await save_intermediate_results_unified(successful_records, failed_records, total_processed_case_studies, destination)
+                    await save_metadata(batch_end + start_idx, checkpoint_interval, len(prepared_records), destination)
             
             current_stakeholder_idx = batch_end + start_idx
-            successful_case_studies_count = len(successful_records)
-            total_successful_case_studies = successful_case_studies_count
+            total_successful_case_studies = len(successful_records)
             
             log(f"Progress: {current_stakeholder_idx}/{len(prepared_records)} stakeholders processed ({current_stakeholder_idx/len(prepared_records)*100:.1f}%)")
-            log(f"- Successful case studies: {successful_case_studies_count}/{case_study_counter} ({successful_case_studies_count/case_study_counter*100:.1f}%)")
-            log(f"- Failed case studies: {len(failed_records)}/{case_study_counter} ({len(failed_records)/case_study_counter*100:.1f}%)")
-            
-            # Only save intermediate checkpoints if we've reached the checkpoint interval 
-            # AND we're not at the end of processing
-            if checkpoint_interval > 0 and successful_case_studies_count > 0 and (successful_case_studies_count % checkpoint_interval == 0) and batch_end < len(records_to_process):
-                log(f"Saving checkpoint after {successful_case_studies_count} successful case studies")
-                await save_intermediate_results_unified(successful_records, failed_records, successful_case_studies_count, destination)
-                await save_metadata(current_stakeholder_idx, checkpoint_interval, len(prepared_records), destination)
+            log(f"- Successful case studies: {total_successful_case_studies}/{total_processed_case_studies} ({total_successful_case_studies/total_processed_case_studies*100:.1f}%)")
+            log(f"- Failed case studies: {len(failed_records)}/{total_processed_case_studies} ({len(failed_records)/total_processed_case_studies*100:.1f}%)")
         
         # Now that ALL batches are processed, finalize results
         # Always save a final checkpoint with all results
         total_stakeholders = len(prepared_records)
-        successful_case_studies_count = len(successful_records)
+        total_successful_case_studies = len(successful_records)
         log(f"Completed generation of all case studies")
         log(f"- Total stakeholders processed: {total_stakeholders}")
-        log(f"- Total case studies attempted: {case_study_counter}")
-        log(f"- Successful case studies: {successful_case_studies_count}/{case_study_counter} ({successful_case_studies_count/case_study_counter*100:.1f}%)")
-        log(f"- Failed case studies: {len(failed_records)}/{case_study_counter} ({len(failed_records)/case_study_counter*100:.1f}%)")
+        log(f"- Total case studies attempted: {total_processed_case_studies}")
+        log(f"- Successful case studies: {total_successful_case_studies}/{total_processed_case_studies} ({total_successful_case_studies/total_processed_case_studies*100:.1f}%)")
+        log(f"- Failed case studies: {len(failed_records)}/{total_processed_case_studies} ({len(failed_records)/total_processed_case_studies*100:.1f}%)")
         
         # Save a final checkpoint before attempting upload
-        log(f"Saving final checkpoint with all {successful_case_studies_count} successful case studies")
-        await save_intermediate_results_unified(successful_records, failed_records, successful_case_studies_count, destination)
+        log(f"Saving final checkpoint with all {total_successful_case_studies} successful case studies")
+        await save_intermediate_results_unified(successful_records, failed_records, total_processed_case_studies, destination)
         await save_metadata(total_stakeholders, checkpoint_interval, len(prepared_records), destination)
             
         # Now upload the finalized results
