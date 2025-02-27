@@ -14,7 +14,7 @@ MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
 REQUEST_COUNTER = 0
 ENDPOINT_COOLDOWN = 120
-SAVE_INTERVAL = 1
+SAVE_INTERVAL = 100
 REQUEST_TIMEOUT = 300
 TEST_TIMEOUT = 30
 
@@ -217,15 +217,31 @@ class TelemetryStats:
         self.failed_generations = 0
         self.errors_by_type = {}
         self.last_log_time = time.time()
+        self.processed_files = set()  # Track unique files we've processed
 
-    def log_success(self, language):
+    def log_success(self, language, case_study_idx):
         self.total_attempts += 1
-        self.successful_generations += 1
+        
+        # Only count each file once using a set to track unique IDs
+        unique_id = f"{language}_{case_study_idx}"
+        if unique_id not in self.processed_files:
+            self.successful_generations += 1
+            self.processed_files.add(unique_id)
         
     def log_failure(self, language, error_type):
         self.total_attempts += 1
         self.failed_generations += 1
         self.errors_by_type[error_type] = self.errors_by_type.get(error_type, 0) + 1
+    
+    def reset_stats(self, expected_total):
+        """Reset stats at the beginning of a new processing run"""
+        self.start_time = time.time()
+        self.total_attempts = 0
+        self.successful_generations = 0
+        self.failed_generations = 0
+        self.errors_by_type = {}
+        self.last_log_time = time.time()
+        self.processed_files = set()
     
     def get_telemetry_string(self, total_needed):
         elapsed = time.time() - self.start_time
@@ -247,7 +263,22 @@ class TelemetryStats:
 # Create global stats tracker
 telemetry_stats = TelemetryStats()
 
-@retry(stop=stop_after_attempt(MAX_RETRIES), wait=wait_random(min=0.1, max=MAX_RETRY_DELAY), retry=should_retry_on_too_short, reraise=True)
+# Modify retry conditions to only retry on rate limit errors, not for other exceptions
+def should_retry(exception):
+    if isinstance(exception, ResponseTooShortError):
+        return True
+    
+    # Only retry for rate limit related errors (429)
+    if isinstance(exception, Exception) and ("429" in str(exception) or 
+                                           "TOO MANY TOKENS" in str(exception) or 
+                                           "rate limit" in str(exception).lower()):
+        return True
+    return False
+
+@retry(stop=stop_after_attempt(MAX_RETRIES), 
+       wait=wait_random(min=0.1, max=MAX_RETRY_DELAY), 
+       retry=should_retry,  # Use our specific retry condition
+       reraise=True)
 async def generate_case_study(prompt, system_prompt, endpoint_idx, language, case_study_idx, source_record_idx, stakeholder_idx, stakeholder_name):
     global endpoints, telemetry_stats
     try:
@@ -315,16 +346,12 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language, cas
                         f.write(result)
                     log(f"Saved {language_name} case study #{case_study_idx} to {filepath}")
                     
-                    # Log telemetry after each successful save
-                    telemetry_stats.log_success(language)
-                    if 'total_case_studies' in globals():
-                        # Use the global variable if available
-                        total_needed = total_case_studies
-                    else:
-                        # Fallback value if global variable not set yet
-                        total_needed = 0
-                        
+                    # Don't increment telemetry counter here - we'll do it in process_case_study
                     if time.time() - telemetry_stats.last_log_time > 30:  # Log telemetry every 30 seconds
+                        if 'total_case_studies' in globals():
+                            total_needed = total_case_studies
+                        else:
+                            total_needed = 0
                         log(telemetry_stats.get_telemetry_string(total_needed))
                         telemetry_stats.last_log_time = time.time()
                         
@@ -482,6 +509,9 @@ async def upload_results(prepared_records: list, destination: str, save_interval
     global total_case_studies
     total_case_studies = len(prepared_records) * 2  # English + Chinese for each stakeholder
     
+    # Reset telemetry stats at the start of processing
+    telemetry_stats.reset_stats(total_case_studies)
+    
     try:
         # Create a unified record structure with language field
         all_records = []
@@ -549,7 +579,7 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                         endpoint_config = endpoints[endpoint_idx]
                         endpoint_formatted = format_endpoint(endpoint_config)
                         
-                        # This is the critical part - we need to capture successful results even if there are retries
+                        # Try just once to generate - no more retrying except for rate limits
                         try:
                             case_study_info, elapsed_time = await generate_case_study(
                                 record['prompts'][language_key], 
@@ -562,7 +592,7 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                                 stakeholder_name
                             )
                             
-                            # If we get here without exception, it's a success even if empty
+                            # If successful generation
                             has_content = bool(case_study_info and case_study_info.strip())
                             if has_content:
                                 result_record = process_record({
@@ -578,11 +608,13 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                                 successful_records.append(result_record)
                                 all_records.append(result_record)
                                 
+                                # Now increment telemetry counter only once per file
+                                telemetry_stats.log_success(language_key, case_study_idx)
+                                
                                 log(f"Completed {language_name} case study {idx}/{total} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name}) - {elapsed_time:.2f}s")
                                 
                                 # Log telemetry after each completion
-                                total_needed = total_case_studies
-                                log(telemetry_stats.get_telemetry_string(total_needed))
+                                log(telemetry_stats.get_telemetry_string(total_case_studies))
                                 
                                 return True
                             else:
@@ -594,7 +626,7 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                             temp_dir = os.path.join(dirs["temp_dir"], language_key)
                             filepath = os.path.join(temp_dir, f"{case_study_idx:06d}.txt")
                             if os.path.exists(filepath):
-                                # Found a saved file! Let's consider this a success despite the exception
+                                # Found a saved file! Let's consider this a success
                                 try:
                                     with open(filepath, 'r', encoding='utf-8') as f:
                                         recovered_content = f.read()
@@ -615,6 +647,9 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                                         successful_records.append(result_record)
                                         all_records.append(result_record)
                                         
+                                        # Increment telemetry for recovered files too - but only once
+                                        telemetry_stats.log_success(language_key, case_study_idx)
+                                        
                                         log(f"Successfully recovered {language_name} case study {idx} from saved file")
                                         return True
                                 except Exception as recovery_error:
@@ -634,6 +669,7 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                             }, language)
                             failed_records.append(failed_record)
                             all_records.append(failed_record)
+                            telemetry_stats.log_failure(language_key, type(e).__name__)
                             return False
                     except Exception as e:
                         error_msg = str(e)
@@ -649,6 +685,7 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                         }, language)
                         failed_records.append(failed_record)
                         all_records.append(failed_record)
+                        telemetry_stats.log_failure(language_key, type(e).__name__)
                         return False
                 else:
                     error_msg = record.get(error_key, f"Failed to generate {language} prompt")
@@ -675,6 +712,7 @@ async def upload_results(prepared_records: list, destination: str, save_interval
         total_successful_case_studies = 0
         case_study_counter = 0
         
+        # Process all batches without checkpointing between batches
         for batch_start in range(0, len(records_to_process), dirs["workers"]):
             batch_end = min(batch_start + dirs["workers"], len(records_to_process))
             batch = records_to_process[batch_start:batch_end]
@@ -708,19 +746,30 @@ async def upload_results(prepared_records: list, destination: str, save_interval
             log(f"- Successful case studies: {successful_case_studies_count}/{case_study_counter} ({successful_case_studies_count/case_study_counter*100:.1f}%)")
             log(f"- Failed case studies: {len(failed_records)}/{case_study_counter} ({len(failed_records)/case_study_counter*100:.1f}%)")
             
-            # Save based on successful case studies rather than processed stakeholders
-            if save_interval > 0 and successful_case_studies_count > 0 and (successful_case_studies_count % save_interval == 0):
+            # Only save intermediate checkpoints if we've reached the save interval 
+            # AND we're not at the end of processing
+            if save_interval > 0 and successful_case_studies_count > 0 and (successful_case_studies_count % save_interval == 0) and batch_end < len(records_to_process):
                 log(f"Saving checkpoint after {successful_case_studies_count} successful case studies")
                 await save_intermediate_results_unified(successful_records, failed_records, successful_case_studies_count, destination)
                 await save_metadata(current_stakeholder_idx, save_interval, len(prepared_records), destination)
         
-        # Process final results
+        # Now that ALL batches are processed, finalize results
+        # Always save a final checkpoint with all results
         total_stakeholders = len(prepared_records)
-        log(f"Preparing to upload dataset to {destination}")
+        successful_case_studies_count = len(successful_records)
+        log(f"Completed generation of all case studies")
         log(f"- Total stakeholders processed: {total_stakeholders}")
         log(f"- Total case studies attempted: {case_study_counter}")
-        log(f"- Successful case studies: {len(successful_records)}/{case_study_counter} ({len(successful_records)/case_study_counter*100:.1f}%)")
+        log(f"- Successful case studies: {successful_case_studies_count}/{case_study_counter} ({successful_case_studies_count/case_study_counter*100:.1f}%)")
         log(f"- Failed case studies: {len(failed_records)}/{case_study_counter} ({len(failed_records)/case_study_counter*100:.1f}%)")
+        
+        # Save a final checkpoint before attempting upload
+        log(f"Saving final checkpoint with all {successful_case_studies_count} successful case studies")
+        await save_intermediate_results_unified(successful_records, failed_records, successful_case_studies_count, destination)
+        await save_metadata(total_stakeholders, save_interval, len(prepared_records), destination)
+            
+        # Now upload the finalized results
+        log(f"Preparing to upload dataset to {destination}")
         
         try:
             # Split records by language but ensure same schema
@@ -1148,7 +1197,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", default=os.getcwd(), help="Output directory for case studies")
     parser.add_argument("--log-dir", help="Directory to save log files")
     parser.add_argument("--workers", type=int, help="Number of parallel workers for endpoint testing")
-    parser.add_argument("--save-interval", type=int, default=SAVE_INTERVAL, help="Interval to save intermediate results")
+    parser.add_argument("--save-interval", type=int, default=SAVE_INTERVAL, help="Interval to save intermediate results (default: 100)")
     parser.add_argument("--resume", action="store_true", help="Resume from previous processing session")
     parser.add_argument("--max-records", type=int, default=0, help="Maximum number of records to process")
     parser.add_argument("--offset", type=int, default=0, help="Offset to start processing records from")
