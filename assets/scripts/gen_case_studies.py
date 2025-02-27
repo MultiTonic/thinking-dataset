@@ -6,12 +6,12 @@ from datasets import load_dataset, Dataset, DatasetDict
 from functools import lru_cache
 
 DEFAULT_CONFIG_URL = "https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw"
-MAX_WORKERS = 12
+MAX_WORKERS = 10
 MAX_RETRIES = 3
 MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
 REQUEST_COUNTER = 0
-ENDPOINT_COOLDOWN = 90
+ENDPOINT_COOLDOWN = 100
 CHECKPOINT_INTERVAL = 100
 REQUEST_TIMEOUT = 600
 TEST_TIMEOUT = 30
@@ -452,17 +452,18 @@ async def save_intermediate_results_unified(successful_records, failed_records, 
         english_failed = [r for r in failed_records if r["language"] == "english"]
         chinese_failed = [r for r in failed_records if r["language"] == "chinese"]
         
-        # Create empty record template for schema consistency
+        # Create empty record template for schema consistency with proper order
         empty_record = {
             "id": 0,
+            "language": "",
             "case_study_info": "",
             "prompt": "",
             "original_info": "",
             "stakeholder": "",
             "motivation": "",
+            "model": config.get("model", "unknown"),  # Add model field
             "elapsed_time": 0.0,
-            "endpoint": "",
-            "language": ""
+            "endpoint": ""
         }
         
         # Create datasets with consistent schema
@@ -510,6 +511,11 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
     # Reset telemetry stats at the start of processing
     telemetry_stats.reset_stats(total_case_studies)
     
+    # Add timing variables
+    start_time = time.time()
+    batch_times = []
+    checkpoint_times = []
+    
     try:
         # Create a unified record structure with language field
         all_records = []
@@ -533,17 +539,17 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
         def process_record(record, language, add_id=True):
             # Standardize record format - same schema for all
             result = {
+                "id": len(all_records) + 1 if add_id else 0,  # Put id first
+                "language": language,
                 "case_study_info": record.get("case_study_info", ""),
                 "prompt": record.get("prompt", ""),
                 "original_info": record.get("original_info", ""),
                 "stakeholder": record.get("stakeholder", ""),
                 "motivation": record.get("motivation", ""),
+                "model": config.get("model", "unknown"),  # Add model field
                 "elapsed_time": record.get("elapsed_time", 0.0),
-                "endpoint": record.get("endpoint", ""),
-                "language": language  # Add language field for easier sorting
+                "endpoint": record.get("endpoint", "")  # Put endpoint last
             }
-            if add_id:
-                result["id"] = len(all_records) + 1
             return result
         
         async def process_case_study(record, language, idx, total, semaphore):
@@ -600,7 +606,8 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                                     "stakeholder": record.get('stakeholder', ''),
                                     "motivation": record.get('motivation', ''),
                                     "elapsed_time": elapsed_time,
-                                    "endpoint": endpoint_formatted
+                                    "endpoint": endpoint_formatted,
+                                    "model": config.get("model", "unknown")  # Add model field here
                                 }, language)
                                 
                                 successful_records.append(result_record)
@@ -639,7 +646,8 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                                             "stakeholder": record.get('stakeholder', ''),
                                             "motivation": record.get('motivation', ''),
                                             "elapsed_time": 0.0,  # We don't know the real time
-                                            "endpoint": endpoint_formatted + "-recovered"
+                                            "endpoint": endpoint_formatted + "-recovered",
+                                            "model": config.get("model", "unknown")  # Add model field here
                                         }, language)
                                         
                                         successful_records.append(result_record)
@@ -663,7 +671,8 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                                 "prompt": record['prompts'][language_key],
                                 "stakeholder": record.get('stakeholder', ''),
                                 "motivation": record.get('motivation', ''),
-                                "endpoint": f"error - {error_msg}"
+                                "endpoint": f"error - {error_msg}",
+                                "model": config.get("model", "unknown")  # Add model field here
                             }, language)
                             failed_records.append(failed_record)
                             all_records.append(failed_record)
@@ -679,7 +688,8 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                             "prompt": record['prompts'][language_key],
                             "stakeholder": record.get('stakeholder', ''),
                             "motivation": record.get('motivation', ''),
-                            "endpoint": f"error - {error_msg}"
+                            "endpoint": f"error - {error_msg}",
+                            "model": config.get("model", "unknown")  # Add model field here
                         }, language)
                         failed_records.append(failed_record)
                         all_records.append(failed_record)
@@ -693,7 +703,8 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                         "original_info": record['case_study_info'],
                         "stakeholder": record.get('stakeholder', ''),
                         "motivation": record.get('motivation', ''),
-                        "endpoint": f"error - {error_msg}"
+                        "endpoint": f"error - {error_msg}",
+                        "model": config.get("model", "unknown")  # Add model field here
                     }, language)
                     failed_records.append(failed_record)
                     all_records.append(failed_record)
@@ -713,6 +724,7 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
         
         # Process all batches without checkpointing between batches
         for batch_start in range(0, len(records_to_process), dirs["workers"]):
+            batch_start_time = time.time()
             batch_end = min(batch_start + dirs["workers"], len(records_to_process))
             batch = records_to_process[batch_start:batch_end]
             batch_size = len(batch)
@@ -742,9 +754,18 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                 
                 # Check if we should save a checkpoint based on TOTAL processed case studies
                 if checkpoint_interval > 0 and total_processed_case_studies > 0 and (total_processed_case_studies % checkpoint_interval == 0):
+                    checkpoint_start = time.time()
                     log(f"Saving checkpoint after {total_processed_case_studies} total case studies ({len(successful_records)} successful)")
                     await save_intermediate_results_unified(successful_records, failed_records, total_processed_case_studies, destination)
                     await save_metadata(batch_end + start_idx, checkpoint_interval, len(prepared_records), destination)
+                    checkpoint_duration = time.time() - checkpoint_start
+                    checkpoint_times.append(checkpoint_duration)
+                    log(f"Checkpoint saved in {checkpoint_duration:.2f} seconds")
+            
+            # Add batch timing metrics
+            batch_duration = time.time() - batch_start_time
+            batch_times.append(batch_duration)
+            avg_batch_time = sum(batch_times) / len(batch_times)
             
             current_stakeholder_idx = batch_end + start_idx
             total_successful_case_studies = len(successful_records)
@@ -752,21 +773,34 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
             log(f"Progress: {current_stakeholder_idx}/{len(prepared_records)} stakeholders processed ({current_stakeholder_idx/len(prepared_records)*100:.1f}%)")
             log(f"- Successful case studies: {total_successful_case_studies}/{total_processed_case_studies} ({total_successful_case_studies/total_processed_case_studies*100:.1f}%)")
             log(f"- Failed case studies: {len(failed_records)}/{total_processed_case_studies} ({len(failed_records)/total_processed_case_studies*100:.1f}%)")
+            log(f"- Batch completed in {batch_duration:.2f}s (avg: {avg_batch_time:.2f}s/batch)")
         
         # Now that ALL batches are processed, finalize results
         # Always save a final checkpoint with all results
         total_stakeholders = len(prepared_records)
         total_successful_case_studies = len(successful_records)
+        total_duration = time.time() - start_time
+        
         log(f"Completed generation of all case studies")
         log(f"- Total stakeholders processed: {total_stakeholders}")
         log(f"- Total case studies attempted: {total_processed_case_studies}")
         log(f"- Successful case studies: {total_successful_case_studies}/{total_processed_case_studies} ({total_successful_case_studies/total_processed_case_studies*100:.1f}%)")
         log(f"- Failed case studies: {len(failed_records)}/{total_processed_case_studies} ({len(failed_records)/total_processed_case_studies*100:.1f}%)")
+        log(f"- Total runtime: {total_duration:.2f}s ({total_duration/60:.2f} minutes)")
+        
+        if batch_times:
+            log(f"- Average batch processing time: {sum(batch_times)/len(batch_times):.2f}s")
+        if checkpoint_times:
+            log(f"- Average checkpoint time: {sum(checkpoint_times)/len(checkpoint_times):.2f}s")
+            log(f"- Total time spent on checkpoints: {sum(checkpoint_times):.2f}s ({sum(checkpoint_times)/total_duration*100:.1f}% of total runtime)")
         
         # Save a final checkpoint before attempting upload
+        checkpoint_start = time.time()
         log(f"Saving final checkpoint with all {total_successful_case_studies} successful case studies")
         await save_intermediate_results_unified(successful_records, failed_records, total_processed_case_studies, destination)
         await save_metadata(total_stakeholders, checkpoint_interval, len(prepared_records), destination)
+        checkpoint_duration = time.time() - checkpoint_start
+        log(f"Final checkpoint saved in {checkpoint_duration:.2f} seconds")
             
         # Now upload the finalized results
         log(f"Preparing to upload dataset to {destination}")
@@ -788,7 +822,8 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                 "motivation": "",
                 "elapsed_time": 0.0,
                 "endpoint": "",
-                "language": ""
+                "language": "",
+                "model": config.get("model", "unknown")  # Add model field
             }
             
             # Create datasets with consistent schema
