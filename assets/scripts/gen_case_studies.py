@@ -184,10 +184,10 @@ async def load_source_dataset(offset=0, max_records=0):
                 return None
             end_idx = total_records if max_records == 0 else min(offset + max_records, total_records)
             dataset = full_dataset.select(range(offset, end_idx))
-            log(f"Using dataset slice: records {offset} to {end_idx-1} (out of {total_records} total)")
+            log(f"Using dataset slice: source records {offset} to {end_idx-1} (out of {total_records} total)")
         else:
             dataset = full_dataset
-            log(f"Using complete dataset: {total_records} records")
+            log(f"Using complete dataset: {total_records} source records")
         selected_records = len(dataset)
         total_stakeholders = sum(
             len(record.get('stakeholders', {}).get('stakeholder', []))
@@ -196,10 +196,10 @@ async def load_source_dataset(offset=0, max_records=0):
         log(f"Dataset loaded successfully:")
         log(f"- source: {source}")
         log(f"- total source records: {total_records}")
-        log(f"- selected records: {selected_records}")
-        log(f"- total stakeholders in selection: {total_stakeholders}")
-        log(f"- total generations needed: {total_stakeholders * 2}")
-        log(f"- average stakeholders per selected record: {total_stakeholders/selected_records:.2f}")
+        log(f"- selected source records: {selected_records}")
+        log(f"- total stakeholders across selected records: {total_stakeholders}")
+        log(f"- total case studies needed: {total_stakeholders * 2} (English + Chinese for each stakeholder)")
+        log(f"- average stakeholders per source record: {total_stakeholders/selected_records:.2f}")
         return dataset
     except Exception as e:
         log(f"Error loading dataset '{config.get('src')}': {e}", False)
@@ -208,9 +208,48 @@ async def load_source_dataset(offset=0, max_records=0):
 def should_retry_on_too_short(exception):
     return isinstance(exception, ResponseTooShortError) or retry_if_exception(exception)
 
+# Add a global stats tracker
+class TelemetryStats:
+    def __init__(self):
+        self.start_time = time.time()
+        self.total_attempts = 0
+        self.successful_generations = 0
+        self.failed_generations = 0
+        self.errors_by_type = {}
+        self.last_log_time = time.time()
+
+    def log_success(self, language):
+        self.total_attempts += 1
+        self.successful_generations += 1
+        
+    def log_failure(self, language, error_type):
+        self.total_attempts += 1
+        self.failed_generations += 1
+        self.errors_by_type[error_type] = self.errors_by_type.get(error_type, 0) + 1
+    
+    def get_telemetry_string(self, total_needed):
+        elapsed = time.time() - self.start_time
+        remaining = total_needed - self.successful_generations
+        rpm = (self.total_attempts / elapsed * 60) if elapsed > 0 else 0
+        error_rate = (self.failed_generations / self.total_attempts * 100) if self.total_attempts > 0 else 0
+        
+        # Estimate remaining time
+        if rpm > 0:
+            est_minutes = remaining / (rpm * (1 - error_rate/100))
+            time_remaining = f"{est_minutes:.1f} min" if est_minutes < 60 else f"{est_minutes/60:.1f} hours"
+        else:
+            time_remaining = "unknown"
+            
+        return (f"TELEMETRY: {self.successful_generations}/{total_needed} complete ({self.successful_generations/total_needed*100:.1f}%) • "
+                f"{remaining} remaining • {rpm:.1f} req/min • "
+                f"{error_rate:.1f}% errors • Est. remaining: {time_remaining}")
+
+# Create global stats tracker
+telemetry_stats = TelemetryStats()
+
 @retry(stop=stop_after_attempt(MAX_RETRIES), wait=wait_random(min=0.1, max=MAX_RETRY_DELAY), retry=should_retry_on_too_short, reraise=True)
-async def generate_case_study(prompt, system_prompt, endpoint_idx, language):
-    global REQUEST_COUNTER, endpoints
+async def generate_case_study(prompt, system_prompt, endpoint_idx, language, case_study_idx, source_record_idx, stakeholder_idx, stakeholder_name):
+    global endpoints, telemetry_stats
     try:
         start_time = time.time()
         endpoint_config = endpoints[endpoint_idx]
@@ -218,26 +257,21 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language):
         provider = endpoint_config.get('p', 'unknown')
         name = endpoint_config.get('n', 'unknown')
         language_name = "English" if language == 'en' else "Chinese"
-        REQUEST_COUNTER += 1
-        request_id = REQUEST_COUNTER
         min_length = config.get('min_length', 0)
-        log(f"[{request_id}] Generating {language_name} case study using {provider}-{name}")
+        
+        # Log with source record and stakeholder info
+        log(f"Generating {language_name} case study #{case_study_idx} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name}) using {provider}-{name}")
+        
         async with AsyncOpenAI(
             base_url=f"https://{API_BASE_URL}/{endpoint_config['u']}/v1",
             api_key=endpoint_config['k']
         ) as client:
             try:
-                if language == 'en':
-                    used_system_prompt = config['systems'].get('en', system_prompt)
-                    log(f"[{request_id}] Using {language_name} system prompt: {used_system_prompt[:50]}...")
-                else:
-                    used_system_prompt = config['systems'].get('zh', system_prompt)
-                    log(f"[{request_id}] Using Chinese system prompt (showing text may cause encoding issues)")
                 async with asyncio.timeout(REQUEST_TIMEOUT):
                     response = await client.chat.completions.create(
                         model=config.get('model', 'deepseek-r1-distill-llama-70b'),
                         messages=[
-                            {"role": "system", "content": used_system_prompt},
+                            {"role": "system", "content": system_prompt},
                             {"role": "user", "content": prompt}
                         ],
                         max_tokens=config.get('max_tokens', 4096),
@@ -246,49 +280,74 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language):
                         presence_penalty=0
                     )
             except TimeoutError:
-                file_logger.info(f"[{request_id}] Generation Fail: {provider}-{name}: {REQUEST_TIMEOUT}s (Timeout)")
+                file_logger.info(f"Case Study Fail: {language_name} #{case_study_idx} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1}: Timeout after {REQUEST_TIMEOUT}s")
                 endpoint_config['last_call'] = time.time()
                 endpoint_config['in_use'] = False
+                telemetry_stats.log_failure(language, "timeout")
                 return "", REQUEST_TIMEOUT
             except Exception as e:
                 err_msg = str(e)
-                file_logger.info(f"[{request_id}] Generation Fail: {provider}-{name}: API Error - {err_msg}")
+                file_logger.info(f"Case Study Fail: {language_name} #{case_study_idx} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1}: API Error - {err_msg}")
                 endpoint_config['last_call'] = time.time()
                 endpoint_config['in_use'] = False
                 if "429" in err_msg or "TOO MANY TOKENS" in err_msg:
                     log(f"Rate limit hit for endpoint {provider}-{name}, backing off...")
                     await asyncio.sleep(10)
+                telemetry_stats.log_failure(language, type(e).__name__)
                 raise
+                
             elapsed_time = round(time.time() - start_time, 2)
             if response and response.choices and response.choices[0].message:
                 result = response.choices[0].message.content
                 if min_length > 0 and len(result) < min_length:
-                    log(f"[{request_id}] Response too short: {len(result)}/{min_length} characters")
+                    log(f"Response too short for {language_name} case study #{case_study_idx}: {len(result)}/{min_length} characters")
                     endpoint_config['last_call'] = time.time()
                     endpoint_config['in_use'] = False
+                    telemetry_stats.log_failure(language, "TooShort")
                     raise ResponseTooShortError(len(result), min_length)
-                file_logger.info(f"[{request_id}] Generation OK: {provider}-{name}: {elapsed_time}s - {len(result)} chars")
+                    
+                file_logger.info(f"Case Study OK: {language_name} #{case_study_idx} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1}: {elapsed_time}s - {len(result)} chars")
                 temp_dir = os.path.join(dirs["temp_dir"], language)
                 os.makedirs(temp_dir, exist_ok=True)
-                filepath = os.path.join(temp_dir, f"{request_id:06d}.txt")
+                filepath = os.path.join(temp_dir, f"{case_study_idx:06d}.txt")
                 try:
                     with open(filepath, 'w', encoding='utf-8') as f:
                         f.write(result)
-                    log(f"[{request_id}] Saved {language_name} response to {filepath}")
+                    log(f"Saved {language_name} case study #{case_study_idx} to {filepath}")
+                    
+                    # Log telemetry after each successful save
+                    telemetry_stats.log_success(language)
+                    if 'total_case_studies' in globals():
+                        # Use the global variable if available
+                        total_needed = total_case_studies
+                    else:
+                        # Fallback value if global variable not set yet
+                        total_needed = 0
+                        
+                    if time.time() - telemetry_stats.last_log_time > 30:  # Log telemetry every 30 seconds
+                        log(telemetry_stats.get_telemetry_string(total_needed))
+                        telemetry_stats.last_log_time = time.time()
+                        
                 except Exception as e:
-                    log(f"[{request_id}] Error saving response to file: {str(e)}", False)
+                    log(f"Error saving case study #{case_study_idx} to file: {str(e)}", False)
+                    telemetry_stats.log_failure(language, "FileSaveError")
+                    
                 endpoint_config['last_call'] = time.time()
                 endpoint_config['in_use'] = False
                 return result, elapsed_time
-            file_logger.info(f"[{request_id}] Generation Fail: {provider}-{name}: {elapsed_time}s (No Response)")
+                
+            file_logger.info(f"Case Study Fail: {language_name} #{case_study_idx} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1}: {elapsed_time}s (No Response)")
             endpoint_config['last_call'] = time.time()
             endpoint_config['in_use'] = False
+            telemetry_stats.log_failure(language, "EmptyResponse")
             return "", elapsed_time
     except ResponseTooShortError as e:
-        file_logger.info(f"[{request_id}] Generation too short: {provider}-{name}: {e.message}")
+        file_logger.info(f"Case Study too short: {language_name} #{case_study_idx} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1}: {e.message}")
+        telemetry_stats.log_failure(language, "TooShort")
         raise
     except Exception as e:
-        file_logger.info(f"Generation Fail: {provider}-{name}: {str(e)}")
+        file_logger.info(f"Case Study Fail: {language_name} #{case_study_idx} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1}: {str(e)}")
+        telemetry_stats.log_failure(language, type(e).__name__)
         elapsed_time = round(time.time() - start_time, 3) if 'start_time' in locals() else 0.0
         if 'endpoint_config' in locals():
             endpoint_config['last_call'] = time.time()
@@ -359,23 +418,48 @@ async def clear_metadata():
         log(f"Warning: Failed to clear metadata: {str(e)}", False)
         return False
 
-async def save_intermediate_results(english_records, chinese_records, english_failed_records, chinese_failed_records, batch_idx, destination):
+async def save_intermediate_results_unified(successful_records, failed_records, batch_idx, destination):
+    """Save intermediate results with unified record schema."""
     try:
-        dataset_splits = {
-            'english': Dataset.from_list(english_records),
-            'chinese': Dataset.from_list(chinese_records),
+        # Split by language
+        english_records = [r for r in successful_records if r["language"] == "english"]
+        chinese_records = [r for r in successful_records if r["language"] == "chinese"]
+        english_failed = [r for r in failed_records if r["language"] == "english"]
+        chinese_failed = [r for r in failed_records if r["language"] == "chinese"]
+        
+        # Create empty record template for schema consistency
+        empty_record = {
+            "id": 0,
+            "case_study_info": "",
+            "prompt": "",
+            "original_info": "",
+            "stakeholder": "",
+            "motivation": "",
+            "elapsed_time": 0.0,
+            "endpoint": "",
+            "language": ""
         }
-        if english_failed_records:
-            dataset_splits['english_failed'] = Dataset.from_list(english_failed_records)
-        if chinese_failed_records:
-            dataset_splits['chinese_failed'] = Dataset.from_list(chinese_failed_records)
+        
+        # Create datasets with consistent schema
+        dataset_splits = {
+            'english': Dataset.from_list(english_records) if english_records else Dataset.from_list([empty_record]).select([]),
+            'chinese': Dataset.from_list(chinese_records) if chinese_records else Dataset.from_list([empty_record]).select([])
+        }
+        
+        if english_failed:
+            dataset_splits['english_failed'] = Dataset.from_list(english_failed)
+        if chinese_failed:
+            dataset_splits['chinese_failed'] = Dataset.from_list(chinese_failed)
+            
         dataset_dict = DatasetDict(dataset_splits)
         save_path = os.path.join(dirs["checkpoints_dir"], f"checkpoint_{batch_idx}")
         dataset_dict.save_to_disk(save_path)
         log(f"Saved checkpoint to {save_path}")
+        
         case_studies_path = os.path.join(dirs["case_studies_dir"], "latest")
         dataset_dict.save_to_disk(case_studies_path)
         log(f"Updated latest case studies at {case_studies_path}")
+        
         hf_token = config.get('hf_token')
         if hf_token:
             try:
@@ -383,198 +467,296 @@ async def save_intermediate_results(english_records, chinese_records, english_fa
                 log(f"Updated destination dataset with progress: {destination}")
             except Exception as e:
                 log(f"Could not update HF dataset, but local checkpoint saved: {str(e)}")
-        processed_count = batch_idx * len(english_records)
-        total_records = len(english_records) * len(chinese_records)
-        await save_metadata(processed_count, dirs.get("save_interval", 10), total_records, destination)
+                
+        successful_count = len(english_records) + len(chinese_records)
+        failed_count = len(english_failed) + len(chinese_failed)
+        log(f"Checkpoint saved: {successful_count} successful, {failed_count} failed case studies")
+        
         return True
     except Exception as e:
         log(f"Error saving intermediate results: {str(e)}")
         return False
 
 async def upload_results(prepared_records: list, destination: str, save_interval: int) -> bool:
+    # Define global variable for telemetry
+    global total_case_studies
+    total_case_studies = len(prepared_records) * 2  # English + Chinese for each stakeholder
+    
     try:
-        english_records = []
-        chinese_records = []
-        english_failed_records = []
-        chinese_failed_records = []
+        # Create a unified record structure with language field
+        all_records = []
+        successful_records = []
+        failed_records = []
+        
         resume_from = 0
         metadata = await load_metadata()
         if metadata and args.resume:
             if metadata.get("destination") == destination:
                 resume_from = metadata.get("processed_count", 0)
-                log(f"Resuming from record {resume_from} (out of {len(prepared_records)} total records)")
+                log(f"Resuming from case study {resume_from} (out of {len(prepared_records)*2} potential case studies)")
             else:
                 log(f"Warning: Found metadata but destination mismatch. Starting from beginning.")
+                
         en_temp_dir = os.path.join(dirs["temp_dir"], "en")
         zh_temp_dir = os.path.join(dirs["temp_dir"], "zh")
         os.makedirs(en_temp_dir, exist_ok=True)
         os.makedirs(zh_temp_dir, exist_ok=True)
-        def process_records(records, start_id=1):
-            processed = []
-            for idx, record in enumerate(records):
-                processed.append({
-                    "id": start_id + idx,
-                    "case_study_info": record.get("case_study_info", ""),
-                    "prompt": record.get("prompt", ""),
-                    "original_info": record.get("original_info", ""),
-                    "stakeholder": record.get("stakeholder", ""),
-                    "motivation": record.get("motivation", ""),
-                    "elapsed_time": record.get("elapsed_time", 0.0),
-                    "endpoint": record.get("endpoint", "")
-                })
-            return processed
-        async def process_language_record(record, language, idx, total, semaphore):
+        
+        def process_record(record, language, add_id=True):
+            # Standardize record format - same schema for all
+            result = {
+                "case_study_info": record.get("case_study_info", ""),
+                "prompt": record.get("prompt", ""),
+                "original_info": record.get("original_info", ""),
+                "stakeholder": record.get("stakeholder", ""),
+                "motivation": record.get("motivation", ""),
+                "elapsed_time": record.get("elapsed_time", 0.0),
+                "endpoint": record.get("endpoint", ""),
+                "language": language  # Add language field for easier sorting
+            }
+            if add_id:
+                result["id"] = len(all_records) + 1
+            return result
+        
+        async def process_case_study(record, language, idx, total, semaphore):
             async with semaphore:
                 language_key = 'en' if language == 'english' else 'zh'
                 error_key = f"{language_key}_error"
-                target_list = english_records if language == 'english' else chinese_records
-                failed_list = english_failed_records if language == 'english' else chinese_failed_records
                 language_name = "English" if language == 'english' else "Chinese"
                 system_prompt = config['systems'].get(language_key, "")
                 
+                # Extract source record info
                 source_record_idx = record.get('original_idx', -1)
                 stakeholder_idx = record.get('stakeholder_idx', -1)
                 stakeholder_name = record.get('stakeholder', 'Unknown')
+                case_study_idx = idx
                 
                 if not system_prompt:
                     error_msg = f"Missing system prompt for {language_name}"
                     log(f"Error: {error_msg}")
-                    failed_list.append({
-                        "case_study_info": "",
+                    failed_record = process_record({
                         "original_info": record['case_study_info'],
-                        "prompt": "",
                         "stakeholder": record.get('stakeholder', ''),
                         "motivation": record.get('motivation', ''),
-                        "elapsed_time": 0.0,
                         "endpoint": f"error - {error_msg}"
-                    })
+                    }, language)
+                    failed_records.append(failed_record)
                     return False
-                log(f"Generating {language_name} case study {idx+1}/{total} - Source record #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name})")
                 
                 if 'prompts' in record and language_key in record['prompts'] and record['prompts'][language_key]:
                     try:
                         endpoint_idx = get_next_endpoint(endpoints)
                         endpoint_config = endpoints[endpoint_idx]
                         endpoint_formatted = format_endpoint(endpoint_config)
-                        case_study_info, elapsed_time = await generate_case_study(
-                            record['prompts'][language_key], 
-                            system_prompt,
-                            endpoint_idx,
-                            language_key
-                        )
-                        result = {
-                            "case_study_info": case_study_info,
-                            "original_info": record['case_study_info'],
-                            "prompt": record['prompts'][language_key],
-                            "stakeholder": record.get('stakeholder', ''),
-                            "motivation": record.get('motivation', ''),
-                            "elapsed_time": elapsed_time,
-                            "endpoint": endpoint_formatted
-                        }
-                        if language == 'english':
-                            english_records.append(result)
-                        else:
-                            chinese_records.append(result)
-                        log(f"Completed {language_name} case study {idx+1}/{total} - Source record #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name}) - {elapsed_time:.2f}s")
-                        return True
+                        
+                        # This is the critical part - we need to capture successful results even if there are retries
+                        try:
+                            case_study_info, elapsed_time = await generate_case_study(
+                                record['prompts'][language_key], 
+                                system_prompt,
+                                endpoint_idx,
+                                language_key,
+                                case_study_idx,
+                                source_record_idx,
+                                stakeholder_idx,
+                                stakeholder_name
+                            )
+                            
+                            # If we get here without exception, it's a success even if empty
+                            has_content = bool(case_study_info and case_study_info.strip())
+                            if has_content:
+                                result_record = process_record({
+                                    "case_study_info": case_study_info,
+                                    "original_info": record['case_study_info'],
+                                    "prompt": record['prompts'][language_key],
+                                    "stakeholder": record.get('stakeholder', ''),
+                                    "motivation": record.get('motivation', ''),
+                                    "elapsed_time": elapsed_time,
+                                    "endpoint": endpoint_formatted
+                                }, language)
+                                
+                                successful_records.append(result_record)
+                                all_records.append(result_record)
+                                
+                                log(f"Completed {language_name} case study {idx}/{total} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name}) - {elapsed_time:.2f}s")
+                                
+                                # Log telemetry after each completion
+                                total_needed = total_case_studies
+                                log(telemetry_stats.get_telemetry_string(total_needed))
+                                
+                                return True
+                            else:
+                                # Empty result should be counted as failure
+                                raise ValueError("Empty result returned")
+                                
+                        except Exception as e:
+                            # Try to recover from temp file if it exists
+                            temp_dir = os.path.join(dirs["temp_dir"], language_key)
+                            filepath = os.path.join(temp_dir, f"{case_study_idx:06d}.txt")
+                            if os.path.exists(filepath):
+                                # Found a saved file! Let's consider this a success despite the exception
+                                try:
+                                    with open(filepath, 'r', encoding='utf-8') as f:
+                                        recovered_content = f.read()
+                                    
+                                    if recovered_content and len(recovered_content) > 100:  # Sanity check for valid content
+                                        log(f"Recovered file for {language_name} case study {idx} despite error: {str(e)}")
+                                        
+                                        result_record = process_record({
+                                            "case_study_info": recovered_content,
+                                            "original_info": record['case_study_info'],
+                                            "prompt": record['prompts'][language_key],
+                                            "stakeholder": record.get('stakeholder', ''),
+                                            "motivation": record.get('motivation', ''),
+                                            "elapsed_time": 0.0,  # We don't know the real time
+                                            "endpoint": endpoint_formatted + "-recovered"
+                                        }, language)
+                                        
+                                        successful_records.append(result_record)
+                                        all_records.append(result_record)
+                                        
+                                        log(f"Successfully recovered {language_name} case study {idx} from saved file")
+                                        return True
+                                except Exception as recovery_error:
+                                    log(f"Failed to recover from temp file: {str(recovery_error)}")
+                            
+                            # No recovery possible, treat as failure
+                            error_msg = str(e)
+                            log(f"Error generating {language_name} case study {idx}/{total} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1}: {error_msg}")
+                            file_logger.error(f"Generation error for {language}: {error_msg}")
+                            
+                            failed_record = process_record({
+                                "original_info": record['case_study_info'],
+                                "prompt": record['prompts'][language_key],
+                                "stakeholder": record.get('stakeholder', ''),
+                                "motivation": record.get('motivation', ''),
+                                "endpoint": f"error - {error_msg}"
+                            }, language)
+                            failed_records.append(failed_record)
+                            all_records.append(failed_record)
+                            return False
                     except Exception as e:
                         error_msg = str(e)
-                        log(f"Error generating {language_name} for record {idx+1}/{total}: {error_msg}")
+                        log(f"Error generating {language_name} case study {idx}/{total} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1}: {error_msg}")
                         file_logger.error(f"Generation error for {language}: {error_msg}")
-                        failed_list.append({
-                            "case_study_info": "",
+                        
+                        failed_record = process_record({
                             "original_info": record['case_study_info'],
                             "prompt": record['prompts'][language_key],
                             "stakeholder": record.get('stakeholder', ''),
                             "motivation": record.get('motivation', ''),
-                            "elapsed_time": 0.0,
                             "endpoint": f"error - {error_msg}"
-                        })
+                        }, language)
+                        failed_records.append(failed_record)
+                        all_records.append(failed_record)
                         return False
                 else:
                     error_msg = record.get(error_key, f"Failed to generate {language} prompt")
-                    log(f"Missing prompt for record {idx+1}/{total} - {language_name}: {error_msg}")
-                    failed_list.append({
-                        "case_study_info": "",
+                    log(f"Missing prompt for case study {idx}/{total} - {language_name}: {error_msg}")
+                    
+                    failed_record = process_record({
                         "original_info": record['case_study_info'],
-                        "prompt": "",
                         "stakeholder": record.get('stakeholder', ''),
                         "motivation": record.get('motivation', ''),
-                        "elapsed_time": 0.0,
                         "endpoint": f"error - {error_msg}"
-                    })
+                    }, language)
+                    failed_records.append(failed_record)
+                    all_records.append(failed_record)
                     return False
-        total_records = len(prepared_records)
-        log(f"Starting to process {total_records} records")
+                    
+        total_case_studies = len(prepared_records) * 2  # English + Chinese for each stakeholder
+        log(f"Starting to generate {total_case_studies} case studies ({len(prepared_records)} stakeholders × 2 languages)")
+        
         start_idx = resume_from
         records_to_process = prepared_records[start_idx:]
         semaphore = asyncio.Semaphore(dirs["workers"])
         log(f"Using semaphore with {dirs['workers']} workers for concurrent processing")
         
         total_successful_case_studies = 0
+        case_study_counter = 0
         
         for batch_start in range(0, len(records_to_process), dirs["workers"]):
             batch_end = min(batch_start + dirs["workers"], len(records_to_process))
             batch = records_to_process[batch_start:batch_end]
             batch_size = len(batch)
-            log(f"Processing batch of {batch_size} records ({batch_start+start_idx+1} to {batch_end+start_idx})")
+            log(f"Processing batch of {batch_size} stakeholders ({batch_start+start_idx+1} to {batch_end+start_idx} out of {len(prepared_records)})")
+            
             tasks = []
             for i, record in enumerate(batch):
                 idx = batch_start + start_idx + i
-                tasks.append(process_language_record(record, 'english', idx, total_records, semaphore))
-                tasks.append(process_language_record(record, 'chinese', idx, total_records, semaphore))
+                case_study_counter += 1
+                tasks.append(process_case_study(record, 'english', case_study_counter, total_case_studies, semaphore))
+                
+                case_study_counter += 1
+                tasks.append(process_case_study(record, 'chinese', case_study_counter, total_case_studies, semaphore))
+                
             results = await asyncio.gather(*tasks, return_exceptions=True)
             for i, result in enumerate(results):
                 if isinstance(result, Exception):
                     record_idx = batch_start + start_idx + (i // 2)
                     language = 'english' if i % 2 == 0 else 'chinese'
-                    log(f"Error in batch processing record {record_idx+1} ({language}): {str(result)}")
-            current_idx = batch_end + start_idx
+                    record = batch[i // 2]
+                    source_record_idx = record.get('original_idx', -1)
+                    stakeholder_idx = record.get('stakeholder_idx', -1)
+                    log(f"Error in batch processing - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({language}): {str(result)}")
             
-            successful_case_studies_count = len(english_records) + len(chinese_records)
+            current_stakeholder_idx = batch_end + start_idx
+            successful_case_studies_count = len(successful_records)
             total_successful_case_studies = successful_case_studies_count
             
-            log(f"Progress: {current_idx}/{total_records} records processed ({current_idx/total_records*100:.1f}%)")
-            log(f"- Successful case studies: EN:{len(english_records)} CN:{len(chinese_records)} (Total: {total_successful_case_studies})")
-            log(f"- Failed case studies: EN:{len(english_failed_records)} CN:{len(chinese_failed_records)}")
+            log(f"Progress: {current_stakeholder_idx}/{len(prepared_records)} stakeholders processed ({current_stakeholder_idx/len(prepared_records)*100:.1f}%)")
+            log(f"- Successful case studies: {successful_case_studies_count}/{case_study_counter} ({successful_case_studies_count/case_study_counter*100:.1f}%)")
+            log(f"- Failed case studies: {len(failed_records)}/{case_study_counter} ({len(failed_records)/case_study_counter*100:.1f}%)")
             
-            if save_interval > 0 and total_successful_case_studies > 0 and total_successful_case_studies % save_interval == 0:
-                log(f"Saving intermediate results after {total_successful_case_studies} successful case studies")
-                processed_en = process_records(english_records, 1)
-                processed_cn = process_records(chinese_records, 1)
-                processed_en_failed = process_records(english_failed_records, 1)
-                processed_cn_failed = process_records(chinese_failed_records, 1)
-                await save_intermediate_results(
-                    processed_en, 
-                    processed_cn, 
-                    processed_en_failed, 
-                    processed_cn_failed, 
-                    current_idx // save_interval,
-                    destination
-                )
-                await save_metadata(current_idx, save_interval, total_records, destination)
-        english_records = process_records(english_records, 1)
-        chinese_records = process_records(chinese_records, 1)
-        english_failed_records = process_records(english_failed_records, 1)
-        chinese_failed_records = process_records(chinese_failed_records, 1)
-        total_records = len(prepared_records)
+            # Save based on successful case studies rather than processed stakeholders
+            if save_interval > 0 and successful_case_studies_count > 0 and (successful_case_studies_count % save_interval == 0):
+                log(f"Saving checkpoint after {successful_case_studies_count} successful case studies")
+                await save_intermediate_results_unified(successful_records, failed_records, successful_case_studies_count, destination)
+                await save_metadata(current_stakeholder_idx, save_interval, len(prepared_records), destination)
+        
+        # Process final results
+        total_stakeholders = len(prepared_records)
         log(f"Preparing to upload dataset to {destination}")
-        log(f"- Total stakeholders processed: {total_records}")
-        log(f"- Successful English records: {len(english_records)} ({len(english_records)/total_records*100:.1f}%)")
-        log(f"- Failed English records: {len(english_failed_records)} ({len(english_failed_records)/total_records*100:.1f}%)")
-        log(f"- Successful Chinese records: {len(chinese_records)} ({len(chinese_records)/total_records*100:.1f}%)")
-        log(f"- Failed Chinese records: {len(chinese_failed_records)} ({len(chinese_failed_records)/total_records*100:.1f}%)")
-        log(f"- Total successful records: {len(english_records) + len(chinese_records)}")
-        log(f"- Total failed records: {len(english_failed_records) + len(chinese_failed_records)}")
+        log(f"- Total stakeholders processed: {total_stakeholders}")
+        log(f"- Total case studies attempted: {case_study_counter}")
+        log(f"- Successful case studies: {len(successful_records)}/{case_study_counter} ({len(successful_records)/case_study_counter*100:.1f}%)")
+        log(f"- Failed case studies: {len(failed_records)}/{case_study_counter} ({len(failed_records)/case_study_counter*100:.1f}%)")
+        
         try:
-            dataset_splits = {
-                'english': Dataset.from_list(english_records),
-                'chinese': Dataset.from_list(chinese_records),
+            # Split records by language but ensure same schema
+            english_records = [r for r in successful_records if r["language"] == "english"]
+            chinese_records = [r for r in successful_records if r["language"] == "chinese"]
+            english_failed = [r for r in failed_records if r["language"] == "english"]
+            chinese_failed = [r for r in failed_records if r["language"] == "chinese"]
+            
+            # Ensure all splits have the same schema even if empty
+            empty_record = {
+                "id": 0,
+                "case_study_info": "",
+                "prompt": "",
+                "original_info": "",
+                "stakeholder": "",
+                "motivation": "",
+                "elapsed_time": 0.0,
+                "endpoint": "",
+                "language": ""
             }
-            if english_failed_records:
-                dataset_splits['english_failed'] = Dataset.from_list(english_failed_records)
-            if chinese_failed_records:
-                dataset_splits['chinese_failed'] = Dataset.from_list(chinese_failed_records)
+            
+            # Create datasets with consistent schema
+            dataset_splits = {}
+            
+            # Create english dataset
+            dataset_splits['english'] = Dataset.from_list(english_records) if english_records else Dataset.from_list([empty_record]).select([])
+            
+            # Create chinese dataset with same schema
+            dataset_splits['chinese'] = Dataset.from_list(chinese_records) if chinese_records else Dataset.from_list([empty_record]).select([])
+            
+            # Create failed datasets with same schema
+            if english_failed:
+                dataset_splits['english_failed'] = Dataset.from_list(english_failed)
+            if chinese_failed:
+                dataset_splits['chinese_failed'] = Dataset.from_list(chinese_failed)
+            
             dataset_dict = DatasetDict(dataset_splits)
             total_records_count = sum(len(split) for split in dataset_dict.values())
             log(f"Created dataset dictionary with {total_records_count} total records")
@@ -585,6 +767,7 @@ async def upload_results(prepared_records: list, destination: str, save_interval
         except Exception as e:
             log(f"Error creating dataset dictionary: {str(e)}", False)
             raise
+            
         try:
             hf_token = config.get('hf_token')
             if hf_token:
@@ -598,29 +781,22 @@ async def upload_results(prepared_records: list, destination: str, save_interval
         except Exception as e:
             log(f"Error pushing to hub: {str(e)}", True)
             raise
+            
         log(f"Results uploaded to {destination}:")
-        log(f"- Total successful records: {len(english_records) + len(chinese_records)}")
+        log(f"- Total successful case studies: {len(successful_records)}")
         log(f"- English successful: {len(english_records)}")
         log(f"- Chinese successful: {len(chinese_records)}")
-        failed_total = len(english_failed_records) + len(chinese_failed_records)
+        failed_total = len(failed_records)
         if failed_total > 0:
-            log(f"- Total failed records: {failed_total}")
-            if english_failed_records:
-                log(f"- English failed: {len(english_failed_records)}")
-            if chinese_failed_records:
-                log(f"- Chinese failed: {len(chinese_failed_records)}")
+            log(f"- Total failed case studies: {failed_total}")
+            log(f"- English failed: {len(english_failed)}")
+            log(f"- Chinese failed: {len(chinese_failed)}")
         
         await clear_metadata()
         
         return True
     except Exception as e:
         log(f"Error uploading results: {type(e).__name__}: {str(e)}", True)
-        return False
-
-async def dataset_exists(name: str) -> bool:
-    try:
-        return bool(HfApi().dataset_info(name))
-    except:
         return False
 
 @lru_cache(maxsize=512)
@@ -708,24 +884,24 @@ async def expand_dataset(dataset) -> list:
                         })
                     else:
                         skipped += 1
-                        log(f"Skipping stakeholder in record {idx}: Empty after cleaning", False)
+                        log(f"Skipping stakeholder in source record {idx}: Empty after cleaning", False)
             else:
                 skipped += 1
-                log(f"Skipping record {idx}: Invalid stakeholders structure", False)
+                log(f"Skipping source record {idx}: Invalid stakeholders structure", False)
         except Exception as ex:
-            log(f"Error expanding record {idx}: {ex}", False)
+            log(f"Error expanding source record {idx}: {ex}", False)
             skipped += 1
     avg_stakeholders = sum(stakeholder_counts) / len(stakeholder_counts) if stakeholder_counts else 0
     max_stakeholders = max(stakeholder_counts) if stakeholder_counts else 0
     log(f"Dataset expansion statistics:")
-    log(f"- Original records: {total_records}")
-    log(f"- Valid records: {valid}")
-    log(f"- Skipped records: {skipped}")
+    log(f"- Original source records: {total_records}")
+    log(f"- Valid source records: {valid}")
+    log(f"- Skipped source records: {skipped}")
     log(f"- Total stakeholders: {len(expanded)}")
-    log(f"- Stakeholders cleaned: {cleaned_count}")
-    log(f"- Total generations needed: {len(expanded) * 2}")
-    log(f"- Average stakeholders per valid record: {avg_stakeholders:.2f}")
-    log(f"- Max stakeholders in a record: {max_stakeholders}")
+    log(f"- Stakeholders requiring cleaning: {cleaned_count}")
+    log(f"- Total case studies needed: {len(expanded) * 2} (English + Chinese)")
+    log(f"- Average stakeholders per valid source record: {avg_stakeholders:.2f}")
+    log(f"- Max stakeholders in a source record: {max_stakeholders}")
     log(f"- Success rate: {(valid/total_records*100):.1f}%")
     return expanded
 
