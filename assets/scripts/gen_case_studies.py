@@ -1,11 +1,9 @@
-import argparse as ap, os, asyncio, logging, time, requests, random
+import argparse as ap, os, asyncio, logging, time, requests, random, json
 from openai import AsyncOpenAI
 from tenacity import retry, wait_random, stop_after_attempt, retry_if_exception
 from asyncio import TimeoutError
 from datasets import load_dataset, Dataset, DatasetDict
-from huggingface_hub import HfApi
 from functools import lru_cache
-import json
 
 DEFAULT_CONFIG_URL = "https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw"
 MAX_WORKERS = 10
@@ -14,7 +12,7 @@ MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
 REQUEST_COUNTER = 0
 ENDPOINT_COOLDOWN = 120
-SAVE_INTERVAL = 100
+CHECKPOINT_INTERVAL = 100
 REQUEST_TIMEOUT = 300
 TEST_TIMEOUT = 30
 
@@ -396,17 +394,17 @@ def format_endpoint(config):
     else:
         return provider
 
-async def save_metadata(processed_count: int, save_interval: int, total_records: int, destination: str):
+async def save_metadata(processed_count: int, checkpoint_interval: int, total_records: int, destination: str):
     try:
         metadata = {
             "last_update_time": time.time(),
             "processed_count": processed_count,
             "total_records": total_records,
-            "save_interval": save_interval,
+            "checkpoint_interval": checkpoint_interval,
             "destination": destination,
             "source": config.get("src", ""),
             "run_id": dirs["run_id"],
-            "current_batch": processed_count // save_interval,
+            "current_batch": processed_count // checkpoint_interval if checkpoint_interval > 0 else 0,
         }
         metadata_path = os.path.join(dirs["run_dir"], "processing_metadata.json")
         with open(metadata_path, 'w') as f:
@@ -504,7 +502,7 @@ async def save_intermediate_results_unified(successful_records, failed_records, 
         log(f"Error saving intermediate results: {str(e)}")
         return False
 
-async def upload_results(prepared_records: list, destination: str, save_interval: int) -> bool:
+async def upload_results(prepared_records: list, destination: str, checkpoint_interval: int) -> bool:
     # Define global variable for telemetry
     global total_case_studies
     total_case_studies = len(prepared_records) * 2  # English + Chinese for each stakeholder
@@ -746,12 +744,12 @@ async def upload_results(prepared_records: list, destination: str, save_interval
             log(f"- Successful case studies: {successful_case_studies_count}/{case_study_counter} ({successful_case_studies_count/case_study_counter*100:.1f}%)")
             log(f"- Failed case studies: {len(failed_records)}/{case_study_counter} ({len(failed_records)/case_study_counter*100:.1f}%)")
             
-            # Only save intermediate checkpoints if we've reached the save interval 
+            # Only save intermediate checkpoints if we've reached the checkpoint interval 
             # AND we're not at the end of processing
-            if save_interval > 0 and successful_case_studies_count > 0 and (successful_case_studies_count % save_interval == 0) and batch_end < len(records_to_process):
+            if checkpoint_interval > 0 and successful_case_studies_count > 0 and (successful_case_studies_count % checkpoint_interval == 0) and batch_end < len(records_to_process):
                 log(f"Saving checkpoint after {successful_case_studies_count} successful case studies")
                 await save_intermediate_results_unified(successful_records, failed_records, successful_case_studies_count, destination)
-                await save_metadata(current_stakeholder_idx, save_interval, len(prepared_records), destination)
+                await save_metadata(current_stakeholder_idx, checkpoint_interval, len(prepared_records), destination)
         
         # Now that ALL batches are processed, finalize results
         # Always save a final checkpoint with all results
@@ -766,7 +764,7 @@ async def upload_results(prepared_records: list, destination: str, save_interval
         # Save a final checkpoint before attempting upload
         log(f"Saving final checkpoint with all {successful_case_studies_count} successful case studies")
         await save_intermediate_results_unified(successful_records, failed_records, successful_case_studies_count, destination)
-        await save_metadata(total_stakeholders, save_interval, len(prepared_records), destination)
+        await save_metadata(total_stakeholders, checkpoint_interval, len(prepared_records), destination)
             
         # Now upload the finalized results
         log(f"Preparing to upload dataset to {destination}")
@@ -1055,7 +1053,7 @@ async def setup_directories(args):
     if effective_workers < requested_workers:
         log(f"Capping workers from {requested_workers} to {effective_workers} based on available endpoints")
     
-    save_interval = args.save_interval if args.save_interval > 0 else float('inf')
+    checkpoint_interval = args.checkpoint_interval if args.checkpoint_interval > 0 else float('inf')
     
     return {
         "run_id": run_id,
@@ -1070,7 +1068,7 @@ async def setup_directories(args):
         "temp_dir_zh": zh_dir,
         "workers": effective_workers,
         "endpoints_count": len(config['endpoints']),
-        "save_interval": save_interval
+        "checkpoint_interval": checkpoint_interval
     }
 
 async def test_endpoints(workers_count):
@@ -1181,7 +1179,7 @@ async def main(args):
             log("HF_TOKEN found in config")
         else:
             log("Warning: No HF_TOKEN found in config. Authentication may fail.")
-        upload_success = await upload_results(prepared_records, destination, args.save_interval)
+        upload_success = await upload_results(prepared_records, destination, args.checkpoint_interval)
         if not upload_success:
             raise ValueError("Failed to upload dataset")
         log(f"Successfully initialized dataset structure at {destination}")
@@ -1197,7 +1195,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", default=os.getcwd(), help="Output directory for case studies")
     parser.add_argument("--log-dir", help="Directory to save log files")
     parser.add_argument("--workers", type=int, help="Number of parallel workers for endpoint testing")
-    parser.add_argument("--save-interval", type=int, default=SAVE_INTERVAL, help="Interval to save intermediate results (default: 100)")
+    parser.add_argument("--checkpoint-interval", type=int, default=CHECKPOINT_INTERVAL, help="Interval to save intermediate checkpoints (default: 100)")
     parser.add_argument("--resume", action="store_true", help="Resume from previous processing session")
     parser.add_argument("--max-records", type=int, default=0, help="Maximum number of records to process")
     parser.add_argument("--offset", type=int, default=0, help="Offset to start processing records from")
