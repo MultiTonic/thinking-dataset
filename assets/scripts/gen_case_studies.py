@@ -8,8 +8,8 @@ from functools import lru_cache
 import json
 
 DEFAULT_CONFIG_URL = "https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw"
-MAX_WORKERS = 12
-MAX_RETRIES = 5
+MAX_WORKERS = 16
+MAX_RETRIES = 3
 MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
 REQUEST_COUNTER = 0
@@ -221,7 +221,7 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language):
         REQUEST_COUNTER += 1
         request_id = REQUEST_COUNTER
         min_length = config.get('min_length', 0)
-        log(f"[{request_id}] Starting {language_name} generation using {provider}-{name}")
+        log(f"[{request_id}] Generating {language_name} case study using {provider}-{name}")
         async with AsyncOpenAI(
             base_url=f"https://{API_BASE_URL}/{endpoint_config['u']}/v1",
             api_key=endpoint_config['k']
@@ -431,6 +431,11 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                 failed_list = english_failed_records if language == 'english' else chinese_failed_records
                 language_name = "English" if language == 'english' else "Chinese"
                 system_prompt = config['systems'].get(language_key, "")
+                
+                source_record_idx = record.get('original_idx', -1)
+                stakeholder_idx = record.get('stakeholder_idx', -1)
+                stakeholder_name = record.get('stakeholder', 'Unknown')
+                
                 if not system_prompt:
                     error_msg = f"Missing system prompt for {language_name}"
                     log(f"Error: {error_msg}")
@@ -444,7 +449,8 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                         "endpoint": f"error - {error_msg}"
                     })
                     return False
-                log(f"Processing record {idx+1}/{total} - {language_name}")
+                log(f"Generating {language_name} case study {idx+1}/{total} - Source record #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name})")
+                
                 if 'prompts' in record and language_key in record['prompts'] and record['prompts'][language_key]:
                     try:
                         endpoint_idx = get_next_endpoint(endpoints)
@@ -469,7 +475,7 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                             english_records.append(result)
                         else:
                             chinese_records.append(result)
-                        log(f"Completed record {idx+1}/{total} - {language_name} - {elapsed_time:.2f}s")
+                        log(f"Completed {language_name} case study {idx+1}/{total} - Source record #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name}) - {elapsed_time:.2f}s")
                         return True
                     except Exception as e:
                         error_msg = str(e)
@@ -504,6 +510,9 @@ async def upload_results(prepared_records: list, destination: str, save_interval
         records_to_process = prepared_records[start_idx:]
         semaphore = asyncio.Semaphore(dirs["workers"])
         log(f"Using semaphore with {dirs['workers']} workers for concurrent processing")
+        
+        total_successful_case_studies = 0
+        
         for batch_start in range(0, len(records_to_process), dirs["workers"]):
             batch_end = min(batch_start + dirs["workers"], len(records_to_process))
             batch = records_to_process[batch_start:batch_end]
@@ -521,11 +530,16 @@ async def upload_results(prepared_records: list, destination: str, save_interval
                     language = 'english' if i % 2 == 0 else 'chinese'
                     log(f"Error in batch processing record {record_idx+1} ({language}): {str(result)}")
             current_idx = batch_end + start_idx
+            
+            successful_case_studies_count = len(english_records) + len(chinese_records)
+            total_successful_case_studies = successful_case_studies_count
+            
             log(f"Progress: {current_idx}/{total_records} records processed ({current_idx/total_records*100:.1f}%)")
-            log(f"- Successful: EN:{len(english_records)} CN:{len(chinese_records)}")
-            log(f"- Failed: EN:{len(english_failed_records)} CN:{len(chinese_failed_records)}")
-            if save_interval > 0 and current_idx % save_interval == 0:
-                log(f"Saving intermediate results at checkpoint {current_idx // save_interval}")
+            log(f"- Successful case studies: EN:{len(english_records)} CN:{len(chinese_records)} (Total: {total_successful_case_studies})")
+            log(f"- Failed case studies: EN:{len(english_failed_records)} CN:{len(chinese_failed_records)}")
+            
+            if save_interval > 0 and total_successful_case_studies > 0 and total_successful_case_studies % save_interval == 0:
+                log(f"Saving intermediate results after {total_successful_case_studies} successful case studies")
                 processed_en = process_records(english_records, 1)
                 processed_cn = process_records(chinese_records, 1)
                 processed_en_failed = process_records(english_failed_records, 1)
@@ -809,14 +823,13 @@ async def setup_directories(args):
     zh_dir = os.path.join(temp_dir, "zh")
     for directory in [en_dir, zh_dir]:
         os.makedirs(directory, exist_ok=True)
-    max_records = args.max_records if args.max_records > 0 else float('inf')
+    
     requested_workers = args.workers or MAX_WORKERS
-    workers_cap = min(requested_workers, len(config['endpoints']))
-    if max_records < workers_cap:
-        workers_cap = max_records
-    effective_workers = max(1, int(workers_cap))
+    effective_workers = min(requested_workers, len(config['endpoints']))
+    
     if effective_workers < requested_workers:
-        log(f"Capping workers from {requested_workers} to {effective_workers} based on available endpoints/max_records")
+        log(f"Capping workers from {requested_workers} to {effective_workers} based on available endpoints")
+    
     save_interval = args.save_interval if args.save_interval > 0 else float('inf')
     
     return {
@@ -832,7 +845,7 @@ async def setup_directories(args):
         "temp_dir_zh": zh_dir,
         "workers": effective_workers,
         "endpoints_count": len(config['endpoints']),
-        "save_interval": save_interval  # Store save_interval separately
+        "save_interval": save_interval
     }
 
 async def test_endpoints(workers_count):
@@ -894,11 +907,7 @@ async def main(args):
             log(f"Overriding destination dataset from '{config.get('dest', 'none')}' to '{args.dest}'")
             config['dest'] = args.dest
         
-        # Get directories config with proper worker count
         dirs = await setup_directories(args)
-        
-        # No longer need to set save_interval separately here as it's already in dirs
-        # dirs["save_interval"] = args.save_interval  # This line can be removed
 
         metadata = await load_metadata()
         if (metadata and args.resume):
