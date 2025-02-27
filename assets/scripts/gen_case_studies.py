@@ -8,7 +8,7 @@ from functools import lru_cache
 import json
 
 DEFAULT_CONFIG_URL = "https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw"
-MAX_WORKERS = 16
+MAX_WORKERS = 12
 MAX_RETRIES = 3
 MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
