@@ -965,8 +965,20 @@ if __name__ == "__main__":
         response = requests.get(config_url)
 
         if response.status_code == 200:
-            cfg = response.json()
-            log("Config fetched successfully")
+            try:
+                cfg = response.json()
+                log("Config fetched successfully")
+            except json.JSONDecodeError as json_err:
+                log(f"Error parsing JSON configuration: {str(json_err)}")
+                log(f"Error at line {json_err.lineno}, column {json_err.colno}: {json_err.msg}")
+                
+                # Print the problematic line with markers
+                lines = response.text.split('\n')
+                if json_err.lineno <= len(lines):
+                    problematic_line = lines[json_err.lineno - 1]
+                    log(f"Problematic line: {problematic_line}")
+                    log(f"                  {' ' * (json_err.colno - 1)}^")
+                exit(1)
         else:
             log(f"Error: Failed to fetch config, status code: {response.status_code}")
             exit(1)
