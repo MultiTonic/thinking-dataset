@@ -52,6 +52,7 @@ dependencies = [
     "tenacity>=8.2.3",
     "lorem-text>=2.1",
     "python-dateutil>=2.8.2",
+    "rapidfuzz>=3.12.1",
 ]
 
 [project.optional-dependencies]
