@@ -6,12 +6,12 @@ from datasets import load_dataset, Dataset, DatasetDict
 from functools import lru_cache
 
 DEFAULT_CONFIG_URL = "https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw"
-MAX_WORKERS = 10
-MAX_RETRIES = 3
+MAX_WORKERS = 16
+MAX_RETRIES = 10
 MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
 REQUEST_COUNTER = 0
-ENDPOINT_COOLDOWN = 100
+ENDPOINT_COOLDOWN = 30
 CHECKPOINT_INTERVAL = 100
 REQUEST_TIMEOUT = 600
 TEST_TIMEOUT = 30
@@ -717,15 +717,16 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
         records_to_process = prepared_records[start_idx:]
         semaphore = asyncio.Semaphore(dirs["workers"])
         log(f"Using semaphore with {dirs['workers']} workers for concurrent processing")
+        log(f"Using batch size of {dirs['batch_size']} (worker count: {dirs['workers']})")
         
         total_successful_case_studies = 0
         total_processed_case_studies = 0  # Track ALL processed case studies regardless of success
         case_study_counter = 0
         
-        # Process all batches without checkpointing between batches
-        for batch_start in range(0, len(records_to_process), dirs["workers"]):
+        # Process in batches but wait for each batch to complete before moving to the next
+        for batch_start in range(0, len(records_to_process), dirs["batch_size"]):
             batch_start_time = time.time()
-            batch_end = min(batch_start + dirs["workers"], len(records_to_process))
+            batch_end = min(batch_start + dirs["batch_size"], len(records_to_process))
             batch = records_to_process[batch_start:batch_end]
             batch_size = len(batch)
             log(f"Processing batch of {batch_size} stakeholders ({batch_start+start_idx+1} to {batch_end+start_idx} out of {len(prepared_records)})")
@@ -738,8 +739,11 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                 
                 case_study_counter += 1
                 tasks.append(process_case_study(record, 'chinese', case_study_counter, total_case_studies, semaphore))
-                
+            
+            # Wait for all tasks in this batch to complete before starting the next batch
+            # This allows us to reuse connections instead of terminating them after each small group
             results = await asyncio.gather(*tasks, return_exceptions=True)
+            
             for i, result in enumerate(results):
                 # Count each attempted case study generation regardless of success
                 total_processed_case_studies += 1
@@ -1090,6 +1094,11 @@ async def setup_directories(args):
     if effective_workers < requested_workers:
         log(f"Capping workers from {requested_workers} to {effective_workers} based on available endpoints")
     
+    # Use batch size from args but default to 25 if not specified
+    batch_size = args.batch_size or 25
+    if batch_size < effective_workers:
+        log(f"Warning: Batch size ({batch_size}) is smaller than worker count ({effective_workers})")
+    
     checkpoint_interval = args.checkpoint_interval if args.checkpoint_interval > 0 else float('inf')
     
     return {
@@ -1104,6 +1113,7 @@ async def setup_directories(args):
         "temp_dir_en": en_dir,
         "temp_dir_zh": zh_dir,
         "workers": effective_workers,
+        "batch_size": batch_size,
         "endpoints_count": len(config['endpoints']),
         "checkpoint_interval": checkpoint_interval
     }
@@ -1232,6 +1242,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", default=os.getcwd(), help="Output directory for case studies")
     parser.add_argument("--log-dir", help="Directory to save log files")
     parser.add_argument("--workers", type=int, help="Number of parallel workers for endpoint testing")
+    parser.add_argument("--batch-size", type=int, help="Number of records to process in a batch (default: 25)")
     parser.add_argument("--checkpoint-interval", type=int, default=CHECKPOINT_INTERVAL, help="Interval to save intermediate checkpoints (default: 100)")
     parser.add_argument("--resume", action="store_true", help="Resume from previous processing session")
     parser.add_argument("--max-records", type=int, default=0, help="Maximum number of records to process")
