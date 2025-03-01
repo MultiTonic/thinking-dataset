@@ -5,7 +5,6 @@ from asyncio import TimeoutError
 from datasets import load_dataset, Dataset, DatasetDict
 from functools import lru_cache
 
-DEFAULT_CONFIG_URL = "https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw"
 MAX_WORKERS = 16
 MAX_RETRIES = 10
 MAX_RETRY_DELAY = 0.3
@@ -49,35 +48,11 @@ def setup_loggers(log_path: str) -> tuple[logging.Logger, logging.Logger]:
 
 async def fetch_config():
     try:
-        log(f"Fetching config from: {DEFAULT_CONFIG_URL}")
-        response = requests.get(DEFAULT_CONFIG_URL)
+        log(f"Fetching config from: {args.config}")
+        response = requests.get(args.config)
         if response.status_code == 200:
             config_json = response.json()
             log("Config fetched successfully")
-            required_keys = ['endpoints', 'model', 'src', 'dest', 'systems', 'prompts']
-            missing_keys = [key for key in required_keys if key not in config_json]
-            if missing_keys:
-                log(f"Warning: Config is missing some required keys: {', '.join(missing_keys)}", True)
-            if 'systems' in config_json:
-                if not all(lang in config_json['systems'] for lang in ['en', 'zh']):
-                    log("Warning: Config is missing system prompts for 'en' or 'zh'", True)
-            if 'prompts' in config_json:
-                if not all(lang in config_json['prompts'] for lang in ['en', 'zh']):
-                    log("Warning: Config is missing prompt templates for 'en' or 'zh'", True)
-            if 'endpoints' in config_json and isinstance(config_json['endpoints'], list):
-                valid_endpoints = []
-                for idx, endpoint in enumerate(config_json['endpoints']):
-                    if not all(key in endpoint for key in ['p', 'u', 'k']):
-                        log(f"Warning: Endpoint {idx+1} is missing required keys", False)
-                    else:
-                        valid_endpoints.append(endpoint)
-                if len(valid_endpoints) == 0:
-                    log("Error: No valid endpoints found in config", True)
-                elif len(valid_endpoints) < len(config_json['endpoints']):
-                    log(f"Warning: Only {len(valid_endpoints)} of {len(config_json['endpoints'])} endpoints are valid", True)
-                    config_json['endpoints'] = valid_endpoints
-            else:
-                log("Error: 'endpoints' key is missing or not a list", True)
             return config_json
         log(f"Failed to fetch config: {response.status_code}", False)
         return None
@@ -206,7 +181,6 @@ async def load_source_dataset(offset=0, max_records=0):
 def should_retry_on_too_short(exception):
     return isinstance(exception, ResponseTooShortError) or retry_if_exception(exception)
 
-# Add a global stats tracker
 class TelemetryStats:
     def __init__(self):
         self.start_time = time.time()
@@ -215,12 +189,11 @@ class TelemetryStats:
         self.failed_generations = 0
         self.errors_by_type = {}
         self.last_log_time = time.time()
-        self.processed_files = set()  # Track unique files we've processed
+        self.processed_files = set()
 
     def log_success(self, language, case_study_idx):
         self.total_attempts += 1
         
-        # Only count each file once using a set to track unique IDs
         unique_id = f"{language}_{case_study_idx}"
         if unique_id not in self.processed_files:
             self.successful_generations += 1
@@ -232,7 +205,6 @@ class TelemetryStats:
         self.errors_by_type[error_type] = self.errors_by_type.get(error_type, 0) + 1
     
     def reset_stats(self, expected_total):
-        """Reset stats at the beginning of a new processing run"""
         self.start_time = time.time()
         self.total_attempts = 0
         self.successful_generations = 0
@@ -247,7 +219,6 @@ class TelemetryStats:
         rpm = (self.total_attempts / elapsed * 60) if elapsed > 0 else 0
         error_rate = (self.failed_generations / self.total_attempts * 100) if self.total_attempts > 0 else 0
         
-        # Estimate remaining time
         if rpm > 0:
             est_minutes = remaining / (rpm * (1 - error_rate/100))
             time_remaining = f"{est_minutes:.1f} min" if est_minutes < 60 else f"{est_minutes/60:.1f} hours"
@@ -258,15 +229,12 @@ class TelemetryStats:
                 f"{remaining} remaining • {rpm:.1f} req/min • "
                 f"{error_rate:.1f}% errors • Est. remaining: {time_remaining}")
 
-# Create global stats tracker
 telemetry_stats = TelemetryStats()
 
-# Modify retry conditions to only retry on rate limit errors, not for other exceptions
 def should_retry(exception):
     if isinstance(exception, ResponseTooShortError):
         return True
     
-    # Only retry for rate limit related errors (429)
     if isinstance(exception, Exception) and ("429" in str(exception) or 
                                            "TOO MANY TOKENS" in str(exception) or 
                                            "rate limit" in str(exception).lower()):
@@ -275,7 +243,7 @@ def should_retry(exception):
 
 @retry(stop=stop_after_attempt(MAX_RETRIES), 
        wait=wait_random(min=0.1, max=MAX_RETRY_DELAY), 
-       retry=should_retry,  # Use our specific retry condition
+       retry=should_retry,
        reraise=True)
 async def generate_case_study(prompt, system_prompt, endpoint_idx, language, case_study_idx, source_record_idx, stakeholder_idx, stakeholder_name):
     global endpoints, telemetry_stats
@@ -288,7 +256,6 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language, cas
         language_name = "English" if language == 'en' else "Chinese"
         min_length = config.get('min_length', 0)
         
-        # Log with source record and stakeholder info
         log(f"Generating {language_name} case study #{case_study_idx} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name}) using {provider}-{name}")
         
         async with AsyncOpenAI(
@@ -344,8 +311,7 @@ async def generate_case_study(prompt, system_prompt, endpoint_idx, language, cas
                         f.write(result)
                     log(f"Saved {language_name} case study #{case_study_idx} to {filepath}")
                     
-                    # Don't increment telemetry counter here - we'll do it in process_case_study
-                    if time.time() - telemetry_stats.last_log_time > 30:  # Log telemetry every 30 seconds
+                    if time.time() - telemetry_stats.last_log_time > 30:
                         if 'total_case_studies' in globals():
                             total_needed = total_case_studies
                         else:
@@ -444,15 +410,12 @@ async def clear_metadata():
         return False
 
 async def save_intermediate_results_unified(successful_records, failed_records, processed_count, destination):
-    """Save intermediate results with unified record schema."""
     try:
-        # Split by language
         english_records = [r for r in successful_records if r["language"] == "english"]
         chinese_records = [r for r in successful_records if r["language"] == "chinese"]
         english_failed = [r for r in failed_records if r["language"] == "english"]
         chinese_failed = [r for r in failed_records if r["language"] == "chinese"]
         
-        # Create empty record template for schema consistency with proper order
         empty_record = {
             "id": 0,
             "language": "",
@@ -461,12 +424,11 @@ async def save_intermediate_results_unified(successful_records, failed_records, 
             "original_info": "",
             "stakeholder": "",
             "motivation": "",
-            "model": config.get("model", "unknown"),  # Add model field
+            "model": config.get("model", "unknown"),
             "elapsed_time": 0.0,
             "endpoint": ""
         }
         
-        # Create datasets with consistent schema
         dataset_splits = {
             'english': Dataset.from_list(english_records) if english_records else Dataset.from_list([empty_record]).select([]),
             'chinese': Dataset.from_list(chinese_records) if chinese_records else Dataset.from_list([empty_record]).select([])
@@ -504,20 +466,16 @@ async def save_intermediate_results_unified(successful_records, failed_records, 
         return False
 
 async def upload_results(prepared_records: list, destination: str, checkpoint_interval: int) -> bool:
-    # Define global variable for telemetry
     global total_case_studies
-    total_case_studies = len(prepared_records) * 2  # English + Chinese for each stakeholder
+    total_case_studies = len(prepared_records) * 2
     
-    # Reset telemetry stats at the start of processing
     telemetry_stats.reset_stats(total_case_studies)
     
-    # Add timing variables
     start_time = time.time()
     batch_times = []
     checkpoint_times = []
     
     try:
-        # Create a unified record structure with language field
         all_records = []
         successful_records = []
         failed_records = []
@@ -537,18 +495,17 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
         os.makedirs(zh_temp_dir, exist_ok=True)
         
         def process_record(record, language, add_id=True):
-            # Standardize record format - same schema for all
             result = {
-                "id": len(all_records) + 1 if add_id else 0,  # Put id first
+                "id": len(all_records) + 1 if add_id else 0,
                 "language": language,
                 "case_study_info": record.get("case_study_info", ""),
                 "prompt": record.get("prompt", ""),
                 "original_info": record.get("original_info", ""),
                 "stakeholder": record.get("stakeholder", ""),
                 "motivation": record.get("motivation", ""),
-                "model": config.get("model", "unknown"),  # Add model field
+                "model": config.get("model", "unknown"),
                 "elapsed_time": record.get("elapsed_time", 0.0),
-                "endpoint": record.get("endpoint", "")  # Put endpoint last
+                "endpoint": record.get("endpoint", "")
             }
             return result
         
@@ -559,7 +516,6 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                 language_name = "English" if language == 'english' else "Chinese"
                 system_prompt = config['systems'].get(language_key, "")
                 
-                # Extract source record info
                 source_record_idx = record.get('original_idx', -1)
                 stakeholder_idx = record.get('stakeholder_idx', -1)
                 stakeholder_name = record.get('stakeholder', 'Unknown')
@@ -583,7 +539,6 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                         endpoint_config = endpoints[endpoint_idx]
                         endpoint_formatted = format_endpoint(endpoint_config)
                         
-                        # Try just once to generate - no more retrying except for rate limits
                         try:
                             case_study_info, elapsed_time = await generate_case_study(
                                 record['prompts'][language_key], 
@@ -596,7 +551,6 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                                 stakeholder_name
                             )
                             
-                            # If successful generation
                             has_content = bool(case_study_info and case_study_info.strip())
                             if has_content:
                                 result_record = process_record({
@@ -607,36 +561,31 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                                     "motivation": record.get('motivation', ''),
                                     "elapsed_time": elapsed_time,
                                     "endpoint": endpoint_formatted,
-                                    "model": config.get("model", "unknown")  # Add model field here
+                                    "model": config.get("model", "unknown")
                                 }, language)
                                 
                                 successful_records.append(result_record)
                                 all_records.append(result_record)
                                 
-                                # Now increment telemetry counter only once per file
                                 telemetry_stats.log_success(language_key, case_study_idx)
                                 
                                 log(f"Completed {language_name} case study {idx}/{total} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name}) - {elapsed_time:.2f}s")
                                 
-                                # Log telemetry after each completion
                                 log(telemetry_stats.get_telemetry_string(total_case_studies))
                                 
                                 return True
                             else:
-                                # Empty result should be counted as failure
                                 raise ValueError("Empty result returned")
                                 
                         except Exception as e:
-                            # Try to recover from temp file if it exists
                             temp_dir = os.path.join(dirs["temp_dir"], language_key)
                             filepath = os.path.join(temp_dir, f"{case_study_idx:06d}.txt")
                             if os.path.exists(filepath):
-                                # Found a saved file! Let's consider this a success
                                 try:
                                     with open(filepath, 'r', encoding='utf-8') as f:
                                         recovered_content = f.read()
                                     
-                                    if recovered_content and len(recovered_content) > 100:  # Sanity check for valid content
+                                    if recovered_content and len(recovered_content) > 100:
                                         log(f"Recovered file for {language_name} case study {idx} despite error: {str(e)}")
                                         
                                         result_record = process_record({
@@ -645,15 +594,14 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                                             "prompt": record['prompts'][language_key],
                                             "stakeholder": record.get('stakeholder', ''),
                                             "motivation": record.get('motivation', ''),
-                                            "elapsed_time": 0.0,  # We don't know the real time
+                                            "elapsed_time": 0.0,
                                             "endpoint": endpoint_formatted + "-recovered",
-                                            "model": config.get("model", "unknown")  # Add model field here
+                                            "model": config.get("model", "unknown")
                                         }, language)
                                         
                                         successful_records.append(result_record)
                                         all_records.append(result_record)
                                         
-                                        # Increment telemetry for recovered files too - but only once
                                         telemetry_stats.log_success(language_key, case_study_idx)
                                         
                                         log(f"Successfully recovered {language_name} case study {idx} from saved file")
@@ -661,7 +609,6 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                                 except Exception as recovery_error:
                                     log(f"Failed to recover from temp file: {str(recovery_error)}")
                             
-                            # No recovery possible, treat as failure
                             error_msg = str(e)
                             log(f"Error generating {language_name} case study {idx}/{total} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1}: {error_msg}")
                             file_logger.error(f"Generation error for {language}: {error_msg}")
@@ -672,7 +619,7 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                                 "stakeholder": record.get('stakeholder', ''),
                                 "motivation": record.get('motivation', ''),
                                 "endpoint": f"error - {error_msg}",
-                                "model": config.get("model", "unknown")  # Add model field here
+                                "model": config.get("model", "unknown")
                             }, language)
                             failed_records.append(failed_record)
                             all_records.append(failed_record)
@@ -689,7 +636,7 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                             "stakeholder": record.get('stakeholder', ''),
                             "motivation": record.get('motivation', ''),
                             "endpoint": f"error - {error_msg}",
-                            "model": config.get("model", "unknown")  # Add model field here
+                            "model": config.get("model", "unknown")
                         }, language)
                         failed_records.append(failed_record)
                         all_records.append(failed_record)
@@ -704,13 +651,13 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                         "stakeholder": record.get('stakeholder', ''),
                         "motivation": record.get('motivation', ''),
                         "endpoint": f"error - {error_msg}",
-                        "model": config.get("model", "unknown")  # Add model field here
+                        "model": config.get("model", "unknown")
                     }, language)
                     failed_records.append(failed_record)
                     all_records.append(failed_record)
                     return False
                     
-        total_case_studies = len(prepared_records) * 2  # English + Chinese for each stakeholder
+        total_case_studies = len(prepared_records) * 2
         log(f"Starting to generate {total_case_studies} case studies ({len(prepared_records)} stakeholders × 2 languages)")
         
         start_idx = resume_from
@@ -720,10 +667,9 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
         log(f"Using batch size of {dirs['batch_size']} (worker count: {dirs['workers']})")
         
         total_successful_case_studies = 0
-        total_processed_case_studies = 0  # Track ALL processed case studies regardless of success
+        total_processed_case_studies = 0
         case_study_counter = 0
         
-        # Process in batches but wait for each batch to complete before moving to the next
         for batch_start in range(0, len(records_to_process), dirs["batch_size"]):
             batch_start_time = time.time()
             batch_end = min(batch_start + dirs["batch_size"], len(records_to_process))
@@ -740,12 +686,9 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                 case_study_counter += 1
                 tasks.append(process_case_study(record, 'chinese', case_study_counter, total_case_studies, semaphore))
             
-            # Wait for all tasks in this batch to complete before starting the next batch
-            # This allows us to reuse connections instead of terminating them after each small group
             results = await asyncio.gather(*tasks, return_exceptions=True)
             
             for i, result in enumerate(results):
-                # Count each attempted case study generation regardless of success
                 total_processed_case_studies += 1
                 
                 if isinstance(result, Exception):
@@ -756,7 +699,6 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                     stakeholder_idx = record.get('stakeholder_idx', -1)
                     log(f"Error in batch processing - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({language}): {str(result)}")
                 
-                # Check if we should save a checkpoint based on TOTAL processed case studies
                 if checkpoint_interval > 0 and total_processed_case_studies > 0 and (total_processed_case_studies % checkpoint_interval == 0):
                     checkpoint_start = time.time()
                     log(f"Saving checkpoint after {total_processed_case_studies} total case studies ({len(successful_records)} successful)")
@@ -766,7 +708,6 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                     checkpoint_times.append(checkpoint_duration)
                     log(f"Checkpoint saved in {checkpoint_duration:.2f} seconds")
             
-            # Add batch timing metrics
             batch_duration = time.time() - batch_start_time
             batch_times.append(batch_duration)
             avg_batch_time = sum(batch_times) / len(batch_times)
@@ -779,8 +720,6 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
             log(f"- Failed case studies: {len(failed_records)}/{total_processed_case_studies} ({len(failed_records)/total_processed_case_studies*100:.1f}%)")
             log(f"- Batch completed in {batch_duration:.2f}s (avg: {avg_batch_time:.2f}s/batch)")
         
-        # Now that ALL batches are processed, finalize results
-        # Always save a final checkpoint with all results
         total_stakeholders = len(prepared_records)
         total_successful_case_studies = len(successful_records)
         total_duration = time.time() - start_time
@@ -798,7 +737,6 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
             log(f"- Average checkpoint time: {sum(checkpoint_times)/len(checkpoint_times):.2f}s")
             log(f"- Total time spent on checkpoints: {sum(checkpoint_times):.2f}s ({sum(checkpoint_times)/total_duration*100:.1f}% of total runtime)")
         
-        # Save a final checkpoint before attempting upload
         checkpoint_start = time.time()
         log(f"Saving final checkpoint with all {total_successful_case_studies} successful case studies")
         await save_intermediate_results_unified(successful_records, failed_records, total_processed_case_studies, destination)
@@ -806,17 +744,14 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
         checkpoint_duration = time.time() - checkpoint_start
         log(f"Final checkpoint saved in {checkpoint_duration:.2f} seconds")
             
-        # Now upload the finalized results
         log(f"Preparing to upload dataset to {destination}")
         
         try:
-            # Split records by language but ensure same schema
             english_records = [r for r in successful_records if r["language"] == "english"]
             chinese_records = [r for r in successful_records if r["language"] == "chinese"]
             english_failed = [r for r in failed_records if r["language"] == "english"]
             chinese_failed = [r for r in failed_records if r["language"] == "chinese"]
             
-            # Ensure all splits have the same schema even if empty
             empty_record = {
                 "id": 0,
                 "case_study_info": "",
@@ -827,19 +762,15 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                 "elapsed_time": 0.0,
                 "endpoint": "",
                 "language": "",
-                "model": config.get("model", "unknown")  # Add model field
+                "model": config.get("model", "unknown")
             }
             
-            # Create datasets with consistent schema
             dataset_splits = {}
             
-            # Create english dataset
             dataset_splits['english'] = Dataset.from_list(english_records) if english_records else Dataset.from_list([empty_record]).select([])
             
-            # Create chinese dataset with same schema
             dataset_splits['chinese'] = Dataset.from_list(chinese_records) if chinese_records else Dataset.from_list([empty_record]).select([])
             
-            # Create failed datasets with same schema
             if english_failed:
                 dataset_splits['english_failed'] = Dataset.from_list(english_failed)
             if chinese_failed:
@@ -1094,7 +1025,6 @@ async def setup_directories(args):
     if effective_workers < requested_workers:
         log(f"Capping workers from {requested_workers} to {effective_workers} based on available endpoints")
     
-    # Use batch size from args but default to 25 if not specified
     batch_size = args.batch_size or 25
     if batch_size < effective_workers:
         log(f"Warning: Batch size ({batch_size}) is smaller than worker count ({effective_workers})")
@@ -1238,7 +1168,7 @@ if __name__ == "__main__":
     if os.name == 'nt':
         os.environ['PYTHONIOENCODING'] = 'utf-8'
     parser = ap.ArgumentParser()
-    parser.add_argument("--config", default=DEFAULT_CONFIG_URL, help="URL to the configuration file")
+    parser.add_argument("--config", default="https://gist.githubusercontent.com/p3nGu1nZz/b8d661186cb71ff48f64cf338dedca9b/raw", help="URL to the configuration file")
     parser.add_argument("--output", default=os.getcwd(), help="Output directory for case studies")
     parser.add_argument("--log-dir", help="Directory to save log files")
     parser.add_argument("--workers", type=int, help="Number of parallel workers for endpoint testing")
@@ -1250,7 +1180,6 @@ if __name__ == "__main__":
     parser.add_argument("--source", help="Override source dataset name (e.g., DataTonic/dark_thoughts_stakeholders_80)")
     parser.add_argument("--dest", help="Override destination dataset name (e.g., DataTonic/dark_thoughts_casestudy_r1_scaleway_A2)")
     args = parser.parse_args()
-    DEFAULT_CONFIG_URL = args.config
     try:
         global console_logger, file_logger, config, dirs
         console_logger, file_logger = setup_loggers(
