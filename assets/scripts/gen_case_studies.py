@@ -5,7 +5,7 @@ from asyncio import TimeoutError
 from datasets import load_dataset, Dataset, DatasetDict
 from functools import lru_cache
 
-MAX_WORKERS = 15
+MAX_WORKERS = 16
 MAX_RETRIES = 10
 MAX_RETRY_DELAY = 0.3
 API_BASE_URL = "api.scaleway.ai"
