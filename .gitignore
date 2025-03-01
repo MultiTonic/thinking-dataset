@@ -180,3 +180,6 @@ cython_debug/
 # Dataset Data
 /[Dd]ata/
 assets/resources/DB.Browser.for.SQLite-v3.13.1-win64/
+
+# Eval and Training Results
+/[Rr]esults/
