@@ -937,10 +937,8 @@ async def main(args, cfg):
         raise
 
 if __name__ == "__main__":
-
     if os.name == 'nt':
         os.environ['PYTHONIOENCODING'] = 'utf-8'
-
     parser = argparse.ArgumentParser(description="Merge datasets and push to HF")
     parser.add_argument("--config", required=True, help="Config URL")
     parser.add_argument("--log-dir", help="Log directory")
@@ -951,28 +949,32 @@ if __name__ == "__main__":
     parser.add_argument("--chunk-size", type=int, default=CHUNK_SIZE, help="Chunk size for processing large datasets")
     parser.add_argument("--skip-upload", action="store_true", help="Skip uploading to HuggingFace Hub")
     args = parser.parse_args()
-
     if args.chunk_size:
         CHUNK_SIZE = args.chunk_size
-    
     config_url = args.config
-
     try:
         global console_logger, file_logger, state
         console_logger, file_logger = setup_loggers(args.log_dir or os.path.join(os.getcwd(), "logs"))
-        
         log(f"Fetching config from: {config_url}")
         response = requests.get(config_url)
-
         if response.status_code == 200:
             try:
-                cfg = response.json()
+                content = response.text.strip()
+                if content.startswith('\ufeff'):
+                    content = content[1:]
+                import re
+                content_no_comments = re.sub(r'//.*?$|/\*.*?\*/', '', content, flags=re.MULTILINE|re.DOTALL)
+                try:
+                    cfg = json.loads(content)
+                except json.JSONDecodeError:
+                    try:
+                        cfg = json.loads(content_no_comments)
+                    except json.JSONDecodeError as e:
+                        raise e
                 log("Config fetched successfully")
             except json.JSONDecodeError as json_err:
                 log(f"Error parsing JSON configuration: {str(json_err)}")
                 log(f"Error at line {json_err.lineno}, column {json_err.colno}: {json_err.msg}")
-                
-                # Print the problematic line with markers
                 lines = response.text.split('\n')
                 if json_err.lineno <= len(lines):
                     problematic_line = lines[json_err.lineno - 1]
@@ -981,22 +983,18 @@ if __name__ == "__main__":
                 exit(1)
         else:
             log(f"Error: Failed to fetch config, status code: {response.status_code}")
-            exit(1)
-            
+            exit(1)            
         if not cfg:
             log("Error: Failed to parse configuration")
             exit(1)
-
         asyncio.run(main(args, cfg))
     except ValueError as e:
-
         if 'console_logger' in globals():
             console_logger.error(f"Process stopped: {e}")
         else:
             print(f"Process stopped: {e}")
         exit(1)
     except Exception as e:
-
         if 'console_logger' in globals():
             console_logger.error(f"Fatal error: {e}")
         else:
