@@ -6,11 +6,34 @@ import time
 import requests
 from datetime import datetime
 from evaluate import load
+from datasets import load_dataset
 
 RUN_ID = f"{int(time.time())}"
 DEFAULT_URL = "http://localhost:11434/api/generate"
 c_log = logging.getLogger("console")
 f_log = logging.getLogger("file")
+
+# Supported languages in SMOL dataset
+LANGUAGES = [
+    "Arabic", "Bengali", "Czech", "German", "English", "Spanish", "Persian", "French",
+    "Hebrew", "Hindi", "Indonesian", "Italian", "Japanese", "Khmer", "Korean", "Lao",
+    "Malay", "Burmese", "Dutch", "Polish", "Portuguese", "Russian", "Thai", "Tagalog",
+    "Turkish", "Urdu", "Vietnamese", "Chinese"
+]
+
+# Language code to name mapping
+LANG_CODES = {
+    "ar": "Arabic", "bn": "Bengali", "cs": "Czech", "de": "German", 
+    "en": "English", "es": "Spanish", "fa": "Persian", "fr": "French",
+    "he": "Hebrew", "hi": "Hindi", "id": "Indonesian", "it": "Italian", 
+    "ja": "Japanese", "km": "Khmer", "ko": "Korean", "lo": "Lao",
+    "ms": "Malay", "my": "Burmese", "nl": "Dutch", "pl": "Polish", 
+    "pt": "Portuguese", "ru": "Russian", "th": "Thai", "tl": "Tagalog",
+    "tr": "Turkish", "ur": "Urdu", "vi": "Vietnamese", "zh": "Chinese"
+}
+
+# Name to code mapping
+LANG_NAMES = {v.lower(): k for k, v in LANG_CODES.items()}
 
 def log(msg, console=True):
     try:
@@ -121,11 +144,60 @@ def report_telemetry(start, eval_times, pred_times):
         "pred_rate": len(pred_times) / sum(pred_times) * 60 if pred_times and sum(pred_times) > 0 else 0,
     }
 
+def format_prompt(text, src_lang, tgt_lang):
+    return f"Translate this from {src_lang} to {tgt_lang}:\n{src_lang}: {text}\n{tgt_lang}:"
+
+def load_smol_dataset(src_code, tgt_code, max_samples=None):
+    """Load translation data from Google SMOL dataset"""
+    try:
+        dataset_name = f"smolsent__{src_code}_{tgt_code}"
+        log(f"Loading dataset: google/smol, subset: {dataset_name}")
+        
+        dataset = load_dataset("google/smol", dataset_name, split="train")
+        
+        if max_samples and max_samples > 0 and max_samples < len(dataset):
+            log(f"Taking {max_samples} samples from dataset (total: {len(dataset)})")
+            dataset = dataset.select(range(max_samples))
+        
+        src_texts = dataset["src"]  # Source texts
+        tgt_texts = [[trg] for trg in dataset["trg"]]  # Target texts wrapped as list of lists for evaluation
+        
+        log(f"Loaded {len(src_texts)} translation pairs from {dataset_name}")
+        return src_texts, tgt_texts
+    except Exception as e:
+        log(f"Error loading SMOL dataset: {e}")
+        return None, None
+
+def parse_lang_pair(lang_pair):
+    """Parse a language pair string like 'en-es' or 'english-spanish'"""
+    if not lang_pair or '-' not in lang_pair:
+        return None, None
+    
+    src, tgt = lang_pair.strip().lower().split('-')
+    
+    # Handle both code and name formats
+    if src in LANG_NAMES:
+        src = LANG_NAMES[src]
+    if tgt in LANG_NAMES:
+        tgt = LANG_NAMES[tgt]
+        
+    # Validate codes
+    if src not in LANG_CODES and src not in LANG_CODES.values():
+        log(f"Unknown source language: {src}")
+        return None, None
+    if tgt not in LANG_CODES and tgt not in LANG_CODES.values():
+        log(f"Unknown target language: {tgt}")
+        return None, None
+        
+    return src, tgt
+
 def main():
     p = argparse.ArgumentParser(description="Evaluate GGUF model via Ollama")
     p.add_argument("--model", default="hf.co/Tonic/GemmaX2-28-2B-gguf:BF16", help="Model to use for evaluation")
     p.add_argument("--output", default=os.getcwd(), help="Output directory for evaluation results")
     p.add_argument("--url", default=DEFAULT_URL, help="Ollama API URL")
+    p.add_argument("--lang-pair", default="en-es", help="Language pair to evaluate (e.g., 'en-es' or 'english-spanish')")
+    p.add_argument("--samples", type=int, default=10, help="Number of samples to evaluate")
     args = p.parse_args()
     
     dirs = setup_dirs(args.output)
@@ -136,21 +208,40 @@ def main():
     log(f"Ollama API URL: {args.url}")
     log(f"Output directory: {dirs['base']}")
     
+    # Parse language pair
+    src_code, tgt_code = parse_lang_pair(args.lang_pair)
+    if not src_code or not tgt_code:
+        log(f"Invalid language pair: {args.lang_pair}")
+        log(f"Format should be 'en-es' or 'english-spanish'. Supported languages: {', '.join(LANG_CODES.keys())}")
+        return
+    
+    src_lang = LANG_CODES.get(src_code, src_code)
+    tgt_lang = LANG_CODES.get(tgt_code, tgt_code)
+    log(f"Translation direction: {src_lang} → {tgt_lang}")
+    
+    # Load translation dataset
+    source_texts, references = load_smol_dataset(src_code, tgt_code, args.samples)
+    if not source_texts:
+        log(f"Failed to load dataset for language pair: {args.lang_pair}")
+        return
+    
+    # Format prompts using the specified template
+    formatted_prompts = [
+        format_prompt(text, src_lang, tgt_lang) 
+        for text in source_texts
+    ]
+    
+    data = {
+        "prompts": formatted_prompts,
+        "source_texts": source_texts,
+        "references": references
+    }
+    
     start = time.time()
     pred_times = []
     eval_times = []
-    data = {
-        "prompts": [
-            "Translate: The quick brown fox jumps over the lazy dog.",
-            "Translate: She sells seashells by the seashore."
-        ],
-        "references": [
-            ["The quick brown fox jumps over the lazy dog."],
-            ["She sells seashells by the seashore."]
-        ]
-    }
     
-    log(f"Loaded sample dataset with {len(data['prompts'])} prompts")
+    log(f"Loaded SMOL dataset with {len(data['prompts'])} prompts")
     log("Starting model evaluation...")
 
     preds = []
@@ -159,7 +250,8 @@ def main():
         pred, t = query_ollama(prompt, args.model, args.url)
         pred_times.append(t)
         preds.append(pred)
-        log(f"Prompt: {prompt}")
+        log(f"Source text: {data['source_texts'][i]}")
+        log(f"Prompt used: {prompt}")
         log(f"Prediction: {pred}")
         log(f"Reference: {data['references'][i][0]}")
         log("---------------------------")
@@ -230,21 +322,27 @@ def main():
             "run_id": RUN_ID,
             "timestamp": time.time(),
             "datetime": datetime.now().isoformat(),
+            "source_language": src_lang,
+            "source_code": src_code,
+            "target_language": tgt_lang,
+            "target_code": tgt_code,
+            "source_texts": data["source_texts"],
             "prompts": data["prompts"],
             "references": data["references"],
             "predictions": preds,
+            "samples": len(preds)
         },
         "telemetry": telemetry
     }
     
     # Save timestamped results directly to results directory
-    out_file = os.path.join(dirs["results"], f"results_{RUN_ID}.json")
+    out_file = os.path.join(dirs["results"], f"results_{src_code}_{tgt_code}_{RUN_ID}.json")
     with open(out_file, "w") as f:
         json.dump(results, f, indent=4)
         log(f"Results saved to {out_file}")
     
     # Save latest results directly to results directory
-    latest = os.path.join(dirs["results"], "latest_results.json")
+    latest = os.path.join(dirs["results"], f"latest_{src_code}_{tgt_code}_results.json")
     try:
         if os.path.exists(latest):
             os.remove(latest)
@@ -254,7 +352,7 @@ def main():
     except Exception as e:
         log(f"Warning: Could not update latest results link: {e}")
     
-    log("Evaluation completed successfully!")
+    log(f"Evaluation for {src_lang}-{tgt_lang} completed successfully!")
 
 if __name__ == "__main__":
     main()
