@@ -20,10 +20,10 @@ def log(message: str, console_output: bool = True) -> None:
         file_logger.info(message)
         if (console_output):
             try:
-                console_logger.info(message)
+                cl.info(message)
             except UnicodeEncodeError:
                 safe_message = message.encode('ascii', errors='replace').decode('ascii')
-                console_logger.info(safe_message)
+                cl.info(safe_message)
     except Exception as e:
         try:
             print(f"[LOGGING ERROR] Failed to log message: {str(e)}")
@@ -32,19 +32,19 @@ def log(message: str, console_output: bool = True) -> None:
 
 def setup_loggers(log_path: str) -> tuple[logging.Logger, logging.Logger]:
     os.makedirs(log_path, exist_ok=True)
-    console_logger, file_logger = logging.getLogger("console"), logging.getLogger("file")
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", "%X"))
-    console_logger.addHandler(console_handler)
-    console_logger.setLevel(logging.INFO)
-    console_logger.propagate = False
-    log_file = os.path.join(log_path, f"cs_{int(time.time())}.log")
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
-    file_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", "%X"))
-    file_logger.addHandler(file_handler)
-    file_logger.setLevel(logging.INFO)
-    file_logger.propagate = False
-    return console_logger, file_logger
+    cl, fl = logging.getLogger("console"), logging.getLogger("file")
+    ch = logging.StreamHandler()
+    ch.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", "%X"))
+    cl.addHandler(ch)
+    cl.setLevel(logging.INFO)
+    cl.propagate = False
+    file = os.path.join(log_path, f"cs_{int(time.time())}.log")
+    fh = logging.FileHandler(file, encoding='utf-8')
+    fh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", "%X"))
+    fl.addHandler(fh)
+    fl.setLevel(logging.INFO)
+    fl.propagate = False
+    return cl, fl
 
 async def fetch_config():
     try:
@@ -130,7 +130,7 @@ async def test_endpoint(endpoint_config, semaphore):
                     file_logger.info(f"Endpoint Fail: {provider}-{name}: API Error - {err_msg}")
                     if "429" in err_msg or "TOO MANY TOKENS" in err_msg or "rate limit" in err_msg.lower():
                         log(f"Rate limit detected for endpoint {provider}-{name}, considering it valid but busy")
-                        await asyncio.sleep(2)
+                        await asyncio.sleep(3)
                         return provider, name, 0.1, "RATE_LIMITED"
                     raise
                     
@@ -563,14 +563,12 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
                                     "endpoint": endpoint_formatted,
                                     "model": config.get("model", "unknown")
                                 }, language)
-                                
                                 successful_records.append(result_record)
                                 all_records.append(result_record)
-                                
                                 telemetry_stats.log_success(language_key, case_study_idx)
-                                
-                                log(f"Completed {language_name} case study {idx}/{total} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name}) - {elapsed_time:.2f}s")
-                                
+                                size_in_bytes = len(case_study_info.encode('utf-8'))
+                                formatted_size = f"{size_in_bytes:,}"
+                                log(f"Completed {language_name} case study {idx}/{total} - Source #{source_record_idx+1}, Stakeholder #{stakeholder_idx+1} ({stakeholder_name}) - {elapsed_time:.2f}s (size {formatted_size} B)")
                                 log(telemetry_stats.get_telemetry_string(total_case_studies))
                                 
                                 return True
@@ -819,7 +817,7 @@ async def upload_results(prepared_records: list, destination: str, checkpoint_in
         return False
 
 @lru_cache(maxsize=512)
-async def prepare_prompt(case_study_info: str, stakeholder: str, motivation: str, language: str) -> str:
+def prepare_prompt(case_study_info: str, stakeholder: str, motivation: str, language: str) -> str:
     if not case_study_info or not stakeholder:
         return None
     system_prompt = config['systems'].get(language, "")
@@ -925,15 +923,15 @@ async def expand_dataset(dataset) -> list:
     return expanded
 
 async def prepare_all_prompts(records: list) -> list:
-    prepared_records, failed_english, failed_chinese, failed_both = [], 0, 0, 0
-    total_stakeholders = len(records)
+    prepared, failed_en, failed_zh, failed_all = [], 0, 0, 0
+    stakeholders = len(records)
     failed_reasons = {'en': {}, 'zh': {}}
     for record in records:
         try:
             english_prompt, english_error = None, None
             chinese_prompt, chinese_error = None, None
             try:
-                english_prompt = await prepare_prompt(
+                english_prompt = prepare_prompt(
                     record['case_study_info'], 
                     record['stakeholder'], 
                     record['motivation'], 
@@ -944,7 +942,7 @@ async def prepare_all_prompts(records: list) -> list:
                 error_type = type(e).__name__
                 failed_reasons['en'][error_type] = failed_reasons['en'].get(error_type, 0) + 1
             try:
-                chinese_prompt = await prepare_prompt(
+                chinese_prompt = prepare_prompt(
                     record['case_study_info'], 
                     record['stakeholder'], 
                     record['motivation'], 
@@ -965,34 +963,34 @@ async def prepare_all_prompts(records: list) -> list:
                     result_record['en_error'] = english_error
                 if chinese_error:
                     result_record['zh_error'] = chinese_error
-                prepared_records.append(result_record)
+                prepared.append(result_record)
                 if not english_prompt:
-                    failed_english += 1
+                    failed_en += 1
                 if not chinese_prompt:
-                    failed_chinese += 1
+                    failed_zh += 1
             else:
                 result_record['en_error'] = english_error or "Failed to generate prompt"
                 result_record['zh_error'] = chinese_error or "Failed to generate prompt"
-                prepared_records.append(result_record)
-                failed_both += 1
+                prepared.append(result_record)
+                failed_all += 1
         except Exception as e:
             log(f"Error preparing prompts for record: {e}", False)
-            prepared_records.append({
+            prepared.append({
                 **record,
                 'en_error': str(e),
                 'zh_error': str(e)
             })
-            failed_both += 1
-    successful_english = total_stakeholders - failed_english - failed_both
-    successful_chinese = total_stakeholders - failed_chinese - failed_both
-    total_successful = successful_english + successful_chinese
+            failed_all += 1
+    success_en = stakeholders - failed_en - failed_all
+    success_zh = stakeholders - failed_zh - failed_all
+    total_success = success_en + success_zh
     log(f"Prompt preparation statistics:")
-    log(f"- Total stakeholders processed: {total_stakeholders}")
-    log(f"- Prepared records: {len(prepared_records)}")
-    log(f"- English prompts successful: {successful_english}/{total_stakeholders} ({successful_english/total_stakeholders*100:.1f}%)")
-    log(f"- Chinese prompts successful: {successful_chinese}/{total_stakeholders} ({successful_chinese/total_stakeholders*100:.1f}%)")
-    log(f"- Total successful prompts: {total_successful}")
-    log(f"- Overall success rate: {(total_successful/(total_stakeholders*2))*100:.1f}%")
+    log(f"- Total stakeholders processed: {stakeholders}")
+    log(f"- Prepared records: {len(prepared)}")
+    log(f"- English prompts successful: {success_en}/{stakeholders} ({success_en/stakeholders*100:.1f}%)")
+    log(f"- Chinese prompts successful: {success_zh}/{stakeholders} ({success_zh/stakeholders*100:.1f}%)")
+    log(f"- Total successful prompts: {total_success}")
+    log(f"- Overall success rate: {(total_success/(stakeholders*2))*100:.1f}%")
     if any(failed_reasons['en'].values()):
         log("English failures by error type:")
         for error_type, count in sorted(failed_reasons['en'].items(), key=lambda x: x[1], reverse=True):
@@ -1001,48 +999,48 @@ async def prepare_all_prompts(records: list) -> list:
         log("Chinese failures by error type:")
         for error_type, count in sorted(failed_reasons['zh'].items(), key=lambda x: x[1], reverse=True):
             log(f"- {error_type}: {count}")
-    return prepared_records
+    return prepared
 
 async def setup_directories(args):
     run_id = str(int(time.time()))
-    output_path = os.path.abspath(args.output)
-    log_dir = args.log_dir or os.path.join(output_path, "logs")
-    data_dir = os.path.join(output_path, "data")
+    output_dir = os.path.abspath(args.output)
+    log_dir = args.log_dir or os.path.join(output_dir, "logs")
+    data_dir = os.path.join(output_dir, "data")
     run_dir = os.path.join(data_dir, run_id)
-    case_studies_dir = os.path.join(run_dir, "case_studies")
+    cs_dir = os.path.join(run_dir, "case_studies")
     temp_dir = os.path.join(run_dir, "temp")
-    checkpoints_dir = os.path.join(run_dir, "checkpoints")
-    for directory in [data_dir, run_dir, case_studies_dir, temp_dir, checkpoints_dir]:
+    ckpt_dir = os.path.join(run_dir, "checkpoints")
+    for directory in [data_dir, run_dir, cs_dir, temp_dir, ckpt_dir]:
         os.makedirs(directory, exist_ok=True)
     en_dir = os.path.join(temp_dir, "en")
     zh_dir = os.path.join(temp_dir, "zh")
     for directory in [en_dir, zh_dir]:
         os.makedirs(directory, exist_ok=True)
     
-    requested_workers = args.workers or MAX_WORKERS
-    effective_workers = min(requested_workers, len(config['endpoints']))
+    max_workers = args.workers or MAX_WORKERS
+    workers = min(max_workers, len(config['endpoints']))
     
-    if effective_workers < requested_workers:
-        log(f"Capping workers from {requested_workers} to {effective_workers} based on available endpoints")
+    if workers < max_workers:
+        log(f"Capping workers from {max_workers} to {workers} based on available endpoints")
     
     batch_size = args.batch_size or 25
-    if batch_size < effective_workers:
-        log(f"Warning: Batch size ({batch_size}) is smaller than worker count ({effective_workers})")
+    if batch_size < workers:
+        log(f"Warning: Batch size ({batch_size}) is smaller than worker count ({workers})")
     
     checkpoint_interval = args.checkpoint_interval if args.checkpoint_interval > 0 else float('inf')
     
     return {
         "run_id": run_id,
-        "output_path": output_path,
+        "output_path": output_dir,
         "log_dir": log_dir,
         "data_dir": data_dir,
         "run_dir": run_dir,
-        "case_studies_dir": case_studies_dir,
-        "checkpoints_dir": checkpoints_dir,
+        "case_studies_dir": cs_dir,
+        "checkpoints_dir": ckpt_dir,
         "temp_dir": temp_dir,
         "temp_dir_en": en_dir,
         "temp_dir_zh": zh_dir,
-        "workers": effective_workers,
+        "workers": workers,
         "batch_size": batch_size,
         "endpoints_count": len(config['endpoints']),
         "checkpoint_interval": checkpoint_interval
@@ -1068,32 +1066,32 @@ async def test_endpoints(workers_count):
             log(f"Tested endpoint {i+1}/{len(config['endpoints'])}: {provider}-{name} - {status_text}")
             test_results.append(result)
     
-    console_logger.info("Test results:")
+    cl.info("Test results:")
     for provider, name, test_time, result in test_results:
         if result == "RATE_LIMITED":
             status = "Rate Limited"
-            console_logger.info(f"- endpoint {status}! [ {provider}-{name}: rate limited ]")
+            cl.info(f"- endpoint {status}! [ {provider}-{name}: rate limited ]")
         else:
             status = "OK" if result == "OK" else "Fail"
-            console_logger.info(f"- endpoint {status}! [ {provider}-{name}: {test_time}s ]")
+            cl.info(f"- endpoint {status}! [ {provider}-{name}: {test_time}s ]")
     
-    valid_times = [tt for _, _, tt, result in test_results if result == "OK" and tt]
-    if valid_times:
-        avg_time = round(sum(valid_times) / len(valid_times), 2)
-        console_logger.info(f"- average time: {avg_time}s")
+    times = [tt for _, _, tt, result in test_results if result == "OK" and tt]
+    if times:
+        avg_time = round(sum(times) / len(times), 2)
+        cl.info(f"- average time: {avg_time}s")
     
-    provider_stats = {}
+    stats = {}
     for provider, _, _, result in test_results:
-        if provider not in provider_stats:
-            provider_stats[provider] = {"total": 0, "success": 0}
-        provider_stats[provider]["total"] += 1
+        if provider not in stats:
+            stats[provider] = {"total": 0, "success": 0}
+        stats[provider]["total"] += 1
         if result == "OK" or result == "RATE_LIMITED":
-            provider_stats[provider]["success"] += 1
+            stats[provider]["success"] += 1
     
-    console_logger.info("Provider summary:")
-    for provider, stats in provider_stats.items():
+    cl.info("Provider summary:")
+    for provider, stats in stats.items():
         success_rate = (stats["success"] / stats["total"]) * 100 if stats["total"] > 0 else 0
-        console_logger.info(f"- {provider}: {stats['success']}/{stats['total']} endpoints ok ({success_rate:.1f}%)")
+        cl.info(f"- {provider}: {stats['success']}/{stats['total']} endpoints ok ({success_rate:.1f}%)")
     
     return sum(1 for _, _, _, result in test_results if result == "OK" or result == "RATE_LIMITED")
 
@@ -1182,14 +1180,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     try:
         global console_logger, file_logger, config, dirs
-        console_logger, file_logger = setup_loggers(
+        cl, file_logger = setup_loggers(
             args.log_dir or os.path.join(os.getcwd(), "logs")
         )
         config = asyncio.run(fetch_config())
         if config:
             asyncio.run(main(args))
         else:
-            console_logger.error("No config")
+            cl.error("No config")
     except Exception as e:
-        console_logger.error(f"Fatal error: {e}")
+        cl.error(f"Fatal error: {e}")
         exit(1)
