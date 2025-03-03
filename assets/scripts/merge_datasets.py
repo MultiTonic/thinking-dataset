@@ -591,6 +591,7 @@ def apply_column_operations_chunked(dataset_dict, column_config, state):
                 chunk = split_dataset.select(range(start_idx, end_idx))
 
                 df = chunk.to_pandas()
+                log(f"Chunk {start_idx//CHUNK_SIZE + 1}/{(total_size + CHUNK_SIZE - 1)//CHUNK_SIZE}: Original columns: {list(df.columns)}")
 
                 if 'source' in df.columns and not df.empty:
                     log(f"Applying dataset-specific operations for {split_name} chunk {start_idx//CHUNK_SIZE + 1}")
@@ -622,29 +623,45 @@ def apply_column_operations_chunked(dataset_dict, column_config, state):
                     df[id_field] = range(next_id, next_id + len(df) * id_increment, id_increment)
                     next_id = next_id + len(df) * id_increment
 
-                # ...remaining code inside the chunk processing loop...
+                # Apply renaming before other operations
+                if rename_mapping:
+                    renames_to_apply = {old: new for old, new in rename_mapping.items() if old in df.columns}
+                    if not renames_to_apply:
+                        log(f"Chunk {start_idx//CHUNK_SIZE + 1}: No columns to rename")
+                    else:
+                        df = df.rename(columns=renames_to_apply)
+                        log(f"Chunk {start_idx//CHUNK_SIZE + 1}: After rename, columns: {list(df.columns)}")
+
+                if exclude_columns:
+                    columns_to_drop = [col for col in exclude_columns if col in df.columns]
+                    if columns_to_drop:
+                        for col in columns_to_drop:
+                            if col in df.columns:
+                                df = df.drop(col, axis=1)
+                                log(f"Chunk {start_idx//CHUNK_SIZE + 1}: Dropped column '{col}'")
+                        log(f"Chunk {start_idx//CHUNK_SIZE + 1}: After exclude, columns: {list(df.columns)}")
+                    else:
+                        log(f"Chunk {start_idx//CHUNK_SIZE + 1}: No columns to exclude")
+
                 if include_columns:
                     columns_to_keep = include_columns.copy()
                     if generate_ids and id_field not in columns_to_keep: columns_to_keep.append(id_field)
                     existing_columns = [col for col in columns_to_keep if col in df.columns]
                     df = df[existing_columns]
-                elif exclude_columns:
-                    columns_to_drop = [col for col in exclude_columns if col in df.columns]
-                    if columns_to_drop: df = df.drop(columns=columns_to_drop)
+                    log(f"Chunk {start_idx//CHUNK_SIZE + 1}: After include, columns: {list(df.columns)}")
 
                 if add_columns:
                     for col_name, default_value in add_columns.items():
                         if col_name not in df.columns:
                             df[col_name] = default_value
+                    log(f"Chunk {start_idx//CHUNK_SIZE + 1}: After add, columns: {list(df.columns)}")
 
-                if rename_mapping:
-                    renames_to_apply = {old: new for old, new in rename_mapping.items() if old in df.columns}
-                    if renames_to_apply: df = df.rename(columns=renames_to_apply)
 
                 if column_order:
                     existing_ordered_columns = [col for col in column_order if col in df.columns]
                     remaining_columns = [col for col in df.columns if col not in existing_ordered_columns]
                     df = df[existing_ordered_columns + remaining_columns]
+                    log(f"Chunk {start_idx//CHUNK_SIZE + 1}: After order, columns: {list(df.columns)}")
 
                 processed_chunks.append(df)
                 log(f"Processed {split_name} chunk {start_idx//CHUNK_SIZE + 1}/{(total_size + CHUNK_SIZE - 1)//CHUNK_SIZE}: {len(df)} records")
@@ -671,7 +688,7 @@ def apply_column_operations_chunked(dataset_dict, column_config, state):
         log(f"Error applying column operations: {e}")
         return dataset_dict, {}
 
-def standardize_schema(dataset_dict):
+def standardize_schema(dataset_dict, column_config):
     try:
         log("Standardizing schema across all splits...")
         all_columns = set()
@@ -683,12 +700,15 @@ def standardize_schema(dataset_dict):
             df = dataset.to_pandas()
             df = clean_dataframe(df)
 
+            log(f"Standardize Schema: Before adding missing columns, columns={list(df.columns)}")
+            # Only add missing columns that were NOT in the exclude list
             for col in all_columns:
-                if col not in df.columns:
+                if col not in df.columns and col not in column_config.get('exclude', []):
                     if col == 'id': df[col] = range(1, len(df) + 1)
                     elif col == 'elapsed_time': df[col] = 0.0
                     else: df[col] = ""
 
+            log(f"Standardize Schema: After adding missing columns, columns={list(df.columns)}")
             for col, dtype in {'id': 'int64', 'elapsed_time': 'float64', 'model': 'string'}.items():
                 if col in df.columns:
                     try:
@@ -884,9 +904,9 @@ async def main(args, cfg):
                     log(f"Creating empty dataset for {split} split")
                     processed_dataset[split] = Dataset.from_pandas(pd.DataFrame([sample_record])).select([])
             
-            standardized_dataset = standardize_schema(processed_dataset)
+            standardized_dataset = standardize_schema(processed_dataset, config_data['columns'])
         else:
-            standardized_dataset = standardize_schema(merged_dataset)
+            standardized_dataset = standardize_schema(merged_dataset, {})
         
         dest_splits = config_data.get('dest_splits')
         log(f"Filtering output to include only these splits: {', '.join(dest_splits)}")
