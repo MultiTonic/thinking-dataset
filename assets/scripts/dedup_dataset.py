@@ -1,14 +1,12 @@
-import hashlib
 import os
 import logging
-from datasets import load_dataset, DatasetDict, Dataset, Features, Value, Sequence
+from datasets import load_dataset, DatasetDict, Dataset, Features, Value
 from huggingface_hub import login
 import json
 from tqdm.auto import tqdm
 from rapidfuzz import fuzz
 import heapq
 import shutil
-import errno
 import re
 
 def setup_logging():
