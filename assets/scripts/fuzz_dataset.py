@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 W=max(4,multiprocessing.cpu_count())
 L="logs"
-B=2500
+B=500  # Changed from 2500 to 500
 T=4
 P=False
 M=2
@@ -202,7 +202,13 @@ async def d_s(d,c,t,w):
             y.update(1)
             y.set_postfix({"k":f"{k}/{n}({k/n*100:.1f}%)","r":f"{m}","c":f"{n}/{len(q)}"})
             y.refresh()
-        await y.close()
+        
+        try:
+            await y.close()
+        except:
+            if hasattr(y, 'close') and not asyncio.iscoroutinefunction(y.close):
+                y.close()
+        
         q=g
         v+=m
         l(f"Pass {i+1}: {m} @ t={h}% (total: {v})")
@@ -210,7 +216,13 @@ async def d_s(d,c,t,w):
             l(f"No removals, skipping")
             p.update(M-i-1)
             break
-    await p.close()
+    
+    try:
+        await p.close()
+    except:
+        if hasattr(p, 'close') and not asyncio.iscoroutinefunction(p.close):
+            p.close()
+            
     P=False
     n=len(q)
     c=o-n
