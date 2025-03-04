@@ -1,17 +1,19 @@
-import argparse,asyncio,logging,os,sys,time,multiprocessing,math
+import argparse,asyncio,logging,os,sys,time,multiprocessing,math,psutil
 from concurrent.futures import ProcessPoolExecutor
 from datasets import Dataset,DatasetDict,load_dataset
 from rapidfuzz import fuzz
 import pandas as pd
 from tqdm.asyncio import tqdm as atqdm
 from tqdm import tqdm
-W=max(4,multiprocessing.cpu_count()-1)
+
+W=max(4,multiprocessing.cpu_count())
 L="logs"
-B=500
+B=2500
 T=4
 P=False
 M=2
 R=5
+
 def l(m,c=True):
     try:
         f.info(m)
@@ -21,6 +23,7 @@ def l(m,c=True):
                 try:c_l.info(m)
                 except UnicodeEncodeError:c_l.info(m.encode('ascii',errors='replace').decode('ascii'))
     except Exception as e:print(f"[LOGGING ERROR] {str(e)}")
+
 def s_l(p):
     os.makedirs(p,exist_ok=True)
     c,f=logging.getLogger("c"),logging.getLogger("f")
@@ -36,6 +39,7 @@ def s_l(p):
     f.setLevel(logging.INFO)
     f.propagate=False
     return c,f
+
 def s_d(d,o=None):
     i=str(int(time.time()))
     d=os.path.abspath(d)
@@ -45,6 +49,7 @@ def s_d(d,o=None):
     p=os.path.join(r,"deduped")
     for x in[d,e,r,u,p]:os.makedirs(x,exist_ok=True)
     return{"run_id":i,"log_dir":d,"data_dir":e,"run_dir":r,"fuzzed_dir":u,"deduped_dir":p}
+
 class S:
     def __init__(s):
         s.s=time.time()
@@ -59,6 +64,7 @@ class S:
         r=(s.r/s.t*100)if s.t>0 else 0
         p=s.t/e if e>0 else 0
         return f"TELEMETRY: {s.t:,}r in {e:.1f}s • {s.r:,}r ({r:.1f}%) • {p:.1f}r/s • {s.p}s"
+
 async def l_s(s):
     try:
         l(f"Loading {s}")
@@ -75,6 +81,7 @@ async def l_s(s):
     except Exception as e:
         l(f"Error: {e}",False)
         raise
+
 def s_b_l(d,c):
     r=d.to_list()
     if not r:return d
@@ -89,6 +96,7 @@ def s_b_l(d,c):
     df=df.drop('_l',axis=1)
     l(f"Sorted: {len(df)} records from {n} to {x}")
     return Dataset.from_pandas(df)
+
 def dd(d,c):
     r=d.to_list()
     o=len(r)
@@ -101,46 +109,61 @@ def dd(d,c):
     p=(r/o*100)if o>0 else 0
     l(f"Removed {r:,} dupes ({p:.1f}%)")
     return Dataset.from_pandas(d),r
-def p_b_s(d):
-    b,c,t,s,e=d
-    x=[str(r[c])for r in b]
-    n=len(b)
-    k=set(range(n))
-    r=0
-    for i in range(s,e):
-        if i not in k:continue
-        for j in range(i+1,n):
-            if j not in k:continue
-            if fuzz.token_sort_ratio(x[i],x[j])>=t:
-                k.discard(j)
-                r+=1
-    return[u for u in k if s<=u<e],r
-async def p_b_p(b,c,t,w):
-    n=len(b)
-    l(f"Batch: {n} with {w}")
-    z=math.ceil(n/w)
-    with ProcessPoolExecutor(max_workers=w) as executor:
-        with tqdm(total=n,desc="Batch",leave=False) as p:
-            o=asyncio.get_running_loop()
-            k=set()
-            r=0
-            d=0
-            for i in range(w):
-                s=i*z
-                e=min(s+z,n)
-                if s>=n:break
-                g=await o.run_in_executor(executor,p_b_s,(b,c,t,s,e))
-                v,m=g
-                k.update(v)
-                r+=m
-                d+=1
-                p.update(e-s)
-                p.set_description(f"Batch ({d}/{w})")
-    q=[b[i]for i in sorted(k)]
-    u=len(q)
-    v=n-u
-    if v>0:l(f"Kept {u}/{n} ({v} removed)")
-    return q,v
+
+def p_b_s(data):
+    batch, col, thresh, start_idx, end_idx = data
+    txts = [str(r[col]) for r in batch]
+    n = len(batch)
+    keep = set(range(n))
+    removed_count = 0
+    for i in range(start_idx, end_idx):
+        if i not in keep: continue
+        for j in range(i + 1, n):
+            if j not in keep: continue
+            sim = fuzz.token_sort_ratio(txts[i], txts[j])
+            if sim >= thresh:
+                keep.discard(j)
+                removed_count += 1
+    return list(k for k in keep if start_idx <= k < end_idx), removed_count
+
+async def p_b_p(batch, col, thresh, workers):
+    n = len(batch)
+    l(f"Processing batch of {n} records with {workers} workers")
+    segment_size = math.ceil(n / workers)
+    tasks = []
+    
+    loop = asyncio.get_running_loop()
+    with ProcessPoolExecutor(max_workers=W) as executor:
+        for i in range(workers):
+            start_idx = i * segment_size
+            end_idx = min(start_idx + segment_size, n)
+            if start_idx >= n: break
+            task = loop.run_in_executor(
+                executor, 
+                p_b_s, 
+                (batch, col, thresh, start_idx, end_idx)
+            )
+            tasks.append(task)
+        
+        keep_indices = set()
+        total_removed = 0
+        with tqdm(total=n, desc="Batch progress") as pbar:
+            for i, future in enumerate(asyncio.as_completed(tasks)):
+                segment_keep, segment_removed = await future
+                keep_indices.update(segment_keep)
+                total_removed += segment_removed
+                pbar.update(segment_size)
+                pbar.set_description(f"Batch processing {i+1}/{len(tasks)} segments done")
+    
+    result = [batch[i] for i in sorted(keep_indices)]
+    kept_count = len(result)
+    removed_count = n - kept_count
+    
+    if removed_count > 0:
+        l(f"Batch completed: Kept {kept_count}/{n} records ({removed_count} similar records removed)")
+    
+    return result, removed_count
+
 async def d_s(d,c,t,w):
     global P
     r=d.to_list()
@@ -148,7 +171,8 @@ async def d_s(d,c,t,w):
     if o==0:return d,0
     l(f"Processing {o:,} (t={t})")
     P=True
-    p=atqdm(total=M,desc="Passes",position=0,leave=True)
+
+    p=atqdm(total=M,desc="Passes",position=1,leave=True)
     v=0
     q=r
     h=t
@@ -160,7 +184,8 @@ async def d_s(d,c,t,w):
         p.update(1)
         s=min(z,len(q))
         c_n=(len(q)+s-1)//s
-        y=atqdm(total=c_n,desc=f"P{i+1}",position=1,leave=True)
+
+        y=atqdm(total=c_n,desc=f"P{i+1}",position=2,leave=True)
         g=[]
         k=0
         n=0
@@ -192,7 +217,8 @@ async def d_s(d,c,t,w):
     r=(c/o*100)if o>0 else 0
     l(f"Done: {c:,} similar ({r:.1f}%)")
     return Dataset.from_list(q),c
-async def f_d(s,d,c,t,w):
+
+async def f_d(s,dst,c,t,w):
     try:
         u=S()
         ds,_=await l_s(s)
@@ -205,12 +231,24 @@ async def f_d(s,d,c,t,w):
             if c not in ds.column_names:
                 a=", ".join(ds.column_names)
                 raise ValueError(f"'{c}' not found. Columns: {a}")
+                
         l(f"Using col '{c}'")
         dd_r={}
         fd_r={}
         to=ta=tf=0
-        for sn,sd in ds.items():
-            l(f"Split '{sn}'...")
+
+        splits = list(ds.keys())
+        total_splits = len(splits)
+        l(f"Found {total_splits} splits in dataset: {', '.join(splits)}")
+
+        splits_pbar = atqdm(total=total_splits, desc="Splits", position=0, leave=True)
+        
+        for split_idx, (sn, sd) in enumerate(ds.items()):
+            l(f"Processing split '{sn}' ({split_idx+1}/{total_splits})...")
+
+            splits_pbar.update(1)
+            splits_pbar.set_description(f"Split {split_idx+1}/{total_splits}: {sn}")
+            
             oc=len(sd)
             to+=oc
             st=time.time()
@@ -227,7 +265,9 @@ async def f_d(s,d,c,t,w):
             l(f"Sorting '{sn}' by len")
             dd_ds=s_b_l(dd_ds,c)
             st=time.time()
+
             fd_ds,sr=await d_s(dd_ds,c,t,w)
+            
             fc=dc-sr
             tf+=fc
             e=time.time()-st
@@ -241,6 +281,9 @@ async def f_d(s,d,c,t,w):
             if time.time()-u.l>30:
                 l(u.g_s())
                 u.l=time.time()
+
+        await splits_pbar.close()
+        
         dr=DatasetDict(dd_r)
         fr=DatasetDict(fd_r)
         dr.save_to_disk(d["deduped_dir"])
@@ -260,6 +303,7 @@ async def f_d(s,d,c,t,w):
     except Exception as e:
         l(f"Error: {e}")
         raise
+
 async def u_d(d,x):
     try:
         l(f"Uploading to {x}...")
@@ -269,6 +313,7 @@ async def u_d(d,x):
     except Exception as e:
         l(f"Upload error: {e}")
         return False
+
 async def m():
     global c_l,f,d,B,W,T,R,M
     p=argparse.ArgumentParser(description="Deduplicate dataset",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -276,7 +321,6 @@ async def m():
     p.add_argument("--dest",required=True,help="Destination")
     p.add_argument("--column",required=True,help="Column")
     p.add_argument("--threshold",type=float,default=80,help="Threshold")
-    p.add_argument("--workers",type=int,default=W,help="Workers")
     p.add_argument("--threads",type=int,default=T,help="Threads")
     p.add_argument("--log-dir",default=L,help="Logs")
     p.add_argument("--output",default=os.getcwd(),help="Output")
@@ -285,15 +329,17 @@ async def m():
     p.add_argument("--passes",type=int,default=M,help="Passes")
     p.add_argument("--threshold-reduction",type=int,default=R,help="Threshold drop")
     a=p.parse_args()
+    
     if a.batch_size:B=a.batch_size
-    if a.workers:W=a.workers
     if a.passes:M=a.passes
     if a.threads:T=a.threads
     if a.threshold_reduction is not None:R=a.threshold_reduction
+    
     c_l,f=s_l(a.log_dir)
     d=s_d(a.log_dir,a.output)
-    w=W
     c=multiprocessing.cpu_count()
+    
+    W=c  
     l(f"Config:")
     l(f"- ID: {d['run_id']}")
     l(f"- Src: {a.src}")
@@ -302,14 +348,14 @@ async def m():
     l(f"- Threshold: {a.threshold}%")
     l(f"- Drop: {R}%")
     l(f"- CPUs: {c}")
-    l(f"- Workers: {w}")
-    l(f"- Threads: {T}")
+    l(f"- Using all {W} available CPU cores")
+    l(f"- Threads per process: {T}")
     l(f"- Batch: {B}")
     l(f"- Passes: {M}")
     l(f"- Out: {a.output}")
     try:
         s=time.time()
-        r=await f_d(a.src,a.dest,a.column,a.threshold,w)
+        r=await f_d(a.src,a.dest,a.column,a.threshold,W)
         if not a.dry:
             u=await u_d(r,a.dest)
             if u:l(f"Success: {a.dest}")
@@ -321,9 +367,34 @@ async def m():
         l(f"Error: {e}")
         return 1
     return 0
+
 if __name__=="__main__":
     multiprocessing.freeze_support()
+    
     if os.name=='nt':
         os.environ['PYTHONIOENCODING']='utf-8'
         multiprocessing.set_start_method('spawn')
+        os.environ["OMP_NUM_THREADS"] = str(multiprocessing.cpu_count())
+        os.environ["MKL_NUM_THREADS"] = str(multiprocessing.cpu_count())
+    else:
+        multiprocessing.set_start_method('fork', force=True)
+        
+    try:
+        import psutil
+        process = psutil.Process()
+        process.cpu_affinity(list(range(multiprocessing.cpu_count())))
+        print(f"Set CPU affinity to use all {multiprocessing.cpu_count()} cores")
+    except:
+        pass
+    
+    try:
+        import psutil
+        p = psutil.Process()
+        if os.name == 'nt':
+            p.nice(psutil.HIGH_PRIORITY_CLASS)
+        else:  # Unix
+            p.nice(-10)
+    except:
+        pass
+        
     sys.exit(asyncio.run(m()))
