@@ -1,9 +1,10 @@
 import argparse as ap,os,asyncio,logging,time,requests,random   
 from tenacity import retry,wait_random,stop_after_attempt
-from datasets import load_dataset
+from datasets import load_dataset,Dataset,DatasetDict
 from asyncio import TimeoutError
 from openai import AsyncOpenAI
 from ollama import AsyncClient
+
 W=16;T=30
 def l(m,c=True):
     if fl and not test_mode:fl.info(m)
@@ -133,13 +134,22 @@ async def te_all(wc):
         sr=(s["success"]/s["total"])*100 if s["total"]>0 else 0
         cl.info(f"- {p}: {s['success']}/{s['total']} endpoints ok ({sr:.1f}%)")
     return sum(1 for _,_,_,r in tr if r=="OK" or r=="RATE_LIMITED")
-async def ld(s,p):
+async def ld(s,p,o=0,m=0):
     try:
         l(f"Loading dataset from {s}");d=load_dataset(s)
         if p in d:
-            l(f"Dataset loaded: {len(d[p])} records in '{p}' split")
-            l(f"Dataset columns: {', '.join(d[p].column_names)}")
-            return d
+            full=d[p];total=len(full)
+            if o>0 or m>0:
+                if o>=total:
+                    l(f"Error: Offset {o} exceeds dataset size {total}");return None
+                end=total if m==0 else min(o+m,total)
+                ds=full.select(range(o,end))
+                l(f"Using dataset slice: records {o} to {end-1} (out of {total} total)")
+            else:
+                ds=full;l(f"Using complete dataset: {total} records")
+            l(f"Dataset loaded: {len(ds)} records in '{p}' split")
+            l(f"Dataset columns: {', '.join(ds.column_names)}")
+            return ds
         else:
             a=", ".join(d.keys());l(f"Dataset loaded but split '{p}' not found. Available splits: {a}")
             return None
@@ -150,6 +160,23 @@ async def sd(a):
     t=os.path.join(rd,"temp");ck=os.path.join(rd,"checkpoints")
     for dr in[d,rd,cs,t,ck]:os.makedirs(dr,exist_ok=True)
     return{"r":r,"o":o,"l":ld,"d":d,"rd":rd,"cs":cs,"t":t,"ck":ck}
+async def push_to_hub(data,split,dst):
+    try:
+        l(f"Preparing to push data to {dst}")
+        ds=Dataset.from_dict({k:[v] for k,v in data.items()})
+        dd=DatasetDict({split:ds})
+        hft=cc.get('hf_token')
+        if hft:
+            l("Using HF_TOKEN from config")
+            dd.push_to_hub(dst,token=hft,private=True)
+        else:
+            l("No HF_TOKEN in config, trying default credentials")
+            dd.push_to_hub(dst,private=True)
+        l(f"Successfully pushed to hub: {dst}")
+        return True
+    except Exception as e:
+        l(f"Error pushing to hub: {str(e)}",True)
+        return False
 async def main(a):
     try:
         global dr,cc,eps,test_mode
@@ -178,26 +205,49 @@ async def main(a):
         if a.src:l(f"Overriding source from '{cc.get('src','')}' to '{a.src}'");cc['src']=a.src
         src=cc.get('src')
         if not src:l("No source dataset specified in config or arguments");return
-        l(f"Source: {src}");l(f"Using split: {a.split} ({s})")
+        dst=a.dst or cc.get('dst')
+        if not dst:l("No destination dataset specified in config or arguments");return
+        l(f"Source: {src}");l(f"Destination: {dst}");l(f"Using split: {a.split} ({s})")
         l(f"System prompt length: {len(cc['systems'][s])}");l(f"Prompt template length: {len(cc['prompts'][s])}")
         l(f"Column mappings: query={cc['columns']['query']}, response={cc['columns']['response']}, think={cc['columns']['think']}")
-        d=await ld(src,a.split)
+        d=await ld(src,a.split,a.offset,a.max_records)
         if not d:l("Failed to load dataset");return
-        q=cc['columns']['query'];r=cc['columns']['response'];t=cc['columns']['think'];ds=d[a.split]
-        if q not in ds.column_names:l(f"Error: Query column '{q}' not found in dataset");return
-        if r not in ds.column_names:l(f"Error: Response column '{r}' not found in dataset");return
-        l(f"Found {len(ds)} records with query and response columns")
+        q=cc['columns']['query'];r=cc['columns']['response'];t=cc['columns']['think'];
+        if q not in d.column_names:l(f"Error: Query column '{q}' not found in dataset");return
+        if r not in d.column_names:l(f"Error: Response column '{r}' not found in dataset");return
+        l(f"Found {len(d)} records with query and response columns")
+        l(f"Starting push to Hugging Face with {len(d)} records")
+        rs=[]
+        for _,s in enumerate(d):
+            rd={}
+            for k in ("id",):
+                if k in s:rd[k]=s[k]
+            rd[r]=s[r]
+            rd[t]=s.get(t,"")
+            rd[q]=s[q]
+            for c in s:
+                if c not in rd and c not in[r,t,q]:rd[c]=s[c]
+            rs.append(rd)
+        l(f"Prepared {len(rs)} records with column order: response, {t}, {q}, [other fields]")
+        ds=Dataset.from_list(rs);dd=DatasetDict({a.split:ds})
+        hf=cc.get('hf_token')
+        if hf:l("Using HF_TOKEN from config");dd.push_to_hub(dst,token=hf,private=True)
+        else:l("No HF_TOKEN in config, trying default");dd.push_to_hub(dst,private=True)
+        l(f"Successfully pushed {len(rs)} records to hub: {dst}")
     except Exception as e:l(f"Fatal error: {str(e)}");raise e
-if __name__=="__main__":
+if __name__=="__main__": 
     if os.name=='nt':os.environ['PYTHONIOENCODING']='utf-8'
     p=ap.ArgumentParser()
     p.add_argument("--config",required=True,help="URL to the configuration file")
     p.add_argument("--test",action="store_true",help="Only test endpoints and exit")
     p.add_argument("--src",help="Source dataset to load (overrides config)")
+    p.add_argument("--dst",help="Destination dataset to push to (overrides config)")
     p.add_argument("--log-dir",default=os.path.join(os.getcwd(),"logs"),help="Directory to save log files")
     p.add_argument("--split",help="Dataset split to process (e.g. english, chinese)")
     p.add_argument("--output",default=os.getcwd(),help="Output directory")
     p.add_argument("--workers",type=int,help="Number of parallel workers for endpoint testing")
+    p.add_argument("--offset",type=int,default=0,help="Offset to start processing records from")
+    p.add_argument("--max-records",type=int,default=0,help="Maximum number of records to process")
     a=p.parse_args()
     if not a.test and not a.split:print("Error: --split is required when not in test mode");exit(1)
     global test_mode,cl,fl;test_mode=a.test
