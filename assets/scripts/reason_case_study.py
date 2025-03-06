@@ -64,8 +64,137 @@ def gne(e):
         if w>0:l(f"All endpoints busy or cooling down, will wait {w:.2f}s for next available");time.sleep(w)
         return i
     a.sort(key=lambda x:x[1]['last_call']);return a[0][0]
+async def ld(s,p,o=0,m=0):
+    try:
+        l(f"Loading dataset from {s}");d=load_dataset(s)
+        if p in d:
+            full=d[p];total=len(full)
+            if o>0 or m>0:
+                if o>=total:
+                    l(f"Error: Offset {o} exceeds dataset size {total}");return None
+                end=total if m==0 else min(o+m,total)
+                ds=full.select(range(o,end))
+                l(f"Using dataset slice: records {o} to {end-1} (out of {total} total)")
+            else:
+                ds=full;l(f"Using complete dataset: {total} records")
+            l(f"Dataset loaded: {len(ds)} records in '{p}' split")
+            l(f"Dataset columns: {', '.join(ds.column_names)}")
+            return ds
+        else:
+            a=", ".join(d.keys());l(f"Dataset loaded but split '{p}' not found. Available splits: {a}")
+            return None
+    except Exception as e:l(f"Error loading dataset: {e}");return None
+async def ld_all(s,sps,o=0,m=0):
+    d={}
+    for sp in sps:d[sp]=await ld(s,sp,o,m)
+    return d
+async def p_pmt(q,r):
+    return f"Thinking process for query: {q[:50]}..."
+async def proc_1sp(sp,s,src,o,m,dr):
+    l(f"Processing split: {sp} ({s})")
+    l(f"System prompt length: {len(cc['systems'][s])}");l(f"Prompt template length: {len(cc['prompts'][s])}")
+    l(f"Column mappings: query={cc['columns']['query']}, response={cc['columns']['response']}, think={cc['columns']['think']}")
+    d=await ld(src,sp,o,m)
+    if not d:l(f"Failed to load dataset for split {sp}");return {},0
+    q=cc['columns']['query'];r=cc['columns']['response'];t=cc['columns']['think']
+    if q not in d.column_names:l(f"Error: Query column '{q}' not found in dataset");return {},0
+    if r not in d.column_names:l(f"Error: Response column '{r}' not found in dataset");return {},0
+    l(f"Found {len(d)} records with query and response columns for split {sp}")
+    l(f"Preparing {len(d)} prompts for split {sp}")
+    pm=[]
+    for row in d:pm.append(await p_pmt(row[q],row[r]))
+    l(f"Prepared {len(pm)} prompts for split {sp}")
+    l(f"Mock generating responses for {len(d)} records")
+    rs=[]
+    for i,row in enumerate(d):
+        rd={}
+        if "id" in row:rd["id"]=row["id"]
+        rd[r]=row[r]
+        rd[t]=f"Mock thinking process for record {i+1}"
+        rd[q]=row[q]
+        for c in row:
+            if c not in rd and c not in[r,t,q]:rd[c]=row[c]
+        rs.append(rd)
+    l(f"Prepared {len(rs)} records with column order: response, {t}, {q}, [other fields]")
+    ds=Dataset.from_list(rs)
+    spd=os.path.join(dr["cs"],sp)
+    os.makedirs(spd,exist_ok=True)
+    ds.save_to_disk(spd)
+    l(f"Saved {len(rs)} records to local directory: {spd}")
+    return {sp:ds},len(rs)
+async def proc_sp(sp,s,src,o,m,dr,all_ds,total_recs):
+    l(f"Processing split: {sp} ({s})")
+    l(f"System prompt length: {len(cc['systems'][s])}");l(f"Prompt template length: {len(cc['prompts'][s])}")
+    l(f"Column mappings: query={cc['columns']['query']}, response={cc['columns']['response']}, think={cc['columns']['think']}")
+    d=await ld(src,sp,o,m)
+    if not d:l(f"Failed to load dataset for split {sp}");return all_ds,total_recs
+    q=cc['columns']['query'];r=cc['columns']['response'];t=cc['columns']['think'];
+    if q not in d.column_names:l(f"Error: Query column '{q}' not found in dataset");return all_ds,total_recs
+    if r not in d.column_names:l(f"Error: Response column '{r}' not found in dataset");return all_ds,total_recs
+    l(f"Found {len(d)} records with query and response columns for split {sp}")
+    rs=[]
+    for _,s in enumerate(d):
+        rd={}
+        for k in ("id",):
+            if k in s:rd[k]=s[k]
+        rd[r]=s[r]
+        rd[t]=s.get(t,"")
+        rd[q]=s[q]
+        for c in s:
+            if c not in rd and c not in[r,t,q]:rd[c]=s[c]
+        rs.append(rd)
+    l(f"Prepared {len(rs)} records with column order: response, {t}, {q}, [other fields]")
+    ds=Dataset.from_list(rs)
+    spd=os.path.join(dr["cs"],sp)
+    os.makedirs(spd,exist_ok=True)
+    ds.save_to_disk(spd)
+    l(f"Saved {len(rs)} records to local directory: {spd}")
+    all_ds[sp]=ds
+    total_recs+=len(rs)
+    return all_ds,total_recs
+async def proc_split(sp,s,src,o,m,dr,all_ds,tot):
+    l(f"Processing split: {sp} ({s})")
+    l(f"System prompt length: {len(cc['systems'][s])}")
+    l(f"Prompt template length: {len(cc['prompts'][s])}")
+    l(f"Column mappings: query={cc['columns']['query']}, response={cc['columns']['response']}, think={cc['columns']['think']}")
+    d=await ld(src,sp,o,m)
+    if not d:l(f"Failed to load dataset for split {sp}");return all_ds,tot
+    q=cc['columns']['query'];r=cc['columns']['response'];t=cc['columns']['think']
+    if q not in d.column_names:l(f"Error: Query column '{q}' not found in dataset");return all_ds,tot
+    if r not in d.column_names:l(f"Error: Response column '{r}' not found in dataset");return all_ds,tot
+    l(f"Found {len(d)} records with query and response columns for split {sp}")
+    l(f"Preparing {len(d)} prompts for split {sp}")
+    pm=[]
+    for row in d:pm.append(await p_pmt(row[q],row[r]))
+    l(f"Prepared {len(pm)} prompts for split {sp}")
+    l(f"Mock generating responses for {len(d)} records")
+    rs=[]
+    for i,row in enumerate(d):
+        rd={}
+        if "id" in row:rd["id"]=row["id"]
+        rd[r]=row[r]
+        rd[t]=f"Mock thinking process for record {i+1}"
+        rd[q]=row[q]
+        for c in row:
+            if c not in rd and c not in [r,t,q]:rd[c]=row[c]
+        rs.append(rd)
+    l(f"Prepared {len(rs)} records with column order: response, {t}, {q}, [other fields]")
+    ds=Dataset.from_list(rs)
+    spd=os.path.join(dr["cs"],sp)
+    os.makedirs(spd,exist_ok=True)
+    ds.save_to_disk(spd)
+    l(f"Saved {len(rs)} records to local directory: {spd}")
+    all_ds[sp]=ds
+    tot+=len(rs)
+    return all_ds,tot
+async def setup_dirs(a):
+    r=str(int(time.time()));o=os.path.abspath(a.output);logdir=a.log_dir or os.path.join(o,"logs")
+    d=os.path.join(o,"data");rd=os.path.join(d,r);cs=os.path.join(rd,"case_study")
+    t=os.path.join(rd,"temp");ck=os.path.join(rd,"checkpoints")
+    for dr in[d,rd,cs,t,ck]:os.makedirs(dr,exist_ok=True)
+    return{"r":r,"o":o,"l":logdir,"d":d,"rd":rd,"cs":cs,"t":t,"ck":ck}
 async def tc_openai(ec,msg,_):
-    async with AsyncOpenAI(base_url=ec['u'],api_key=ec.get('k', '')) as c:return await c.chat.completions.create(
+    async with AsyncOpenAI(base_url=ec['u'],api_key=ec.get('k','')) as c:return await c.chat.completions.create(
         model=ec['m'],messages=msg,max_tokens=10,temperature=0,stream=False)
 async def tc_ollama(ec,msg,_):
     c=AsyncClient(host=ec['u']);return await c.chat(model=ec['m'],messages=msg,stream=False,
@@ -134,61 +263,29 @@ async def te_all(wc):
         sr=(s["success"]/s["total"])*100 if s["total"]>0 else 0
         cl.info(f"- {p}: {s['success']}/{s['total']} endpoints ok ({sr:.1f}%)")
     return sum(1 for _,_,_,r in tr if r=="OK" or r=="RATE_LIMITED")
-async def ld(s,p,o=0,m=0):
-    try:
-        l(f"Loading dataset from {s}");d=load_dataset(s)
-        if p in d:
-            full=d[p];total=len(full)
-            if o>0 or m>0:
-                if o>=total:
-                    l(f"Error: Offset {o} exceeds dataset size {total}");return None
-                end=total if m==0 else min(o+m,total)
-                ds=full.select(range(o,end))
-                l(f"Using dataset slice: records {o} to {end-1} (out of {total} total)")
-            else:
-                ds=full;l(f"Using complete dataset: {total} records")
-            l(f"Dataset loaded: {len(ds)} records in '{p}' split")
-            l(f"Dataset columns: {', '.join(ds.column_names)}")
-            return ds
-        else:
-            a=", ".join(d.keys());l(f"Dataset loaded but split '{p}' not found. Available splits: {a}")
-            return None
-    except Exception as e:l(f"Error loading dataset: {e}");return None
-async def sd(a):
-    r=str(int(time.time()));o=os.path.abspath(a.output);ld=a.log_dir or os.path.join(o,"logs")
-    d=os.path.join(o,"data");rd=os.path.join(d,r);cs=os.path.join(rd,"case_studies")
-    t=os.path.join(rd,"temp");ck=os.path.join(rd,"checkpoints")
-    for dr in[d,rd,cs,t,ck]:os.makedirs(dr,exist_ok=True)
-    return{"r":r,"o":o,"l":ld,"d":d,"rd":rd,"cs":cs,"t":t,"ck":ck}
 async def push_to_hub(data,split,dst):
     try:
         l(f"Preparing to push data to {dst}")
-        ds=Dataset.from_dict({k:[v] for k,v in data.items()})
-        dd=DatasetDict({split:ds})
-        hft=cc.get('hf_token')
-        if hft:
-            l("Using HF_TOKEN from config")
-            dd.push_to_hub(dst,token=hft,private=True)
-        else:
-            l("No HF_TOKEN in config, trying default credentials")
-            dd.push_to_hub(dst,private=True)
+        try:
+            existing=DatasetDict.load_from_hub(dst)
+            l(f"Loaded existing dataset with splits: {', '.join(existing.keys())}")
+            existing[split]=data;dd=existing
+        except:dd=DatasetDict({split:data})
+        hft=cc.get('hf_token');prv=cc.get('private',False)
+        l("Using HF_TOKEN from config");dd.push_to_hub(dst,token=hft,private=prv)
         l(f"Successfully pushed to hub: {dst}")
         return True
-    except Exception as e:
-        l(f"Error pushing to hub: {str(e)}",True)
-        return False
+    except Exception as e:l(f"Error pushing to hub: {str(e)}",True);return False
 async def main(a):
     try:
         global dr,cc,eps,test_mode
         test_mode=a.test
-        if not test_mode:
-            dr=await sd(a)
-            l(f"Run ID: {dr['r']}");l(f"Data dir: {dr['d']}")
+        dr=await setup_dirs(a) if not test_mode else {}
+        if not test_mode:l(f"Run ID: {dr['r']}");l(f"Data dir: {dr['d']}")
         l(f"Config URL: {a.config}")
-        if not test_mode:l(f"Split: {a.split}");l(f"Output: {a.output}")
         cc=await g(a.config)
         if not cc:l("Failed to load config");return
-        k,m=await v(cc,None if test_mode else a.split)
+        k,m=await v(cc,None)
         if not k:l(f"Invalid configuration: {m}");return
         l("Config successfully loaded")
         l(f"Config loaded with {len(cc.get('endpoints',[]))} endpoints")
@@ -201,39 +298,35 @@ async def main(a):
         if re==0:l("No working endpoints found.");return
         l(f"Found {re} working endpoints out of {len(cc['endpoints'])} total")
         if test_mode:l("Test completed successfully.");return
-        s=cc["splits"][a.split]
         if a.src:l(f"Overriding source from '{cc.get('src','')}' to '{a.src}'");cc['src']=a.src
         src=cc.get('src')
         if not src:l("No source dataset specified in config or arguments");return
         dst=a.dst or cc.get('dst')
         if not dst:l("No destination dataset specified in config or arguments");return
-        l(f"Source: {src}");l(f"Destination: {dst}");l(f"Using split: {a.split} ({s})")
-        l(f"System prompt length: {len(cc['systems'][s])}");l(f"Prompt template length: {len(cc['prompts'][s])}")
-        l(f"Column mappings: query={cc['columns']['query']}, response={cc['columns']['response']}, think={cc['columns']['think']}")
-        d=await ld(src,a.split,a.offset,a.max_records)
-        if not d:l("Failed to load dataset");return
-        q=cc['columns']['query'];r=cc['columns']['response'];t=cc['columns']['think'];
-        if q not in d.column_names:l(f"Error: Query column '{q}' not found in dataset");return
-        if r not in d.column_names:l(f"Error: Response column '{r}' not found in dataset");return
-        l(f"Found {len(d)} records with query and response columns")
-        l(f"Starting push to Hugging Face with {len(d)} records")
-        rs=[]
-        for _,s in enumerate(d):
-            rd={}
-            for k in ("id",):
-                if k in s:rd[k]=s[k]
-            rd[r]=s[r]
-            rd[t]=s.get(t,"")
-            rd[q]=s[q]
-            for c in s:
-                if c not in rd and c not in[r,t,q]:rd[c]=s[c]
-            rs.append(rd)
-        l(f"Prepared {len(rs)} records with column order: response, {t}, {q}, [other fields]")
-        ds=Dataset.from_list(rs);dd=DatasetDict({a.split:ds})
-        hf=cc.get('hf_token')
-        if hf:l("Using HF_TOKEN from config");dd.push_to_hub(dst,token=hf,private=True)
-        else:l("No HF_TOKEN in config, trying default");dd.push_to_hub(dst,private=True)
-        l(f"Successfully pushed {len(rs)} records to hub: {dst}")
+        sps=list(cc["splits"].keys()) if hasattr(cc["splits"],"keys") else []
+        if not sps:l("No splits found in config");return
+        l(f"Found {len(sps)} splits in config: {', '.join(sps)}")
+        all_ds={};tot=0
+        for sp in sps:
+            s=cc["splits"][sp]
+            ds,cnt=await proc_1sp(sp,s,src,a.offset,a.max_records,dr)
+            if ds:all_ds.update(ds);tot+=cnt
+        if all_ds:
+            l(f"TELEMETRY: Final dataset preparation started")
+            dd=DatasetDict(all_ds)
+            l(f"Created dataset dictionary with {tot} total records across {len(all_ds)} splits")
+            for sn,sd in dd.items():
+                l(f"- Split '{sn}': {len(sd)} records, columns: {', '.join(sd.column_names)}")
+            l(f"Average records per split: {tot/len(all_ds):.1f}")
+            dd.save_to_disk(dr["cs"])
+            l(f"Saved unified dataset to {dr['cs']}")
+            l(f"Preparing to push unified dataset to {dst}")
+            hft=cc.get('hf_token');prv=cc.get('private',True)
+            l("Using HF_TOKEN from config")
+            dd.push_to_hub(dst,token=hft,private=prv)
+            l(f"Successfully pushed unified dataset with {len(all_ds)} splits to hub: {dst}")
+        else:l("No data processed, skipping push to hub")
+        l(f"Finished processing all splits")
     except Exception as e:l(f"Fatal error: {str(e)}");raise e
 if __name__=="__main__": 
     if os.name=='nt':os.environ['PYTHONIOENCODING']='utf-8'
@@ -243,13 +336,11 @@ if __name__=="__main__":
     p.add_argument("--src",help="Source dataset to load (overrides config)")
     p.add_argument("--dst",help="Destination dataset to push to (overrides config)")
     p.add_argument("--log-dir",default=os.path.join(os.getcwd(),"logs"),help="Directory to save log files")
-    p.add_argument("--split",help="Dataset split to process (e.g. english, chinese)")
     p.add_argument("--output",default=os.getcwd(),help="Output directory")
     p.add_argument("--workers",type=int,help="Number of parallel workers for endpoint testing")
     p.add_argument("--offset",type=int,default=0,help="Offset to start processing records from")
-    p.add_argument("--max-records",type=int,default=0,help="Maximum number of records to process")
+    p.add_argument("--max-records",type=int,default=0,help="Maximum number of records to process per split")
     a=p.parse_args()
-    if not a.test and not a.split:print("Error: --split is required when not in test mode");exit(1)
     global test_mode,cl,fl;test_mode=a.test
     try:cl,fl=s(a.log_dir,test_mode);asyncio.run(main(a))
     except Exception as e:print(f"Fatal error: {e}");exit(1)
