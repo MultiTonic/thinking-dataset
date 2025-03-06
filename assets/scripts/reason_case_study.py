@@ -1,11 +1,11 @@
-import argparse as ap,os,asyncio,logging,time,requests,random   
+import argparse as ap,os,asyncio,logging,time,requests,random,json
 from tenacity import retry,wait_random,stop_after_attempt
 from datasets import load_dataset,Dataset,DatasetDict
 from asyncio import TimeoutError
 from openai import AsyncOpenAI
 from ollama import AsyncClient
 
-W=16;T=30
+W=16;T=30;C=500;B=100
 def l(m,c=True):
     if fl and not test_mode:fl.info(m)
     if c and cl:
@@ -94,34 +94,53 @@ async def proc_1sp(sp,s,src,o,m,dr):
     l(f"Processing split: {sp} ({s})")
     l(f"System prompt length: {len(cc['systems'][s])}");l(f"Prompt template length: {len(cc['prompts'][s])}")
     l(f"Column mappings: query={cc['columns']['query']}, response={cc['columns']['response']}, think={cc['columns']['think']}")
-    d=await ld(src,sp,o,m)
-    if not d:l(f"Failed to load dataset for split {sp}");return {},0
-    q=cc['columns']['query'];r=cc['columns']['response'];t=cc['columns']['think']
-    if q not in d.column_names:l(f"Error: Query column '{q}' not found in dataset");return {},0
-    if r not in d.column_names:l(f"Error: Response column '{r}' not found in dataset");return {},0
-    l(f"Found {len(d)} records with query and response columns for split {sp}")
-    l(f"Preparing {len(d)} prompts for split {sp}")
-    pm=[]
-    for row in d:pm.append(await p_pmt(row[q],row[r]))
-    l(f"Prepared {len(pm)} prompts for split {sp}")
-    l(f"Mock generating responses for {len(d)} records")
-    rs=[]
-    for i,row in enumerate(d):
-        rd={}
-        if "id" in row:rd["id"]=row["id"]
-        rd[r]=row[r]
-        rd[t]=f"Mock thinking process for record {i+1}"
-        rd[q]=row[q]
-        for c in row:
-            if c not in rd and c not in[r,t,q]:rd[c]=row[c]
-        rs.append(rd)
-    l(f"Prepared {len(rs)} records with column order: response, {t}, {q}, [other fields]")
-    ds=Dataset.from_list(rs)
-    spd=os.path.join(dr["cs"],sp)
-    os.makedirs(spd,exist_ok=True)
+    d = await ld(src, sp, o, m)
+    if not d:
+        l(f"Failed to load dataset for split {sp}")
+        return {}, 0
+    q = cc['columns']['query']
+    r = cc['columns']['response']
+    t = cc['columns']['think']
+    if q not in d.column_names:
+        l(f"Error: Query column '{q}' not found in dataset")
+        return {}, 0
+    if r not in d.column_names:
+        l(f"Error: Response column '{r}' not found in dataset")
+        return {}, 0
+    total_records = len(d)
+    l(f"Found {total_records} records with query and response columns for split {sp}")
+    batch_size = a.batch_size if a.batch_size is not None else B
+    checkpoint_interval = a.checkpoint_interval if a.checkpoint_interval is not None else C
+    l(f"Processing records in batches of {batch_size} with checkpoint interval of {checkpoint_interval}")
+    worker_count = a.workers if a.workers is not None else W
+    semaphore = asyncio.Semaphore(worker_count)
+    l(f"Using {worker_count} concurrent workers for processing")
+    all_results = []
+    total_processed = 0
+    for start_idx in range(0, total_records, batch_size):
+        batch_start_time = time.time()
+        end_idx = min(start_idx + batch_size, total_records)
+        current_batch = d.select(range(start_idx, end_idx))
+        l(f"Processing batch {start_idx//batch_size + 1}: records {start_idx+1} to {end_idx} (batch size: {len(current_batch)})")
+        tasks = []
+        for i, row in enumerate(current_batch):
+            tasks.append(process_record(row, start_idx + i, q, r, t))
+        batch_results = await asyncio.gather(*tasks)
+        all_results.extend(batch_results)
+        total_processed += len(batch_results)
+        batch_duration = time.time() - batch_start_time
+        l(f"Completed batch {start_idx//batch_size + 1} ({total_processed}/{total_records} records) in {batch_duration:.2f}s")
+        if checkpoint_interval > 0 and total_processed % checkpoint_interval == 0:
+            checkpoint_dataset = Dataset.from_list(all_results)
+            await save_checkpoint(checkpoint_dataset, sp, total_processed, dr["ck"])
+    l(f"Finished processing all {total_records} records for split {sp}")
+    ds = Dataset.from_list(all_results)
+    l(f"Prepared {len(ds)} records with column order: id, prompt, think, response, query, [other fields]")
+    spd = os.path.join(dr["cs"], sp)
+    os.makedirs(spd, exist_ok=True)
     ds.save_to_disk(spd)
-    l(f"Saved {len(rs)} records to local directory: {spd}")
-    return {sp:ds},len(rs)
+    l(f"Saved {len(ds)} records to local directory: {spd}")
+    return {sp: ds}, len(ds)
 async def proc_sp(sp,s,src,o,m,dr,all_ds,total_recs):
     l(f"Processing split: {sp} ({s})")
     l(f"System prompt length: {len(cc['systems'][s])}");l(f"Prompt template length: {len(cc['prompts'][s])}")
@@ -137,13 +156,14 @@ async def proc_sp(sp,s,src,o,m,dr,all_ds,total_recs):
         rd={}
         for k in ("id",):
             if k in s:rd[k]=s[k]
-        rd[r]=s[r]
+        rd["prompt"]=await p_pmt(s[q],s[r])
         rd[t]=s.get(t,"")
+        rd[r]=s[r]
         rd[q]=s[q]
         for c in s:
-            if c not in rd and c not in[r,t,q]:rd[c]=s[c]
+            if c not in rd and c not in[r,t,q,"id","prompt"]:rd[c]=s[c]
         rs.append(rd)
-    l(f"Prepared {len(rs)} records with column order: response, {t}, {q}, [other fields]")
+    l(f"Prepared {len(rs)} records with column order: id, prompt, think, response, query, [other fields]")
     ds=Dataset.from_list(rs)
     spd=os.path.join(dr["cs"],sp)
     os.makedirs(spd,exist_ok=True)
@@ -154,8 +174,7 @@ async def proc_sp(sp,s,src,o,m,dr,all_ds,total_recs):
     return all_ds,total_recs
 async def proc_split(sp,s,src,o,m,dr,all_ds,tot):
     l(f"Processing split: {sp} ({s})")
-    l(f"System prompt length: {len(cc['systems'][s])}")
-    l(f"Prompt template length: {len(cc['prompts'][s])}")
+    l(f"System prompt length: {len(cc['systems'][s])}");l(f"Prompt template length: {len(cc['prompts'][s])}")
     l(f"Column mappings: query={cc['columns']['query']}, response={cc['columns']['response']}, think={cc['columns']['think']}")
     d=await ld(src,sp,o,m)
     if not d:l(f"Failed to load dataset for split {sp}");return all_ds,tot
@@ -172,13 +191,14 @@ async def proc_split(sp,s,src,o,m,dr,all_ds,tot):
     for i,row in enumerate(d):
         rd={}
         if "id" in row:rd["id"]=row["id"]
-        rd[r]=row[r]
+        rd["prompt"]=await p_pmt(row[q],row[r])
         rd[t]=f"Mock thinking process for record {i+1}"
+        rd[r]=row[r]
         rd[q]=row[q]
         for c in row:
-            if c not in rd and c not in [r,t,q]:rd[c]=row[c]
+            if c not in rd and c not in [r,t,q,"id","prompt"]:rd[c]=row[c]
         rs.append(rd)
-    l(f"Prepared {len(rs)} records with column order: response, {t}, {q}, [other fields]")
+    l(f"Prepared {len(rs)} records with column order: id, prompt, think, response, query, [other fields]")
     ds=Dataset.from_list(rs)
     spd=os.path.join(dr["cs"],sp)
     os.makedirs(spd,exist_ok=True)
@@ -276,16 +296,47 @@ async def push_to_hub(data,split,dst):
         l(f"Successfully pushed to hub: {dst}")
         return True
     except Exception as e:l(f"Error pushing to hub: {str(e)}",True);return False
-async def main(a):
+async def save_checkpoint(data, split, total_processed, checkpoint_dir):
     try:
-        global dr,cc,eps,test_mode
-        test_mode=a.test
-        dr=await setup_dirs(a) if not test_mode else {}
+        os.makedirs(checkpoint_dir, exist_ok=True)
+        checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_{split}_{total_processed}")
+        data.save_to_disk(checkpoint_path)
+        l(f"Saved checkpoint at {checkpoint_path} after processing {total_processed} records")
+        metadata = {
+            "split": split,
+            "processed": total_processed,
+            "timestamp": time.time(),
+            "checkpoint_path": checkpoint_path
+        }
+        with open(os.path.join(checkpoint_dir, f"meta_{split}.json"), 'w') as f:
+            json.dump(metadata, f)
+        return True
+    except Exception as e:
+        l(f"Error saving checkpoint: {str(e)}")
+        return False
+async def process_record(row, idx, query_col, response_col, think_col):
+    rd = {}
+    if "id" in row:
+        rd["id"] = row["id"]
+    rd["prompt"] = await p_pmt(row[query_col], row[response_col])
+    rd[think_col] = f"Mock thinking process for record {idx+1}"
+    rd[response_col] = row[response_col]
+    rd[query_col] = row[query_col]
+    for c in row:
+        if c not in rd and c not in [response_col, think_col, query_col, "id", "prompt"]:
+            rd[c] = row[c]
+    return rd
+async def main(args):
+    try:
+        global dr, cc, eps, test_mode, a
+        a = args
+        test_mode = a.test
+        dr = await setup_dirs(a) if not test_mode else {}
         if not test_mode:l(f"Run ID: {dr['r']}");l(f"Data dir: {dr['d']}")
         l(f"Config URL: {a.config}")
-        cc=await g(a.config)
+        cc = await g(a.config)
         if not cc:l("Failed to load config");return
-        k,m=await v(cc,None)
+        k,m = await v(cc,None)
         if not k:l(f"Invalid configuration: {m}");return
         l("Config successfully loaded")
         l(f"Config loaded with {len(cc.get('endpoints',[]))} endpoints")
@@ -306,6 +357,10 @@ async def main(a):
         sps=list(cc["splits"].keys()) if hasattr(cc["splits"],"keys") else []
         if not sps:l("No splits found in config");return
         l(f"Found {len(sps)} splits in config: {', '.join(sps)}")
+        batch_size = a.batch_size if a.batch_size is not None else B
+        checkpoint_interval = a.checkpoint_interval if a.checkpoint_interval is not None else C
+        l(f"Using batch size of {batch_size} for processing records")
+        l(f"Using checkpoint interval of {checkpoint_interval} records")
         all_ds={};tot=0
         for sp in sps:
             s=cc["splits"][sp]
@@ -340,7 +395,10 @@ if __name__=="__main__":
     p.add_argument("--workers",type=int,help="Number of parallel workers for endpoint testing")
     p.add_argument("--offset",type=int,default=0,help="Offset to start processing records from")
     p.add_argument("--max-records",type=int,default=0,help="Maximum number of records to process per split")
-    a=p.parse_args()
-    global test_mode,cl,fl;test_mode=a.test
-    try:cl,fl=s(a.log_dir,test_mode);asyncio.run(main(a))
+    p.add_argument("--batch-size",type=int,default=B,help="Number of records to process in a batch (default: 100)")
+    p.add_argument("--checkpoint-interval",type=int,default=C,help="Interval to save intermediate checkpoints (default: 500)")
+    args=p.parse_args()
+    global test_mode,cl,fl
+    test_mode=args.test
+    try:cl,fl=s(args.log_dir,test_mode);asyncio.run(main(args))
     except Exception as e:print(f"Fatal error: {e}");exit(1)
