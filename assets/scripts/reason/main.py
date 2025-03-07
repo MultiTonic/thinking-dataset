@@ -476,15 +476,21 @@ async def te_all(wc):
     tr=[];ts=[]
     for i,ep in enumerate(cc["endpoints"]):ts.append(te(ep,sm))
     rs=await asyncio.gather(*ts,return_exceptions=True)
+    working_indices = []  # Track indices of working endpoints
     for i,r in enumerate(rs):
         ep=cc["endpoints"][i]
         if isinstance(r,Exception):
             l(f"Error testing endpoint {i+1}/{len(cc['endpoints'])}: {str(r)}")
             tr.append((ep.get('p','unknown'),ep.get('n','unknown'),0.0,None))
         else:
-            p,n,tt,resp=r;io=resp=="OK" or resp=="RATE_LIMITED"
+            p,n,tt,resp=r
+            io=resp=="OK" or resp=="RATE_LIMITED"
             st="OK" if resp=="OK" else "Rate Limited" if resp=="RATE_LIMITED" else "Failed"
-            l(f"Tested endpoint {i+1}/{len(cc['endpoints'])}: {p}-{n} - {st}");tr.append(r)
+            l(f"Tested endpoint {i+1}/{len(cc['endpoints'])}: {p}-{n} - {st}")
+            tr.append(r)
+            if io:
+                working_indices.append(i)  # Add index to working endpoints list
+    
     cl.info("Test results:")
     for p,n,tt,r in tr:
         if r=="RATE_LIMITED":s="Rate Limited";cl.info(f"- endpoint {s}! [ {p}-{n}: rate limited ]")
@@ -500,7 +506,7 @@ async def te_all(wc):
     for p,s in st.items():
         sr=(s["success"]/s["total"])*100 if s["total"]>0 else 0
         cl.info(f"- {p}: {s['success']}/{s['total']} endpoints ok ({sr:.1f}%)")
-    return sum(1 for _,_,_,r in tr if r=="OK" or r=="RATE_LIMITED")
+    return sum(1 for _,_,_,r in tr if r=="OK" or r=="RATE_LIMITED"), working_indices
 async def push_to_hub(data,split,dst):
     try:
         l(f"Preparing to push data to {dst}")
@@ -841,7 +847,6 @@ async def main(args):
         a = args
         test_mode = a.test
         telemetry_stats = TelemetryStats()
-        
         dr = await setup_dirs(a) if not test_mode else {}
         if not test_mode:l(f"Run ID: {dr['r']}");l(f"Data dir: {dr['d']}");l(f"Config URL: {a.config}")
         cc = await g(a.config)
@@ -849,21 +854,21 @@ async def main(args):
         k,m = await v(cc)
         if not k:l(f"Invalid configuration: {m}");return
         l("Config successfully loaded")
-        
         if not test_mode and "splits" in cc and "t" in dr:
             for split, lang_code in cc.get("splits", {}).items():
                 lang_dir = os.path.join(dr["t"], lang_code)
                 os.makedirs(lang_dir, exist_ok=True)
-                l(f"Created temp directory for language: {lang_code}")
-                
+                l(f"Created temp directory for language: {lang_code}")     
         l(f"Config loaded with {len(cc.get('endpoints',[]))} endpoints")
-        eps=ie(cc['endpoints'])
         w=a.workers if a.workers is not None else W
         wc=min(w,len(cc['endpoints']))
         if a.workers is not None and wc<a.workers:l(f"Capping workers from {a.workers} to {wc} based on available endpoints")
-        re=await te_all(wc)
+        re, working_indices=await te_all(wc)
         if re==0:l("No working endpoints found.");return
         l(f"Found {re} working endpoints out of {len(cc['endpoints'])} total")
+        working_endpoints = [cc["endpoints"][i] for i in working_indices]
+        l(f"Using {len(working_endpoints)} working endpoints for processing")
+        eps=ie(working_endpoints)
         if test_mode:l("Test completed successfully.");return
         if a.src:l(f"Overriding source from '{cc.get('src','')}' to '{a.src}'");cc['src']=a.src
         src=cc.get('src')
@@ -891,6 +896,14 @@ async def main(args):
             l(f"Average records per split: {tot/len(all_ds):.1f}")
             dd.save_to_disk(dr["cs"])
             l(f"Saved unified dataset to {dr['cs']}")
+            dst = a.dst or cc.get("dst")
+            if dst:
+                l(f"Pushing dataset to Hugging Face Hub: {dst}")
+                try:
+                    dd.push_to_hub(dst)
+                    l(f"Successfully pushed dataset to {dst}")
+                except Exception as e:
+                    l(f"Error pushing dataset to Hugging Face Hub: {str(e)}")  
         l(f"Finished processing all splits")
     except Exception as e:
         tb = traceback.format_exc()
