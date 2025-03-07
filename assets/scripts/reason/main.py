@@ -1,13 +1,11 @@
-import argparse as ap,os,asyncio,logging,time,requests,random,json,re
-from tenacity import retry,wait_random,stop_after_attempt,retry_if_exception_type,before_sleep_log
+import argparse as ap,os,asyncio,logging,time,requests,random,json
+from tenacity import retry,wait_random,stop_after_attempt
 from datasets import load_dataset,Dataset,DatasetDict
 from asyncio import TimeoutError
 from openai import AsyncOpenAI
 from ollama import AsyncClient
-from tqdm.asyncio import tqdm as async_tqdm
-import tqdm
 
-W=15;T=30;C=500;B=100;R=5;RT=600;EC=20
+W=16;T=30;C=500;B=100;R=10;RT=600;EC=20
 
 class TelemetryStats:
     def __init__(self):
