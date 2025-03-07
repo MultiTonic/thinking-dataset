@@ -8,7 +8,6 @@ import traceback
 
 W=16;T=30;C=100;B=100;R=10;RT=600;EC=12
 
-# Fix the TelemetryStats class to properly handle processed_records as a set
 class TelemetryStats:
     def __init__(self):
         self.start_time = time.time()
@@ -17,14 +16,14 @@ class TelemetryStats:
         self.failed_generations = 0
         self.errors_by_type = {}
         self.last_log_time = time.time()
-        self.processed_records = set()  # This is a set, not a list!
+        self.processed_records = set()
 
     def log_success(self, record_id, language):
         self.total_attempts += 1
         unique_id = f"{language}_{record_id}"
         if unique_id not in self.processed_records:
             self.successful_generations += 1
-            self.processed_records.add(unique_id)  # Use add() for sets, not append()
+            self.processed_records.add(unique_id)
     
     def log_failure(self, record_id, language, error_type):
         self.total_attempts += 1
@@ -38,7 +37,7 @@ class TelemetryStats:
         self.failed_generations = 0
         self.errors_by_type = {}
         self.last_log_time = time.time()
-        self.processed_records = set()  # Make sure this is initialized as a set
+        self.processed_records = set()
     
     def get_telemetry_string(self, total_needed):
         elapsed = time.time() - self.start_time
@@ -60,8 +59,6 @@ def check_min_length(response_text: str, min_length: int):
     if min_length and len(response_text) < min_length:
         raise ValueError(f"Response length {len(response_text)} is shorter than minimum required length {min_length}")
     return True
-
-# Remove the redundant should_retry_exception function since we'll retry on all errors
 
 def l(m,c=True):
     if fl and not test_mode:fl.info(m)
@@ -108,7 +105,6 @@ async def v(c,p=None):
         if col not in c["columns"]:return False,f"Missing required column mapping: {col}"
     if p not in c["splits"]:return False,f"No '{p}' in splits"
     
-    # Check if split name exists in systems categories
     system_categories = ["dark_thoughts", "benign"]
     found_in_systems = False
     for category in system_categories:
@@ -117,7 +113,6 @@ async def v(c,p=None):
             break
     if not found_in_systems:return False,f"No '{p}' in systems categories"
     
-    # Check if split name exists in metacogs categories
     found_in_metacogs = False
     for category in system_categories:
         if category in c["metacogs"] and p in c["metacogs"][category]:
@@ -131,21 +126,16 @@ def ie(ec):
 def gne(e):
     n=time.time()
     a=[]
-    # First, find all available endpoints that have cooled down (skip cooldown for Ollama)
     for i,ep in enumerate(e):
         provider = ep.get('p', '').lower()
-        # Ollama endpoints don't need cooldown, others need EC seconds
         if not ep['in_use'] and (provider == "ollama" or n-ep['last_call']>=EC):
             a.append((i,ep))
     
-    # If no endpoints are available, find the one that will be available soonest
     if not a:
-        # For finding soonest ready, respect the per-provider cooldown
         s=min(e, key=lambda x: x['last_call'] if x.get('p','').lower() == "ollama" else (
             x['last_call']+EC if not x['in_use'] else float('inf')))
         i=e.index(s)
         
-        # Only wait if it's not an Ollama endpoint
         if s.get('p','').lower() != "ollama":
             w=max(0,(s['last_call']+EC)-n)
             if w>0:
@@ -153,7 +143,6 @@ def gne(e):
                 time.sleep(w)
         return i
     
-    # Sort available endpoints by last call time (oldest first)
     a.sort(key=lambda x:x[1]['last_call'])
     return a[0][0]
 async def ld(s,p,o=0,m=0):
@@ -183,14 +172,12 @@ async def ld_all(s,sps,o=0,m=0):
 def ie(ec):
     e=[];[e.append({**ep,'last_call':0,'in_use':False}) for ep in ec];random.shuffle(e);return e
 
-# Fix the proc_1sp function to correctly handle telemetry
 async def proc_1sp(sp,s,src,o,m,dr):
     global telemetry_stats
     telemetry_stats.reset_stats()
     
     l(f"Processing split: {sp} ({s})")
     
-    # No need to choose a single category here - we'll use the one specified in each record
     l(f"Column mappings: query={cc['columns']['query']}, response={cc['columns']['response']}, think={cc['columns']['think']}")
     
     d = await ld(src, sp, o, m)
@@ -206,12 +193,10 @@ async def proc_1sp(sp,s,src,o,m,dr):
         l(f"Error: Required columns not found in dataset")
         return {}, 0
     
-    # Log available categories in the dataset without additional verification
     categories = set(d["category"]) if "category" in d.column_names else set()
     if categories:
         l(f"Found categories in dataset: {', '.join(categories)}")
         
-        # Count records by category
         cat_counts = {}
         for cat in categories:
             cat_counts[cat] = sum(1 for c in d["category"] if c == cat)
@@ -229,18 +214,15 @@ async def proc_1sp(sp,s,src,o,m,dr):
     
     l(f"Using {worker_count} workers, batches of {batch_size}, checkpoint every {checkpoint_interval}")
     
-    # Create a semaphore to limit concurrent API calls
     semaphore = asyncio.Semaphore(worker_count)
     
-    # Initialize lists properly to ensure correct type
     all_results = []
     success_results = []
     failed_results = []
     total_processed = 0
     
-    # Initialize telemetry
     total_needed = total_records
-    telemetry_stats.last_log_time = time.time() - 30  # Force initial telemetry message
+    telemetry_stats.last_log_time = time.time() - 30
     
     for start_idx in range(0, total_records, batch_size):
         batch_start_time = time.time()
@@ -250,32 +232,25 @@ async def proc_1sp(sp,s,src,o,m,dr):
         
         l(f"Processing batch {start_idx//batch_size + 1}: records {start_idx+1} to {end_idx} (batch size: {current_batch_size})")
         
-        # EXPLICITLY define pending_tasks as a list, not using the previous variable name that might be shadowed
-        task_list = []  # Always initialize as a new, empty list
+        task_list = []
         batch_results = []
         
-        # Process records sequentially with limited concurrency
         for i, row in enumerate(current_batch):
             record_id = row.get('id', start_idx + i)
             
-            # Create a new task and add it to the task list
             task = asyncio.create_task(process_record(row, start_idx + i, q, r, t, sp, semaphore))
-            task.record_id = record_id  # Store the record_id with the task
-            task.row = row  # Store the row with the task for error handling
-            task_list.append(task)  # Use our explicitly named list
+            task.record_id = record_id
+            task.row = row
+            task_list.append(task)
             
-            # If we've reached the worker limit or this is the last item, wait for some tasks to complete
             if len(task_list) >= worker_count or i == len(current_batch) - 1:
-                # Wait for at least one task to complete
                 done, remaining_tasks = await asyncio.wait(
                     task_list, 
                     return_when=asyncio.FIRST_COMPLETED
                 )
                 
-                # Update our task list with remaining tasks
-                task_list = list(remaining_tasks)  # Convert set to list explicitly
+                task_list = list(remaining_tasks)
                 
-                # Process completed tasks
                 for completed_task in done:
                     try:
                         result = completed_task.result()
@@ -290,7 +265,6 @@ async def proc_1sp(sp,s,src,o,m,dr):
                         
                         l(f"[{record_id}] ERROR: Failed to process record after all retries: {str(e)}")
                         
-                        # Create error record
                         error_record = {}
                         if row and "id" in row:
                             error_record["id"] = row["id"]
@@ -314,13 +288,11 @@ async def proc_1sp(sp,s,src,o,m,dr):
                         batch_results.append(error_record)
                         failed_results.append(error_record)
                     
-                    # Periodic telemetry check
                     if time.time() - telemetry_stats.last_log_time > 30:
                         l(telemetry_stats.get_telemetry_string(total_needed))
                         telemetry_stats.last_log_time = time.time()
         
-        # Wait for any remaining tasks to complete
-        if task_list:  # Use our explicitly named list 
+        if task_list:
             done, _ = await asyncio.wait(task_list)
             for completed_task in done:
                 try:
@@ -331,10 +303,9 @@ async def proc_1sp(sp,s,src,o,m,dr):
                     else:
                         success_results.append(result)
                 except Exception as e:
-                    record_id = "unknown"  # We can't know which record this was
+                    record_id = "unknown"
                     l(f"[{record_id}] ERROR: Failed to process record after all retries: {str(e)}")
                     
-                    # We can't create a proper error record here since we don't know which row it was
                     error_record = {
                         "id": f"unknown_{len(failed_results)}",
                         "prompt": "Unknown due to exception",
@@ -349,13 +320,11 @@ async def proc_1sp(sp,s,src,o,m,dr):
         total_processed += len(batch_results)
         batch_duration = time.time() - batch_start_time
         
-        # Update these statistics correctly (using len of lists, not accessing telemetry directly)
         success_count = len(success_results)
         error_count = len(failed_results)
         
         l(f"Completed batch {start_idx//batch_size + 1} ({total_processed}/{total_records} records) in {batch_duration:.2f}s ({success_count} success, {error_count} errors)")
         
-        # Always log batch telemetry regardless of timing
         l(telemetry_stats.get_telemetry_string(total_needed))
         telemetry_stats.last_log_time = time.time()
         
@@ -363,16 +332,13 @@ async def proc_1sp(sp,s,src,o,m,dr):
             checkpoint_dataset = create_dataset_with_splits(success_results, failed_results, sp)
             await save_checkpoint(checkpoint_dataset, sp, total_processed, dr["ck"])
     
-    # Create final dataset with success and failed splits
     ds = create_dataset_with_splits(success_results, failed_results, sp)
     success_count = telemetry_stats.successful_generations
     error_count = telemetry_stats.failed_generations
     l(f"Processing complete: {total_processed} total records ({success_count} success, {error_count} errors) in split {sp}")
     
-    # Final telemetry
     l(telemetry_stats.get_telemetry_string(total_needed))
     
-    # Save to disk
     spd = os.path.join(dr["cs"], sp)
     os.makedirs(spd, exist_ok=True)
     ds.save_to_disk(spd)
@@ -391,15 +357,12 @@ def create_dataset_with_splits(success_records, failed_records, split_name):
         "category": ""
     }
     
-    # Create datasets for each type
     splits = {}
     if success_records:
         splits[split_name] = Dataset.from_list(success_records)
     else:
-        # Create an empty dataset with the right schema
         splits[split_name] = Dataset.from_list([empty_record]).select([])
         
-    # Add failed records if any exist
     if failed_records:
         splits[f"{split_name}_failed"] = Dataset.from_list(failed_records)
     
@@ -450,9 +413,7 @@ async def setup_dirs(a):
     r=str(int(time.time()));o=os.path.abspath(a.output);logdir=a.log_dir or os.path.join(o,"logs")
     d=os.path.join(o,"data");rd=os.path.join(d,r);cs=os.path.join(rd,"case_study")
     t=os.path.join(rd,"temp");ck=os.path.join(rd,"checkpoints")
-    # Create base directories only
     for dr in[d,rd,cs,t,ck]:os.makedirs(dr,exist_ok=True)
-    # We'll create language-specific directories later after loading config
     return{"r":r,"o":o,"l":logdir,"d":d,"rd":rd,"cs":cs,"t":t,"ck":ck}
 async def tc_openai(ec,msg,_):
     async with AsyncOpenAI(base_url=ec['u'],api_key=ec.get('k','')) as c:return await c.chat.completions.create(
@@ -569,7 +530,6 @@ async def call_openai_api(ec,msg):
             else:raise Exception("No response content returned from API")
     except Exception as e:
         if "429" in str(e) or "TOO MANY" in str(e) or "rate limit" in str(e).lower():
-            # Log rate limit errors only to file, not to console to reduce clutter
             if fl and not test_mode: fl.info(f"Rate limit error: {str(e)}")
         else:
             l(f"OpenAI API error: {str(e)}")
@@ -595,7 +555,6 @@ async def call_ollama_api(ec,msg):
         l(f"Ollama API error: {str(e)}")
         raise
 
-# Fix the telemetry usage in generate_thinking
 async def generate_thinking(r,s,i):
     global eps, telemetry_stats
     c=eps[i]
@@ -611,18 +570,14 @@ async def generate_thinking(r,s,i):
         qu=r.get(q,"")
         rs=r.get(r_c,"")
         
-        # Get the category from the record - no default or fallback
         ct = r.get('category')
         
-        # Get language code from the split
         lang_code = cc["splits"].get(s, "")
         
         min_length = cc.get('min_length', 0)
         
-        # Log when record processing starts, but with clear indication this is creating a request
         l(f"[{record_id}] Starting request to {p}-{n} for category '{ct}'")
         
-        # Only detailed logging goes to file
         if fl and not test_mode:
             fl.info(f"[{record_id}] Processing: {p}-{n}, split '{s}', category '{ct}', query {len(qu)} chars, response {len(rs)} chars")
         
@@ -630,15 +585,11 @@ async def generate_thinking(r,s,i):
             c['in_use']=False
             c['last_call']=time.time()
             l(f"[{record_id}] ERROR: Empty input query or response")
-            # Make sure telemetry is logged correctly
             telemetry_stats.log_failure(record_id, s, "EmptyInput")
             return "",0.0,""
         
         try:
-            # Use the regular function directly without awaiting
-            # Now returns both messages and metacog_prompt
             m, metacog_prompt = create_chat_messages(qu,rs,s,ct)
-            # Only log this to file, not to console to reduce clutter
             if fl and not test_mode:
                 fl.info(f"[{record_id}] Created chat messages with {len(m)} items")
         except Exception as e:
@@ -674,11 +625,8 @@ async def generate_thinking(r,s,i):
             raise
         except Exception as e:
             err_msg = str(e)
-            # Filter rate limit messages for console but keep full logs in file
             if "429" in err_msg or "TOO MANY" in err_msg or "rate limit" in err_msg.lower():
-                # Log concise rate limit message to console
                 l(f"[{record_id}] Rate limit hit on {p}-{n}")
-                # Log full details only to file
                 if fl and not test_mode:
                     fl.info(f"[{record_id}] ERROR: API call failed: {err_msg}")
             else:
@@ -694,32 +642,23 @@ async def generate_thinking(r,s,i):
             
         e=round(time.time()-t,2)
         
-        # Check minimum length before saving - simplify this logic
         try:
             check_min_length(result, min_length)
-            # Log success with character count
             l(f"[{record_id}] Response received ({len(result)} chars) in {e:.2f}s")
         except ValueError as e:
             l(f"[{record_id}] ERROR: Response too short: {str(e)}")
             if fl and not test_mode:
                 fl.info(f"[{record_id}] Response too short: {str(e)}")
                 
-            # Mark the endpoint as not in use
             c['in_use']=False
-            # Apply cooldown like any other error
             c['last_call']=time.time()
             
-            # Make sure telemetry is logged correctly
             telemetry_stats.log_failure(record_id, s, "ResponseTooShort")
-            # Re-raise to trigger the retry mechanism
             raise
         
-        # Save the response to temp file - using language code instead of split name
         if not test_mode and dr and "t" in dr:
-            # Use language code (e.g., "en", "zh") for the directory 
             temp_dir = os.path.join(dr["t"], lang_code)
             os.makedirs(temp_dir, exist_ok=True)
-            # Just use record_id for the filename without timestamp
             temp_file = os.path.join(temp_dir, f"{record_id}.txt")
             try:
                 with open(temp_file, 'w', encoding='utf-8') as f:
@@ -734,34 +673,25 @@ async def generate_thinking(r,s,i):
         if fl and not test_mode:
             fl.info(f"[{record_id}] Generated reasoning ({len(result)} chars) in {e:.2f}s using {p}-{n}")
         
-        # Make sure telemetry is logged correctly for successful cases
         telemetry_stats.log_success(record_id, s)
         
-        # Simply check if enough time has passed and log telemetry if needed
-        # Don't reference total_needed which isn't available in this scope
         if time.time() - telemetry_stats.last_log_time > 30:
-            # Use an estimated value for total based on what we know
             total_records_estimate = cc.get('max_records', 100) or 100
             l(telemetry_stats.get_telemetry_string(total_records_estimate))
             telemetry_stats.last_log_time = time.time()
             
-        # Return metacog_prompt along with the result and elapsed time
         return result, e, metacog_prompt
     except Exception as e:
         if'c'in locals():
             c['in_use']=False
-            # Always apply cooldown for all errors - simplify logic
             c['last_call']=time.time()
             
-        # Make sure we log failures correctly when exceptions happen
         if 'record_id' in locals() and 's' in locals():
             error_type = type(e).__name__
             telemetry_stats.log_failure(record_id, s, error_type)
         raise
 
-# Change from async to regular function since it doesn't need to be async
 def create_chat_messages(q,r,sp,c):
-    # Verify category is valid with no fallback - will raise error if not valid
     if c not in ["dark_thoughts", "benign"]:
         raise ValueError(f"Invalid category '{c}' - must be 'dark_thoughts' or 'benign'")
     
@@ -772,7 +702,6 @@ def create_chat_messages(q,r,sp,c):
     system_prompt = sys_prompts[c][lang_code]
     metacog_prompt = metacog_prompts[c][lang_code]
     
-    # Only detailed logging goes to file, add category information to log
     if fl and not test_mode:
         fl.info(f"Chat created for category '{c}': system {len(system_prompt)}, query {len(q)}, response {len(r)}, metacog {len(metacog_prompt)} chars")
         
@@ -785,34 +714,29 @@ def create_chat_messages(q,r,sp,c):
 
 @retry(
     stop=stop_after_attempt(R), 
-    wait=wait_random(min=1, max=3),  # Use consistent wait timing
+    wait=wait_random(min=1, max=3),
     reraise=True
 )
 async def process_record(row, idx, query_col, response_col, think_col, split, semaphore):
     record_id = row.get("id", idx)
     
-    # Use the semaphore to limit concurrent API calls
     async with semaphore:
         try:
-            # Log at the start of processing but don't output to console to avoid cluttering
             if fl and not test_mode:
                 fl.info(f"[{record_id}] Starting to process record")
             
-            # Get endpoint and generate thinking - Tenacity will handle retries
             endpoint_idx = gne(eps)
             
-            # Add debugging to track retries
             current_attempt = getattr(process_record.retry, 'statistics', {}).get('attempt_number', 0)
             if current_attempt > 0:  # If this is a retry
                 l(f"[{record_id}] Attempt {current_attempt+1}/{R}: Getting endpoint for retry")
                 
             reasoning, elapsed_time, metacog_prompt = await generate_thinking(row, split, endpoint_idx)
             
-            # Build result dictionary
             rd = {}
             if "id" in row:
                 rd["id"] = row["id"]
-            rd["prompt"] = metacog_prompt  # Store the actual metacog prompt for debugging
+            rd["prompt"] = metacog_prompt
             rd[think_col] = reasoning
             rd[response_col] = row[response_col]
             rd[query_col] = row[query_col]
@@ -827,7 +751,6 @@ async def process_record(row, idx, query_col, response_col, think_col, split, se
             return rd
                 
         except Exception as e:
-            # Handle the retry logic properly
             current_attempt = getattr(process_record.retry, 'statistics', {}).get('attempt_number', 0) + 1
             max_attempts = R
             
@@ -836,7 +759,6 @@ async def process_record(row, idx, query_col, response_col, think_col, split, se
             else:
                 l(f"[{record_id}] ERROR after {max_attempts} retries: {type(e).__name__} - {str(e)[:100]}")
             
-            # Re-raise to trigger the retry mechanism
             raise
 async def main(args):
     try:
@@ -853,7 +775,6 @@ async def main(args):
         if not k:l(f"Invalid configuration: {m}");return
         l("Config successfully loaded")
         
-        # Now that we have the config, create language directories
         if not test_mode and "splits" in cc and "t" in dr:
             for split, lang_code in cc.get("splits", {}).items():
                 lang_dir = os.path.join(dr["t"], lang_code)
@@ -895,11 +816,8 @@ async def main(args):
             l(f"Average records per split: {tot/len(all_ds):.1f}")
             dd.save_to_disk(dr["cs"])
             l(f"Saved unified dataset to {dr['cs']}")
-            l(f"Preparing to push unified dataset to {dst}")
-            hft=cc.get('hf_token');prv=cc.get('private',True)
         l(f"Finished processing all splits")
     except Exception as e:
-        # Add stack trace to the log message
         tb = traceback.format_exc()
         l(f"Fatal error: {str(e)}\n{tb}")
         raise e
