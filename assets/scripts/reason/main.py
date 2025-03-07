@@ -4,9 +4,11 @@ from datasets import load_dataset,Dataset,DatasetDict
 from asyncio import TimeoutError
 from openai import AsyncOpenAI
 from ollama import AsyncClient
+import traceback
 
 W=16;T=30;C=100;B=100;R=10;RT=600;EC=12
 
+# Fix the TelemetryStats class to properly handle processed_records as a set
 class TelemetryStats:
     def __init__(self):
         self.start_time = time.time()
@@ -15,14 +17,14 @@ class TelemetryStats:
         self.failed_generations = 0
         self.errors_by_type = {}
         self.last_log_time = time.time()
-        self.processed_records = set()
+        self.processed_records = set()  # This is a set, not a list!
 
     def log_success(self, record_id, language):
         self.total_attempts += 1
         unique_id = f"{language}_{record_id}"
         if unique_id not in self.processed_records:
             self.successful_generations += 1
-            self.processed_records.add(unique_id)
+            self.processed_records.add(unique_id)  # Use add() for sets, not append()
     
     def log_failure(self, record_id, language, error_type):
         self.total_attempts += 1
@@ -36,7 +38,7 @@ class TelemetryStats:
         self.failed_generations = 0
         self.errors_by_type = {}
         self.last_log_time = time.time()
-        self.processed_records = set()
+        self.processed_records = set()  # Make sure this is initialized as a set
     
     def get_telemetry_string(self, total_needed):
         elapsed = time.time() - self.start_time
@@ -181,6 +183,7 @@ async def ld_all(s,sps,o=0,m=0):
 def ie(ec):
     e=[];[e.append({**ep,'last_call':0,'in_use':False}) for ep in ec];random.shuffle(e);return e
 
+# Fix the proc_1sp function to correctly handle telemetry
 async def proc_1sp(sp,s,src,o,m,dr):
     global telemetry_stats
     telemetry_stats.reset_stats()
@@ -229,6 +232,7 @@ async def proc_1sp(sp,s,src,o,m,dr):
     # Create a semaphore to limit concurrent API calls
     semaphore = asyncio.Semaphore(worker_count)
     
+    # Initialize lists properly to ensure correct type
     all_results = []
     success_results = []
     failed_results = []
@@ -246,25 +250,30 @@ async def proc_1sp(sp,s,src,o,m,dr):
         
         l(f"Processing batch {start_idx//batch_size + 1}: records {start_idx+1} to {end_idx} (batch size: {current_batch_size})")
         
-        # Create a list to hold tasks that are currently running
-        pending_tasks = []
+        # EXPLICITLY define pending_tasks as a list, not using the previous variable name that might be shadowed
+        task_list = []  # Always initialize as a new, empty list
         batch_results = []
         
         # Process records sequentially with limited concurrency
         for i, row in enumerate(current_batch):
             record_id = row.get('id', start_idx + i)
             
-            # Create a new task and add it to pending_tasks
+            # Create a new task and add it to the task list
             task = asyncio.create_task(process_record(row, start_idx + i, q, r, t, sp, semaphore))
-            pending_tasks.append(task)
+            task.record_id = record_id  # Store the record_id with the task
+            task.row = row  # Store the row with the task for error handling
+            task_list.append(task)  # Use our explicitly named list
             
             # If we've reached the worker limit or this is the last item, wait for some tasks to complete
-            if len(pending_tasks) >= worker_count or i == len(current_batch) - 1:
+            if len(task_list) >= worker_count or i == len(current_batch) - 1:
                 # Wait for at least one task to complete
-                done, pending_tasks = await asyncio.wait(
-                    pending_tasks, 
+                done, remaining_tasks = await asyncio.wait(
+                    task_list, 
                     return_when=asyncio.FIRST_COMPLETED
                 )
+                
+                # Update our task list with remaining tasks
+                task_list = list(remaining_tasks)  # Convert set to list explicitly
                 
                 # Process completed tasks
                 for completed_task in done:
@@ -276,19 +285,31 @@ async def proc_1sp(sp,s,src,o,m,dr):
                         else:
                             success_results.append(result)
                     except Exception as e:
+                        record_id = getattr(completed_task, 'record_id', 'unknown')
+                        row = getattr(completed_task, 'row', None)
+                        
                         l(f"[{record_id}] ERROR: Failed to process record after all retries: {str(e)}")
                         
                         # Create error record
                         error_record = {}
-                        if "id" in row:
+                        if row and "id" in row:
                             error_record["id"] = row["id"]
-                        error_record["prompt"] = f"Thinking process for query: {row[q][:50]}..."
-                        error_record[t] = f"ERROR: Failed to generate thinking process: {str(e)}"
-                        error_record[r] = row[r]
-                        error_record[q] = row[q]
-                        for c in row:
-                            if c not in error_record and c not in [r, t, q, "id", "prompt"]:
-                                error_record[c] = row[c]
+                        else:
+                            error_record["id"] = f"unknown_{len(failed_results)}"
+                            
+                        if row:
+                            error_record["prompt"] = f"Thinking process for query: {row[q][:50]}..."
+                            error_record[t] = f"ERROR: Failed to generate thinking process: {str(e)}"
+                            error_record[r] = row[r]
+                            error_record[q] = row[q]
+                            for c in row:
+                                if c not in error_record and c not in [r, t, q, "id", "prompt"]:
+                                    error_record[c] = row[c]
+                        else:
+                            error_record["prompt"] = "Unknown due to exception"
+                            error_record[t] = f"ERROR: Failed to generate thinking process: {str(e)}"
+                            error_record[r] = ""
+                            error_record[q] = ""
                         
                         batch_results.append(error_record)
                         failed_results.append(error_record)
@@ -299,8 +320,8 @@ async def proc_1sp(sp,s,src,o,m,dr):
                         telemetry_stats.last_log_time = time.time()
         
         # Wait for any remaining tasks to complete
-        if pending_tasks:
-            done, _ = await asyncio.wait(pending_tasks)
+        if task_list:  # Use our explicitly named list 
+            done, _ = await asyncio.wait(task_list)
             for completed_task in done:
                 try:
                     result = completed_task.result()
@@ -328,8 +349,9 @@ async def proc_1sp(sp,s,src,o,m,dr):
         total_processed += len(batch_results)
         batch_duration = time.time() - batch_start_time
         
-        success_count = telemetry_stats.successful_generations
-        error_count = telemetry_stats.failed_generations
+        # Update these statistics correctly (using len of lists, not accessing telemetry directly)
+        success_count = len(success_results)
+        error_count = len(failed_results)
         
         l(f"Completed batch {start_idx//batch_size + 1} ({total_processed}/{total_records} records) in {batch_duration:.2f}s ({success_count} success, {error_count} errors)")
         
@@ -573,6 +595,7 @@ async def call_ollama_api(ec,msg):
         l(f"Ollama API error: {str(e)}")
         raise
 
+# Fix the telemetry usage in generate_thinking
 async def generate_thinking(r,s,i):
     global eps, telemetry_stats
     c=eps[i]
@@ -607,8 +630,9 @@ async def generate_thinking(r,s,i):
             c['in_use']=False
             c['last_call']=time.time()
             l(f"[{record_id}] ERROR: Empty input query or response")
+            # Make sure telemetry is logged correctly
             telemetry_stats.log_failure(record_id, s, "EmptyInput")
-            return "",0.0
+            return "",0.0,""
         
         try:
             # Use the regular function directly without awaiting
@@ -685,6 +709,7 @@ async def generate_thinking(r,s,i):
             # Apply cooldown like any other error
             c['last_call']=time.time()
             
+            # Make sure telemetry is logged correctly
             telemetry_stats.log_failure(record_id, s, "ResponseTooShort")
             # Re-raise to trigger the retry mechanism
             raise
@@ -709,6 +734,7 @@ async def generate_thinking(r,s,i):
         if fl and not test_mode:
             fl.info(f"[{record_id}] Generated reasoning ({len(result)} chars) in {e:.2f}s using {p}-{n}")
         
+        # Make sure telemetry is logged correctly for successful cases
         telemetry_stats.log_success(record_id, s)
         
         # Simply check if enough time has passed and log telemetry if needed
@@ -726,6 +752,11 @@ async def generate_thinking(r,s,i):
             c['in_use']=False
             # Always apply cooldown for all errors - simplify logic
             c['last_call']=time.time()
+            
+        # Make sure we log failures correctly when exceptions happen
+        if 'record_id' in locals() and 's' in locals():
+            error_type = type(e).__name__
+            telemetry_stats.log_failure(record_id, s, error_type)
         raise
 
 # Change from async to regular function since it doesn't need to be async
@@ -867,7 +898,11 @@ async def main(args):
             l(f"Preparing to push unified dataset to {dst}")
             hft=cc.get('hf_token');prv=cc.get('private',True)
         l(f"Finished processing all splits")
-    except Exception as e:l(f"Fatal error: {str(e)}");raise e
+    except Exception as e:
+        # Add stack trace to the log message
+        tb = traceback.format_exc()
+        l(f"Fatal error: {str(e)}\n{tb}")
+        raise e
 if __name__=="__main__": 
     if os.name=='nt':os.environ['PYTHONIOENCODING']='utf-8'
     p=ap.ArgumentParser()
