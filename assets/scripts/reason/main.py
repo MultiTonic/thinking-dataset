@@ -5,7 +5,7 @@ from asyncio import TimeoutError
 from openai import AsyncOpenAI
 from ollama import AsyncClient
 
-W=16;T=30;C=100;B=100;R=10;RT=600;EC=20
+W=16;T=30;C=100;B=100;R=10;RT=600;EC=12
 
 class TelemetryStats:
     def __init__(self):
