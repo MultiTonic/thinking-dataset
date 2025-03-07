@@ -1,5 +1,5 @@
 import argparse as ap,os,asyncio,logging,time,requests,random,json
-from tenacity import retry,wait_random,stop_after_attempt
+from tenacity import retry,wait_random,stop_after_attempt, retry_if_exception_type
 from datasets import load_dataset,Dataset,DatasetDict
 from asyncio import TimeoutError
 from openai import AsyncOpenAI
@@ -236,11 +236,13 @@ async def proc_1sp(sp,s,src,o,m,dr):
         batch_results = []
         
         for i, row in enumerate(current_batch):
-            record_id = row.get('id', start_idx + i)
+            idx = start_idx + i
+            record_id = str(row.get('id', idx))
             
-            task = asyncio.create_task(process_record(row, start_idx + i, q, r, t, sp, semaphore))
+            task = asyncio.create_task(process_record_with_full_retries(row, idx, q, r, t, sp, semaphore))
             task.record_id = record_id
             task.row = row
+            task.row_idx = idx
             task_list.append(task)
             
             if len(task_list) >= worker_count or i == len(current_batch) - 1:
@@ -254,6 +256,8 @@ async def proc_1sp(sp,s,src,o,m,dr):
                 for completed_task in done:
                     try:
                         result = completed_task.result()
+                        if "id" in result:
+                            result["id"] = str(result["id"])
                         batch_results.append(result)
                         if result[t].startswith("ERROR:"):
                             failed_results.append(result)
@@ -261,15 +265,16 @@ async def proc_1sp(sp,s,src,o,m,dr):
                             success_results.append(result)
                     except Exception as e:
                         record_id = getattr(completed_task, 'record_id', 'unknown')
+                        row_idx = getattr(completed_task, 'row_idx', -1)
                         row = getattr(completed_task, 'row', None)
                         
                         l(f"[{record_id}] ERROR: Failed to process record after all retries: {str(e)}")
                         
                         error_record = {}
                         if row and "id" in row:
-                            error_record["id"] = row["id"]
+                            error_record["id"] = str(row["id"])
                         else:
-                            error_record["id"] = f"unknown_{len(failed_results)}"
+                            error_record["id"] = f"error_{record_id}"
                             
                         if row:
                             error_record["prompt"] = f"Thinking process for query: {row[q][:50]}..."
@@ -297,17 +302,19 @@ async def proc_1sp(sp,s,src,o,m,dr):
             for completed_task in done:
                 try:
                     result = completed_task.result()
+                    if "id" in result:
+                        result["id"] = str(result["id"])
                     batch_results.append(result)
                     if result[t].startswith("ERROR:"):
                         failed_results.append(result)
                     else:
                         success_results.append(result)
                 except Exception as e:
-                    record_id = "unknown"
+                    record_id = getattr(completed_task, 'record_id', 'unknown')
                     l(f"[{record_id}] ERROR: Failed to process record after all retries: {str(e)}")
                     
                     error_record = {
-                        "id": f"unknown_{len(failed_results)}",
+                        "id": f"error_{record_id}",
                         "prompt": "Unknown due to exception",
                         t: f"ERROR: Failed to generate thinking process: {str(e)}",
                         r: "",
@@ -349,13 +356,22 @@ async def proc_1sp(sp,s,src,o,m,dr):
 def create_dataset_with_splits(success_records, failed_records, split_name):
     """Create a dataset with separate splits for successful and failed records."""
     empty_record = {
-        "id": 0,
+        "id": "0",  # Using string ID for consistency
         "prompt": "",
         "think": "",
         "response": "",
         "query": "",
         "category": ""
     }
+    
+    # Ensure all IDs are strings for consistency
+    for record in success_records:
+        if "id" in record:
+            record["id"] = str(record["id"])
+    
+    for record in failed_records:
+        if "id" in record:
+            record["id"] = str(record["id"])
     
     splits = {}
     if success_records:
@@ -586,7 +602,7 @@ async def generate_thinking(r,s,i):
             c['last_call']=time.time()
             l(f"[{record_id}] ERROR: Empty input query or response")
             telemetry_stats.log_failure(record_id, s, "EmptyInput")
-            return "",0.0,""
+            raise ValueError("Empty input query or response")
         
         try:
             m, metacog_prompt = create_chat_messages(qu,rs,s,ct)
@@ -614,7 +630,7 @@ async def generate_thinking(r,s,i):
                     c['last_call']=time.time()
                     l(f"[{record_id}] ERROR: Unknown provider type: {p}")
                     telemetry_stats.log_failure(record_id, s, "UnknownProvider")
-                    raise Exception(f"Unknown provider type: {p}")
+                    raise ValueError(f"Unknown provider type: {p}")
         except TimeoutError:
             l(f"[{record_id}] ERROR: Request timeout after {RT}s for {p}-{n}")
             if fl and not test_mode:
@@ -712,13 +728,28 @@ def create_chat_messages(q,r,sp,c):
         {"role":"user","content":metacog_prompt}
     ], metacog_prompt
 
+def should_retry_exception(exception):
+    if isinstance(exception, ValueError) and "shorter than minimum required length" in str(exception):
+        return True
+    
+    error_message = str(exception).lower()
+    if "429" in error_message or "too many tokens" in error_message or "rate limit" in error_message:
+        return True
+        
+    if "timeout" in error_message:
+        return True
+        
+    return False
+
 @retry(
     stop=stop_after_attempt(R), 
     wait=wait_random(min=1, max=3),
+    retry=should_retry_exception,
     reraise=True
 )
 async def process_record(row, idx, query_col, response_col, think_col, split, semaphore):
-    record_id = row.get("id", idx)
+    # Convert record_id to string for consistency
+    record_id = str(row.get("id", idx))
     
     async with semaphore:
         try:
@@ -727,15 +758,25 @@ async def process_record(row, idx, query_col, response_col, think_col, split, se
             
             endpoint_idx = gne(eps)
             
-            current_attempt = getattr(process_record.retry, 'statistics', {}).get('attempt_number', 0)
-            if current_attempt > 0:  # If this is a retry
-                l(f"[{record_id}] Attempt {current_attempt+1}/{R}: Getting endpoint for retry")
+            # Fixed: Access statistics properly as a dictionary property
+            retry_state = getattr(process_record, 'retry', None)
+            current_attempt = 1
+            if retry_state and hasattr(retry_state, 'statistics'):
+                stats = retry_state.statistics
+                if isinstance(stats, dict):
+                    current_attempt = stats.get('attempt_number', 1)
+                
+            if current_attempt > 1:  # If this is a retry
+                l(f"[{record_id}] Attempt {current_attempt}/{R}: Getting endpoint for retry")
                 
             reasoning, elapsed_time, metacog_prompt = await generate_thinking(row, split, endpoint_idx)
             
             rd = {}
             if "id" in row:
-                rd["id"] = row["id"]
+                rd["id"] = str(row["id"])  # Convert to string
+            else:
+                rd["id"] = str(idx)  # Use string version of index
+                
             rd["prompt"] = metacog_prompt
             rd[think_col] = reasoning
             rd[response_col] = row[response_col]
@@ -751,15 +792,49 @@ async def process_record(row, idx, query_col, response_col, think_col, split, se
             return rd
                 
         except Exception as e:
-            current_attempt = getattr(process_record.retry, 'statistics', {}).get('attempt_number', 0) + 1
+            # Get the current retry attempt number - fixed to properly access statistics
+            retry_state = getattr(process_record, 'retry', None)
+            current_attempt = 1
+            if retry_state and hasattr(retry_state, 'statistics'):
+                stats = retry_state.statistics
+                if isinstance(stats, dict):
+                    current_attempt = stats.get('attempt_number', 1)
+                
             max_attempts = R
             
             if current_attempt < max_attempts:
                 l(f"[{record_id}] RETRY {current_attempt}/{max_attempts}: {type(e).__name__} - {str(e)[:100]}")
+                # Don't handle the exception here - let it propagate to trigger the retry
+                raise e
             else:
-                l(f"[{record_id}] ERROR after {max_attempts} retries: {type(e).__name__} - {str(e)[:100]}")
-            
-            raise
+                l(f"[{record_id}] ERROR after all {max_attempts} retries: {type(e).__name__} - {str(e)[:100]}")
+                raise e
+
+async def process_record_with_full_retries(row, idx, query_col, response_col, think_col, split, semaphore):
+    """
+    Wrapper around process_record that ensures all retry attempts are completed
+    before giving up on a record.
+    """
+    record_id = str(row.get("id", idx))
+    retry_count = 0
+    max_retries = R
+    
+    while retry_count < max_retries:
+        try:
+            # Try to process the record
+            return await process_record(row, idx, query_col, response_col, think_col, split, semaphore)
+        except Exception as e:
+            retry_count += 1
+            if retry_count >= max_retries:
+                l(f"[{record_id}] ERROR after exhausting all {max_retries} retries: {type(e).__name__} - {str(e)[:100]}")
+                # Re-raise the exception after all retries are exhausted
+                raise
+            else:
+                backoff_time = random.uniform(1, 3)
+                l(f"[{record_id}] Manual RETRY {retry_count}/{max_retries}: {type(e).__name__} - {str(e)[:100]} (waiting {backoff_time:.2f}s)")
+                await asyncio.sleep(backoff_time)  # Add a backoff delay
+                # Let the loop continue to retry
+
 async def main(args):
     try:
         global dr, cc, eps, test_mode, a, telemetry_stats
