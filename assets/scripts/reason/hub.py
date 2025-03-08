@@ -1,4 +1,6 @@
 import os
+import asyncio
+import time
 from datasets import Dataset, DatasetDict
 
 def get_field_names():
@@ -146,7 +148,7 @@ async def prepare_final_dataset(all_datasets, total_records, directories, destin
     Prepare the final dataset and upload to Hugging Face Hub.
     
     Args:
-        all_datasets: Dictionary of processed datasets by split name
+        all_datasets: Dictionary of processed datasets by split name or DatasetDict
         total_records: Total number of records processed
         directories: Dictionary with directory paths
         destination: Hugging Face destination dataset ID
@@ -159,29 +161,54 @@ async def prepare_final_dataset(all_datasets, total_records, directories, destin
     if not all_datasets:
         return False
         
-    log_fn(f"TELEMETRY: Final dataset preparation started")
-    dataset_dict = DatasetDict(all_datasets)
+    log_fn(f"=== Final Dataset Preparation ===")
     
-    log_fn(f"Created dataset dictionary with {total_records} total records across {len(all_datasets)} splits")
+    # Convert to DatasetDict if it's not already
+    if isinstance(all_datasets, dict) and not isinstance(all_datasets, DatasetDict):
+        dataset_dict = DatasetDict(all_datasets)
+        log_fn(f"- Created dataset with {total_records} total records across {len(all_datasets)} splits")
+    else:
+        dataset_dict = all_datasets  # Already a DatasetDict
+        log_fn(f"- Using existing dataset with {sum(len(ds) for ds in dataset_dict.values())} total records")
     
-    # Check for consistent column structure across splits 
+    # Check for consistent column structure across splits
     # and normalize failed splits to match successful ones
     dataset_dict = normalize_column_structure(dataset_dict, log_fn=log_fn)
     
-    log_fn(f"Average records per split: {total_records/len(all_datasets):.1f}")
-    
     # Save locally
     if directories and "cs" in directories:
-        dataset_dict.save_to_disk(directories["cs"])
-        log_fn(f"Saved unified dataset to {directories['cs']}")
+        cs_path = directories["cs"]
+        dataset_dict.save_to_disk(cs_path)
+        log_fn(f"- Saved unified dataset to {cs_path}")
     
     # Push to HuggingFace Hub
     if destination:
-        log_fn(f"Pushing dataset to Hugging Face Hub: {destination}")
+        log_fn(f"- Pushing dataset to Hugging Face Hub: {destination}")
         success = await push_dataset_to_hub(dataset_dict, destination, config=config, log_fn=log_fn)
         if not success:
-            log_fn(f"Failed to push dataset to Hugging Face Hub")
+            log_fn(f"- Failed to push dataset to Hugging Face Hub")
             return False
+        else:
+            # Successfully pushed to hub
+            log_fn(f"- Successfully pushed dataset to Hugging Face Hub: {destination}")
+            
+            # Update state file to mark as pushed (this will be a no-op if the processor doesn't update state)
+            try:
+                from processor import save_processing_state
+                if directories and "rd" in directories:
+                    # This is a defensive update - the main function will also update the state
+                    await save_processing_state(
+                        -1, total_records, "all_complete", directories, 
+                        source=config.get('src', ''), 
+                        destination=destination, 
+                        log_fn=log_fn,
+                        processing_complete=True,
+                        pushed_to_hub=True
+                    )
+            except ImportError:
+                pass  # Ignore if save_processing_state can't be imported
+    
+    # Don't clear processing state here - leave that to the main function
     
     return True
 

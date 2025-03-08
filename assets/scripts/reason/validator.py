@@ -1,4 +1,4 @@
-async def validate_config(config, split=None):
+async def validator(config, split=None):
     """
     Validates the configuration dictionary for the reasoning processor.
     
@@ -22,12 +22,28 @@ async def validate_config(config, split=None):
         if "m" not in endpoint:
             return False, f"Endpoint {endpoint.get('n', 'unknown')} missing model"
             
-    for param_name in ["temperature", "max_tokens", "min_length"]:
+    # Required parameters with types
+    required_params = {
+        "temperature": int,
+        "max_tokens": int,
+        "min_length": int,
+    }
+    
+    # Check required parameters
+    for param_name, param_type in required_params.items():
         if param_name not in config:
             return False, f"No {param_name}"
-        if not isinstance(config[param_name], int):
-            return False, f"{param_name} must be an integer"
-            
+        if not isinstance(config[param_name], (int, float)):  # Allow both int and float for numeric parameters
+            return False, f"{param_name} must be numeric"
+    
+    # Check for required string parameters
+    if "src" not in config:
+        return False, "No source dataset specified (src)"
+    
+    if "dst" not in config:
+        return False, "No destination dataset specified (dst)"
+    
+    # Check that string parameters are indeed strings
     for param_name in ["src", "dst", "hf_token"]:
         if param_name in config and not isinstance(config[param_name], str):
             return False, f"{param_name} must be a string"

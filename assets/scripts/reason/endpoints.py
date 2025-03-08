@@ -45,27 +45,82 @@ def get_next_endpoint(endpoints, endpoint_cooldown, logger=None):
     # Find all available endpoints that aren't cooling down or in use
     for endpoint_index, endpoint_config in enumerate(endpoints):
         provider = endpoint_config.get('p', '').lower()
+        
+        # Check if endpoint is ready
         if not endpoint_config['in_use'] and (provider == "ollama" or current_time - endpoint_config['last_call'] >= endpoint_cooldown):
+            # Reset any rate limit flag since the endpoint is now available
+            if endpoint_config.get('rate_limited', False):
+                endpoint_config['rate_limited'] = False
+            
             available_endpoints.append((endpoint_index, endpoint_config))
     
     # If no endpoints are available, find the one that will be available soonest
     if not available_endpoints:
-        soonest_ready_endpoint = min(endpoints, key=lambda endpoint: 
-            endpoint['last_call'] if endpoint.get('p','').lower() == "ollama" else (
-                endpoint['last_call'] + endpoint_cooldown if not endpoint['in_use'] else float('inf')))
-        endpoint_index = endpoints.index(soonest_ready_endpoint)
+        soonest_ready_endpoint = None
+        soonest_ready_time = float('inf')
+        soonest_ready_idx = 0
         
-        # If it's not an Ollama endpoint, we need to wait for the cooldown
-        if soonest_ready_endpoint.get('p','').lower() != "ollama":
-            wait_time = max(0, (soonest_ready_endpoint['last_call'] + endpoint_cooldown) - current_time)
-            if wait_time > 0 and logger:
-                logger(f"All endpoints busy or cooling down, will wait {wait_time:.2f}s for next available")
-                time.sleep(wait_time)
-        return endpoint_index
+        for endpoint_idx, endpoint in enumerate(endpoints):
+            provider = endpoint.get('p', '').lower()
+            
+            if provider == "ollama":
+                # Ollama doesn't have cooldown
+                if not endpoint['in_use']:
+                    return endpoint_idx
+            else:
+                # Calculate when this endpoint will be ready
+                ready_time = endpoint['last_call'] + endpoint_cooldown if not endpoint['in_use'] else float('inf')
+                
+                if ready_time < soonest_ready_time:
+                    soonest_ready_endpoint = endpoint
+                    soonest_ready_time = ready_time
+                    soonest_ready_idx = endpoint_idx
+        
+        # Wait for the endpoint to be ready
+        wait_time = max(0, soonest_ready_time - current_time)
+        if wait_time > 0 and logger:
+            logger(f"All endpoints busy or cooling down, will wait {wait_time:.2f}s for next available")
+            time.sleep(wait_time)
+                
+        return soonest_ready_idx
     
     # Sort by last call time so we pick the one that's been idle longest
     available_endpoints.sort(key=lambda x: x[1]['last_call'])
     return available_endpoints[0][0]
+
+async def setup_endpoints(config, max_workers_default, arguments, test_timeout, logger=None, console_logger=None, file_logger=None, test_mode=False):
+    """Set up and test endpoints"""
+    worker_count = arguments.workers if arguments.workers is not None else max_workers_default
+    max_workers = min(worker_count, len(config['endpoints']))
+    
+    if arguments.workers is not None and max_workers < arguments.workers and logger:
+        logger(f"Capping workers from {arguments.workers} to {max_workers} based on available endpoints")
+    
+    # Test all endpoints
+    ready_endpoints, working_indices = await test_all_endpoints(
+        config["endpoints"], 
+        max_workers, 
+        test_timeout,
+        logger=logger, 
+        console_logger=console_logger, 
+        file_logger=file_logger, 
+        test_mode=test_mode
+    )
+    
+    if ready_endpoints == 0:
+        if logger:
+            logger("No working endpoints found.")
+        return None
+        
+    if logger:
+        logger(f"Found {ready_endpoints} working endpoints out of {len(config['endpoints'])} total")
+        
+    working_endpoints = [config["endpoints"][i] for i in working_indices]
+    
+    if logger:
+        logger(f"Using {len(working_endpoints)} working endpoints for processing")
+    
+    return initialize_endpoints(working_endpoints)
 
 async def test_openai_endpoint(endpoint_config, messages, _):
     """Call OpenAI API for endpoint testing"""

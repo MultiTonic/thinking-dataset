@@ -1,6 +1,6 @@
-import logging
 import os
 import time
+import logging
 
 def log_message(message, console_output=True, file_logger=None, test_mode=False, console_logger=None):
     """

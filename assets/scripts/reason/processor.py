@@ -2,15 +2,59 @@ import asyncio
 import os
 import random
 import time
+import json
 
 from datasets import Dataset
 from tenacity import retry, stop_after_attempt, wait_random
 
 from endpoints import get_next_endpoint
-from generate_thinking import generate_thinking
-from load_dataset import load_dataset_split
-from push_hub import create_dataset_with_splits
-from save_checkpoints import save_checkpoint
+from generate import generate_thinking
+from load import load_dataset_split
+from hub import create_dataset_with_splits
+from checkpoints import save_checkpoint
+from constants import (
+    MAX_WORKERS, MAX_RETRIES, REQUEST_TIMEOUT, ENDPOINT_COOLDOWN
+)
+
+async def save_processing_state(batch_index, total_processed, split_name, directories, source, destination, log_fn=None, processing_complete=False, pushed_to_hub=False):
+    """
+    Save the current processing state to a JSON file.
+    
+    Args:
+        batch_index: Index of the last completed batch
+        total_processed: Total records processed so far
+        split_name: Current split being processed
+        directories: Directory structure information
+        source: Source dataset
+        destination: Destination dataset
+        log_fn: Optional logging function
+        processing_complete: Whether all processing is complete
+        pushed_to_hub: Whether the dataset has been pushed to the hub
+    """
+    try:
+        state_file = os.path.join(directories["rd"], "processing_state.json")
+        state = {
+            "timestamp": time.time(),
+            "batch_index": batch_index,
+            "total_processed": total_processed,
+            "split_name": split_name,
+            "source": source,
+            "destination": destination,
+            "processing_complete": processing_complete,
+            "pushed_to_hub": pushed_to_hub
+        }
+        
+        with open(state_file, 'w') as f:
+            json.dump(state, f, indent=2)
+            
+        if log_fn:
+            if processing_complete:
+                log_fn(f"Saved processing state: All processing complete, push status: {'complete' if pushed_to_hub else 'pending'}")
+            else:
+                log_fn(f"Saved processing state after batch {batch_index+1} ({total_processed} records processed)")
+    except Exception as e:
+        if log_fn:
+            log_fn(f"Warning: Could not save processing state: {str(e)}")
 
 async def proc_1sp(split_name, split_code, source, offset, max_records, directories, 
                   config, endpoints, telemetry_stats, arguments, 
@@ -75,9 +119,26 @@ async def proc_1sp(split_name, split_code, source, offset, max_records, director
     total_records = len(dataset)
     logger(f"Found {total_records} records with query and response columns for split {split_name}")
     
-    batch_size = arguments.batch_size if arguments.batch_size is not None else batch_size_default
-    checkpoint_interval = arguments.checkpoint_interval if arguments.checkpoint_interval is not None else checkpoint_interval_default
+    # Adjust batch size based on total_records if needed
+    batch_size = batch_size_default
+    if total_records < batch_size:
+        batch_size = total_records
+        logger(f"Adjusted batch size to {batch_size} to match available records")
+    
+    # Adjust checkpoint interval if needed - ensure it's never larger than total records
+    checkpoint_interval = checkpoint_interval_default
+    if checkpoint_interval > total_records:
+        checkpoint_interval = total_records
+        logger(f"Adjusted checkpoint interval to {checkpoint_interval} to match available records")
+    
+    # Adjust worker count if needed
     worker_count = arguments.workers if arguments.workers is not None else max_workers_default
+    if worker_count > total_records:
+        worker_count = max(1, total_records)
+        logger(f"Adjusted worker count to {worker_count} to match available records")
+    
+    # Update telemetry to reflect actual number of records being processed
+    telemetry_stats.total_expected = total_records
     
     logger(f"Using {worker_count} workers, batches of {batch_size}, checkpoint every {checkpoint_interval}")
     
@@ -90,18 +151,93 @@ async def proc_1sp(split_name, split_code, source, offset, max_records, director
     
     total_needed = total_records
     telemetry_stats.last_log_time = time.time() - 30
+
+    # Fix: Create a helper function to ensure consistent record structure
+    def create_error_record(row, record_id, error_message):
+        error_record = {}
+        
+        # Ensure all fields from successful records exist in error records too
+        error_record["id"] = str(row["id"]) if row and "id" in row else f"error_{record_id}"
+        error_record[think_column] = f"ERROR: {error_message}"
+        error_record[response_column] = row[response_column] if row else ""
+        error_record[query_column] = row[query_column] if row else ""
+        error_record["category"] = row.get("category", "") if row else ""
+        error_record["endpoint"] = f"error - {type(error_message).__name__}"
+        error_record["source"] = config.get('src', 'unknown')
+        error_record["source_data"] = ""
+        
+        # Add source_data if it exists in original
+        source_data_col = config['columns'].get('source_data')
+        if row and source_data_col and source_data_col in row:
+            error_record["source_data"] = row[source_data_col]
+        
+        # Copy any other fields from original record
+        if row:
+            for c in row:
+                if c not in error_record and c not in [response_column, think_column, query_column, "id"]:
+                    error_record[c] = row[c]
+                    
+        return error_record
+
+    # Determine if we're resuming and need to skip batches
+    resuming = False
+    resume_batch_index = -1
+    resume_processed_count = 0
     
+    if arguments.resume and "resume_state" in directories:
+        resume_state = directories["resume_state"]
+        if resume_state.get('split_name') == split_name:
+            resuming = True
+            resume_batch_index = resume_state.get('batch_index', -1)
+            resume_processed_count = resume_state.get('total_processed', 0)
+            
+            if resuming and resume_processed_count > 0:
+                logger(f"Resuming processing of split '{split_name}' from batch {resume_batch_index+2} ({resume_processed_count} records already processed)")
+                # Update success_results and total_processed
+                # We would need to load the checkpoint data here
+                
+                if "ck" in directories:
+                    checkpoint_file = os.path.join(directories["ck"], f"checkpoint_{resume_processed_count}")
+                    if os.path.exists(checkpoint_file):
+                        logger(f"Loading data from checkpoint: {checkpoint_file}")
+                        try:
+                            # Load checkpoint data and update success_results, failed_results
+                            from datasets import DatasetDict
+                            checkpoint_ds = DatasetDict.load_from_disk(checkpoint_file)
+                            if split_name in checkpoint_ds:
+                                success_records = checkpoint_ds[split_name].to_list()
+                                success_results.extend(success_records)
+                                logger(f"Loaded {len(success_records)} successful records")
+                            
+                            failed_split = f"{split_name}_failed"
+                            if failed_split in checkpoint_ds:
+                                failed_records = checkpoint_ds[failed_split].to_list()
+                                failed_results.extend(failed_records)
+                                logger(f"Loaded {len(failed_records)} failed records")
+                                
+                            # Update telemetry stats
+                            telemetry_stats.successful_generations = len(success_results)
+                            telemetry_stats.failed_generations = len(failed_results)
+                        except Exception as e:
+                            logger(f"Warning: Could not load checkpoint data: {str(e)}")
+
     for start_idx in range(0, total_records, batch_size):
+        batch_index = start_idx // batch_size
+        
+        # Skip batches we've already processed when resuming
+        if resuming and batch_index <= resume_batch_index:
+            logger(f"Skipping batch {batch_index+1} as it was already processed")
+            continue
+            
         batch_start_time = time.time()
         end_idx = min(start_idx + batch_size, total_records)
         current_batch = dataset.select(range(start_idx, end_idx))
         current_batch_size = len(current_batch)
         
-        logger(f"Processing batch {start_idx//batch_size + 1}: records {start_idx+1} to {end_idx} (batch size: {current_batch_size})")
+        logger(f"Processing batch {batch_index+1}: records {start_idx+1} to {end_idx} (batch size: {current_batch_size})")
         
+        # Create all tasks at once, rather than waiting for some to complete first
         task_list = []
-        batch_results = []
-        
         for i, row in enumerate(current_batch):
             idx = start_idx + i
             record_id = str(row.get('id', idx))
@@ -114,61 +250,17 @@ async def proc_1sp(split_name, split_code, source, offset, max_records, director
             task.row = row
             task.row_idx = idx
             task_list.append(task)
-            
-            if len(task_list) >= worker_count or i == len(current_batch) - 1:
-                done, remaining_tasks = await asyncio.wait(
-                    task_list, 
-                    return_when=asyncio.FIRST_COMPLETED
-                )
-                
-                task_list = list(remaining_tasks)
-                
-                for completed_task in done:
-                    try:
-                        result = completed_task.result()
-                        if "id" in result:
-                            result["id"] = str(result["id"])
-                        batch_results.append(result)
-                        if result[think_column].startswith("ERROR:"):
-                            failed_results.append(result)
-                        else:
-                            success_results.append(result)
-                    except Exception as e:
-                        record_id = getattr(completed_task, 'record_id', 'unknown')
-                        row_idx = getattr(completed_task, 'row_idx', -1)
-                        row = getattr(completed_task, 'row', None)
-                        
-                        logger(f"[{record_id}] ERROR: Failed to process record after all retries: {str(e)}")
-                        
-                        error_record = {}
-                        if row and "id" in row:
-                            error_record["id"] = str(row["id"])
-                        else:
-                            error_record["id"] = f"error_{record_id}"
-                            
-                        if row:
-                            error_record["prompt"] = f"Thinking process for query: {row[query_column][:50]}..."
-                            error_record[think_column] = f"ERROR: Failed to generate thinking process: {str(e)}"
-                            error_record[response_column] = row[response_column]
-                            error_record[query_column] = row[query_column]
-                            for c in row:
-                                if c not in error_record and c not in [response_column, think_column, query_column, "id", "prompt"]:
-                                    error_record[c] = row[c]
-                        else:
-                            error_record["prompt"] = "Unknown due to exception"
-                            error_record[think_column] = f"ERROR: Failed to generate thinking process: {str(e)}"
-                            error_record[response_column] = ""
-                            error_record[query_column] = ""
-                        
-                        batch_results.append(error_record)
-                        failed_results.append(error_record)
-                    
-                    if time.time() - telemetry_stats.last_log_time > 30:
-                        logger(telemetry_stats.get_telemetry_string(total_needed))
-                        telemetry_stats.last_log_time = time.time()
         
-        if task_list:
-            done, _ = await asyncio.wait(task_list)
+        # Process tasks as they complete
+        batch_results = []
+        while task_list:
+            # Wait for any task to complete
+            done, task_list = await asyncio.wait(
+                task_list,
+                return_when=asyncio.FIRST_COMPLETED
+            )
+            
+            # Process completed tasks
             for completed_task in done:
                 try:
                     result = completed_task.result()
@@ -181,17 +273,22 @@ async def proc_1sp(split_name, split_code, source, offset, max_records, director
                         success_results.append(result)
                 except Exception as e:
                     record_id = getattr(completed_task, 'record_id', 'unknown')
+                    row_idx = getattr(completed_task, 'row_idx', -1)
+                    row = getattr(completed_task, 'row', None)
+                    
                     logger(f"[{record_id}] ERROR: Failed to process record after all retries: {str(e)}")
                     
-                    error_record = {
-                        "id": f"error_{record_id}",
-                        "prompt": "Unknown due to exception",
-                        think_column: f"ERROR: Failed to generate thinking process: {str(e)}",
-                        response_column: "",
-                        query_column: ""
-                    }
+                    # Use the helper function to create consistent error records
+                    error_record = create_error_record(row, record_id, str(e))
+                    
                     batch_results.append(error_record)
                     failed_results.append(error_record)
+                
+                # Update telemetry periodically
+                if time.time() - telemetry_stats.last_log_time > 30:
+                    for line in telemetry_stats.get_telemetry_lines(total_needed):
+                        logger(line)
+                    telemetry_stats.last_log_time = time.time()
         
         all_results.extend(batch_results)
         total_processed += len(batch_results)
@@ -200,21 +297,36 @@ async def proc_1sp(split_name, split_code, source, offset, max_records, director
         success_count = len(success_results)
         error_count = len(failed_results)
         
-        logger(f"Completed batch {start_idx//batch_size + 1} ({total_processed}/{total_records} records) in {batch_duration:.2f}s ({success_count} success, {error_count} errors)")
+        logger(f"Completed batch {batch_index+1} ({total_processed}/{total_records} records) in {batch_duration:.2f}s ({success_count} success, {error_count} errors)")
         
-        logger(telemetry_stats.get_telemetry_string(total_needed))
+        # Log telemetry with separate lines
+        for line in telemetry_stats.get_telemetry_lines(total_needed):
+            logger(line)
         telemetry_stats.last_log_time = time.time()
         
         if checkpoint_interval > 0 and total_processed % checkpoint_interval == 0:
             checkpoint_dataset = create_dataset_with_splits(success_results, failed_results, split_name)
             await save_checkpoint(checkpoint_dataset, split_name, total_processed, directories["ck"], log_fn=logger)
+        
+        # Save processing state at the end of each batch
+        await save_processing_state(
+            batch_index, 
+            total_processed, 
+            split_name, 
+            directories, 
+            source,
+            config.get('dst', ''),
+            log_fn=logger
+        )
     
     ds = create_dataset_with_splits(success_results, failed_results, split_name)
     success_count = telemetry_stats.successful_generations
     error_count = telemetry_stats.failed_generations
     logger(f"Processing complete: {total_processed} total records ({success_count} success, {error_count} errors) in split {split_name}")
     
-    logger(telemetry_stats.get_telemetry_string(total_needed))
+    # Log final telemetry with separate lines
+    for line in telemetry_stats.get_telemetry_lines(total_needed):
+        logger(line)
     
     split_dir_path = os.path.join(directories["cs"], split_name)
     os.makedirs(split_dir_path, exist_ok=True)
@@ -353,6 +465,7 @@ async def process_record(row, idx, query_column, response_column, think_column, 
                 logger(f"[{record_id}] Attempt {current_attempt}/{retry_limit}: Getting endpoint for retry")
                 
             # Generate the thinking/reasoning for this record
+            # Fix: Pass all arguments in the correct order
             reasoning, elapsed_time, metacog_prompt, endpoint_name = await generate_thinking(
                 row, split_name, endpoint_idx, endpoints, config, telemetry_stats, 
                 request_timeout, endpoint_cooldown, directories, logger, file_logger, test_mode
@@ -389,10 +502,13 @@ async def process_record(row, idx, query_column, response_column, think_column, 
                 if c not in result_dict and c not in [response_column, think_column, query_column, "id"]:
                     result_dict[c] = row[c]
             
-            logger(f"[{record_id}] Successfully completed processing in {elapsed_time:.2f}s")
+            # Enhanced logging with more details
+            response_size = len(reasoning)
+            retry_info = f" ({current_attempt-1} retries)" if current_attempt > 1 else ""
+            logger(f"[{record_id}] Successfully completed processing in {elapsed_time:.2f}s - {response_size} chars{retry_info} - {endpoint_name}")
             
             if file_logger and not test_mode:
-                file_logger.info(f"[{record_id}] Successfully processed in {elapsed_time:.2f}s")
+                file_logger.info(f"[{record_id}] Successfully processed in {elapsed_time:.2f}s - {response_size} chars{retry_info} - {endpoint_name}")
                 
             return result_dict
                 
@@ -433,21 +549,133 @@ async def process_record_with_full_retries(row, idx, query_column, response_colu
     record_id = str(row.get("id", idx))
     retry_count = 0
     max_retries = retry_limit
+    last_error = None
+    consecutive_rate_limits = 0  # Track consecutive rate limit errors
     
-    while retry_count < max_retries:
+    while retry_count < max_retries or is_rate_limit_error(last_error):
         try:
             # Try to process the record
             return await process_record(row, idx, query_column, response_column, think_column, split_name, semaphore,
                                  config, endpoints, telemetry_stats, request_timeout, endpoint_cooldown, 
                                  retry_limit, directories, logger, file_logger, test_mode)
         except Exception as e:
-            retry_count += 1
-            if retry_count >= max_retries:
-                logger(f"[{record_id}] ERROR after exhausting all {max_retries} retries: {type(e).__name__} - {str(e)[:100]}")
-                # Re-raise the exception after all retries are exhausted
-                raise
-            else:
-                backoff_time = random.uniform(1, 3)
-                logger(f"[{record_id}] Manual RETRY {retry_count}/{max_retries}: {type(e).__name__} - {str(e)[:100]} (waiting {backoff_time:.2f}s)")
+            last_error = e
+            
+            # Check if this is a rate limit error
+            if is_rate_limit_error(e):
+                consecutive_rate_limits += 1
+                
+                # Mark the endpoint as rate limited (just for tracking, no extra cooldown)
+                endpoint_idx = getattr(e, 'endpoint_idx', None)
+                if endpoint_idx is not None and endpoint_idx < len(endpoints):
+                    endpoints[endpoint_idx]['rate_limited'] = True
+                    logger(f"[{record_id}] Rate limit hit on {endpoints[endpoint_idx].get('p', '')}-{endpoints[endpoint_idx].get('n', '')}")
+                
+                # For rate limit errors, don't count toward retry limit
+                backoff_time = min(5.0 * consecutive_rate_limits, 30.0)  # Gradually increase backoff time
+                logger(f"[{record_id}] Rate limit error: {type(e).__name__} - {str(e)[:100]} (waiting {backoff_time:.2f}s)")
                 await asyncio.sleep(backoff_time)  # Add a backoff delay
-                # Let the loop continue to retry
+                continue  # Try again without incrementing retry_count
+            else:
+                consecutive_rate_limits = 0  # Reset consecutive rate limits
+                retry_count += 1
+                
+                if retry_count >= max_retries:
+                    logger(f"[{record_id}] ERROR after exhausting all {max_retries} retries: {type(e).__name__} - {str(e)[:100]}")
+                    raise
+                else:
+                    backoff_time = random.uniform(1, 3)
+                    logger(f"[{record_id}] Manual RETRY {retry_count}/{max_retries}: {type(e).__name__} - {str(e)[:100]} (waiting {backoff_time:.2f}s)")
+                    await asyncio.sleep(backoff_time)  # Add a backoff delay
+                    # Let the loop continue to retry
+
+def is_rate_limit_error(error):
+    """Check if an error is a rate limit error"""
+    if error is None:
+        return False
+        
+    error_message = str(error).lower()
+    return (
+        "429" in error_message or 
+        "too many tokens" in error_message or 
+        "rate limit" in error_message or
+        "quota" in error_message
+    )
+
+async def process_splits(splits, source, config, arguments, directories, endpoints, telemetry_stats, 
+                        batch_size, checkpoint_interval, logger, file_logger, test_mode):
+    """
+    Process all dataset splits from the source dataset.
+    
+    Args:
+        splits: List of split names to process
+        source: Source dataset identifier
+        config: Configuration dictionary
+        arguments: Command line arguments
+        directories: Directory structure information
+        endpoints: List of available endpoints
+        telemetry_stats: TelemetryStats instance for metrics
+        batch_size: Batch size for processing
+        checkpoint_interval: Interval for saving checkpoints
+        logger: Logging function
+        file_logger: File logger
+        test_mode: Whether in test mode
+        
+    Returns:
+        tuple: (all_datasets, total_records)
+    """
+    all_datasets = {}
+    total_records = 0
+    
+    logger(f"Starting to process {len(splits)} splits from source: {source}")
+    logger(f"Max records per split: {arguments.max_records if arguments.max_records > 0 else 'unlimited'}")
+    
+    # If we're resuming and have state, adjust the order of splits to continue from the right split
+    if arguments.resume and "resume_state" in directories:
+        resume_state = directories["resume_state"]
+        last_split = resume_state.get('split_name')
+        if last_split in splits:
+            logger(f"Reordering splits to resume from '{last_split}'")
+            # Move the last processed split to the beginning
+            splits = [last_split] + [s for s in splits if s != last_split]
+    
+    for split_name in splits:
+        split_code = config["splits"][split_name]
+        logger(f"Processing split '{split_name}' with code '{split_code}'")
+        
+        dataset_dict, count = await proc_1sp(
+            split_name, split_code, source, arguments.offset, arguments.max_records, 
+            directories, config, endpoints, telemetry_stats, arguments, 
+            batch_size, checkpoint_interval, MAX_WORKERS, MAX_RETRIES, 
+            REQUEST_TIMEOUT, ENDPOINT_COOLDOWN, logger, file_logger, test_mode
+        )
+        
+        if dataset_dict:
+            all_datasets.update(dataset_dict)
+            total_records += count
+            logger(f"Split '{split_name}' processed successfully: {count} records")
+        else:
+            logger(f"Split '{split_name}' processing failed or returned no records")
+    
+    # After all splits are processed, mark processing as complete in state file
+    if all_datasets and arguments and not test_mode:
+        destination = arguments.dst or config.get('dst', '')
+        # Mark processing as complete but not yet pushed to hub
+        await save_processing_state(
+            -1,  # batch_index not applicable for complete processing
+            total_records,
+            "all_complete",  # special value to indicate all splits are done
+            directories,
+            source,
+            destination,
+            log_fn=logger,
+            processing_complete=True,
+            pushed_to_hub=False
+        )
+    
+    if total_records == 0:
+        logger("WARNING: No records were processed successfully across all splits")
+    else:
+        logger(f"Successfully processed {total_records} records across {len(all_datasets)} splits")
+    
+    return all_datasets, total_records

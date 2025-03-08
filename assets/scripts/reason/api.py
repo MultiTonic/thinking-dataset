@@ -1,7 +1,8 @@
 from openai import AsyncOpenAI
 from ollama import AsyncClient
+from constants import REQUEST_TIMEOUT
 
-async def call_openai_api(endpoint_config, messages, config):
+async def call_openai(endpoint_config, messages, config):
     """
     Call the OpenAI API with the given endpoint configuration and messages.
     
@@ -17,13 +18,18 @@ async def call_openai_api(endpoint_config, messages, config):
         Exception: If API call fails or returns no content
     """
     try:
-        async with AsyncOpenAI(base_url=endpoint_config['u'], api_key=endpoint_config.get('k', '')) as client:
+        async with AsyncOpenAI(
+            base_url=endpoint_config['u'], 
+            api_key=endpoint_config.get('k', ''),
+            timeout=config.get('request_timeout', REQUEST_TIMEOUT)  # Use constant from constants.py
+        ) as client:
             response = await client.chat.completions.create(
                 model=endpoint_config['m'],
                 messages=messages,
                 max_tokens=config['max_tokens'],
                 temperature=config['temperature'],
-                stream=False
+                stream=False,
+                timeout=config.get('request_timeout', REQUEST_TIMEOUT)  # Use constant from constants.py
             )
             if response and response.choices and response.choices[0].message:
                 return response.choices[0].message.content
@@ -32,7 +38,7 @@ async def call_openai_api(endpoint_config, messages, config):
     except Exception as e:
         raise
 
-async def call_ollama_api(endpoint_config, messages, config):
+async def call_ollama(endpoint_config, messages, config):
     """
     Call the Ollama API with the given endpoint configuration and messages.
     
@@ -56,7 +62,8 @@ async def call_ollama_api(endpoint_config, messages, config):
             options={
                 "temperature": config['temperature'],
                 "num_ctx": max_tokens,
-                "num_predict": max_tokens
+                "num_predict": max_tokens,
+                "timeout": config.get('request_timeout', REQUEST_TIMEOUT)  # Use constant from constants.py
             },
             stream=False
         )

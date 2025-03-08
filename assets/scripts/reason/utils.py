@@ -1,6 +1,9 @@
 import os
 import time
+import json
 import requests
+from telemetry import Telemetry
+from validator import validator
 
 def check_min_length(response_text: str, min_length: int):
     """
@@ -20,7 +23,7 @@ def check_min_length(response_text: str, min_length: int):
         raise ValueError(f"Response length {len(response_text)} is shorter than minimum required length {min_length}")
     return True
 
-def should_retry_exception(exception):
+def should_retry(exception):
     """
     Determine if an exception should trigger a retry.
     
@@ -139,3 +142,104 @@ async def fetch_config(url, logger=None):
     except Exception as error:
         if logger: logger(f"Error fetching config: {error}")
         return None
+
+def find_latest_run(data_dir):
+    """
+    Find the most recent run directory in the data directory.
+    
+    Args:
+        data_dir: Path to the data directory
+        
+    Returns:
+        str: Path to the most recent run directory, or None if no runs found
+    """
+    try:
+        if not os.path.exists(data_dir):
+            return None
+        
+        run_dirs = []
+        for item in os.listdir(data_dir):
+            item_path = os.path.join(data_dir, item)
+            if os.path.isdir(item_path) and item.isdigit():
+                # Convert directory name (timestamp) to int for sorting
+                run_dirs.append((int(item), item_path))
+        
+        if not run_dirs:
+            return None
+            
+        # Sort by timestamp (first element in tuple) in descending order
+        sorted_runs = sorted(run_dirs, key=lambda x: x[0], reverse=True)
+        # Return the path (second element in tuple)
+        return sorted_runs[0][1]
+    except Exception:
+        return None
+
+async def setup_env(arguments, log_fn=None):
+    """Set up the runtime environment based on arguments"""
+    telemetry_stats = Telemetry()
+    
+    if arguments.test:
+        return telemetry_stats, {}
+    
+    if arguments.resume:
+        # Try to find the latest run directory
+        data_dir = os.path.join(os.path.abspath(arguments.output), "data")
+        latest_run_dir = find_latest_run(data_dir)
+        
+        if latest_run_dir and log_fn:
+            run_id = os.path.basename(latest_run_dir)
+            log_fn(f"Resuming from previous run: {run_id}")
+            
+            # Set up directories using the existing run_id
+            directories = {
+                "r": run_id,
+                "o": os.path.abspath(arguments.output),
+                "l": arguments.log_dir,
+                "d": data_dir,
+                "rd": latest_run_dir,
+                "cs": os.path.join(latest_run_dir, "case_study"),
+                "t": os.path.join(latest_run_dir, "temp"),
+                "ck": os.path.join(latest_run_dir, "checkpoints"),
+            }
+            
+            # Check if a state file exists
+            state_file = os.path.join(latest_run_dir, "processing_state.json")
+            if os.path.exists(state_file):
+                try:
+                    with open(state_file, 'r') as f:
+                        state = json.load(f)
+                    
+                    directories["resume_state"] = state
+                    log_fn(f"Found processing state:")
+                    log_fn(f"- Last batch: {state.get('batch_index', 'unknown')}")
+                    log_fn(f"- Records processed: {state.get('total_processed', 0)}")
+                    log_fn(f"- Last split: {state.get('split_name', 'unknown')}")
+                except Exception as e:
+                    log_fn(f"Warning: Could not load processing state: {str(e)}")
+            
+            return telemetry_stats, directories
+    
+    # Create new directories for a fresh run
+    directories = await setup_dirs(arguments) 
+    
+    if log_fn:
+        log_fn(f"Run ID: {directories['r']}")
+        log_fn(f"Data dir: {directories['d']}")
+        log_fn(f"Config URL: {arguments.config}")
+    
+    return telemetry_stats, directories
+
+async def load_config(config_url, log_fn=None):
+    """Load and validate the configuration"""
+    config = await fetch_config(config_url, logger=log_fn)
+    if not config:
+        if log_fn: log_fn("Failed to load config")
+        return None
+    
+    is_valid, validation_message = await validator(config)
+    if not is_valid:
+        if log_fn: log_fn(f"Invalid configuration: {validation_message}")
+        return None
+        
+    if log_fn: log_fn("Config successfully loaded")
+    return config
