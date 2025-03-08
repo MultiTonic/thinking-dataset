@@ -576,6 +576,19 @@ async def process_record_with_full_retries(row, idx, query_column, response_colu
                 logger(f"[{record_id}] Rate limit error: {type(e).__name__} - {str(e)[:100]} (waiting {backoff_time:.2f}s)")
                 await asyncio.sleep(backoff_time)  # Add a backoff delay
                 continue  # Try again without incrementing retry_count
+            elif is_length_error(e):
+                # Length issues (too short or too long) should be retried but counted toward retry limit
+                retry_count += 1
+                
+                if retry_count >= max_retries:
+                    logger(f"[{record_id}] ERROR after exhausting all {max_retries} retries: {type(e).__name__} - {str(e)[:100]}")
+                    raise
+                else:
+                    backoff_time = random.uniform(0.5, 1.5)  # Shorter backoff for length errors
+                    is_too_long = "exceeds maximum allowed length" in str(e).lower()
+                    error_type = "too long" if is_too_long else "too short"
+                    logger(f"[{record_id}] Response {error_type}, RETRY {retry_count}/{max_retries}: {str(e)[:100]} (waiting {backoff_time:.2f}s)")
+                    await asyncio.sleep(backoff_time)
             else:
                 consecutive_rate_limits = 0  # Reset consecutive rate limits
                 retry_count += 1
@@ -586,7 +599,7 @@ async def process_record_with_full_retries(row, idx, query_column, response_colu
                 else:
                     backoff_time = random.uniform(1, 3)
                     logger(f"[{record_id}] Manual RETRY {retry_count}/{max_retries}: {type(e).__name__} - {str(e)[:100]} (waiting {backoff_time:.2f}s)")
-                    await asyncio.sleep(backoff_time)  # Add a backoff delay
+                    await asyncio.sleep(backoff_time)
                     # Let the loop continue to retry
 
 def is_rate_limit_error(error):
@@ -600,6 +613,17 @@ def is_rate_limit_error(error):
         "too many tokens" in error_message or 
         "rate limit" in error_message or
         "quota" in error_message
+    )
+
+def is_length_error(error):
+    """Check if an error is related to response length (too short or too long)"""
+    if error is None:
+        return False
+        
+    error_message = str(error).lower()
+    return (
+        "shorter than minimum required length" in error_message or
+        "exceeds maximum allowed length" in error_message
     )
 
 async def process_splits(splits, source, config, arguments, directories, endpoints, telemetry_stats, 

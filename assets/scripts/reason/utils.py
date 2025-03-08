@@ -23,6 +23,28 @@ def check_min_length(response_text: str, min_length: int):
         raise ValueError(f"Response length {len(response_text)} is shorter than minimum required length {min_length}")
     return True
 
+def check_max_length(response_text: str, max_tokens: int):
+    """
+    Check if a response text exceeds the maximum length threshold.
+    We use a heuristic of max_tokens * 2 characters as the upper limit.
+    
+    Args:
+        response_text: The text to check
+        max_tokens: The configured maximum tokens
+        
+    Returns:
+        bool: True if the text is within acceptable length
+        
+    Raises:
+        ValueError: If the text is longer than the maximum allowed length
+    """
+    # Use a rough heuristic of max_tokens * 2 characters as maximum length
+    max_length = max_tokens * 2
+    
+    if max_tokens > 0 and len(response_text) > max_length:
+        raise ValueError(f"Response length {len(response_text)} exceeds maximum allowed length {max_length} (max_tokens={max_tokens})")
+    return True
+
 def should_retry(exception):
     """
     Determine if an exception should trigger a retry.
@@ -33,8 +55,10 @@ def should_retry(exception):
     Returns:
         bool: True if the exception should trigger a retry, False otherwise
     """
-    if isinstance(exception, ValueError) and "shorter than minimum required length" in str(exception):
-        return True
+    if isinstance(exception, ValueError):
+        error_msg = str(exception).lower()
+        if "shorter than minimum required length" in error_msg or "exceeds maximum allowed length" in error_msg:
+            return True
     
     error_message = str(exception).lower()
     if "429" in error_message or "too many tokens" in error_message or "rate limit" in error_message:

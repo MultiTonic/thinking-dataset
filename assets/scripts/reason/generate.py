@@ -2,7 +2,7 @@ import asyncio
 import time
 import os
 
-from utils import create_chat_messages, check_min_length
+from utils import create_chat_messages, check_min_length, check_max_length
 from api import call_openai, call_ollama
 
 async def generate_thinking(row, split_name, endpoint_idx, endpoints, config, telemetry_stats, 
@@ -74,6 +74,10 @@ async def generate_thinking(row, split_name, endpoint_idx, endpoints, config, te
                 # Check if the response meets minimum length requirement
                 min_length = config.get('min_length', 0)
                 check_min_length(thinking, min_length)
+                
+                # Check if the response exceeds maximum length (potential hallucination)
+                max_tokens = config.get('max_tokens', 4096)
+                check_max_length(thinking, max_tokens)
                 
                 # Save the successful response to a temp file
                 if not test_mode and directories and "t" in directories and thinking:
