@@ -3,10 +3,10 @@ Constants used throughout the reasoning dataset project.
 """
 
 # Processing parameters
-MAX_WORKERS = 15
+MAX_WORKERS = 16
 TEST_TIMEOUT = 30
-CHECKPOINT_INTERVAL = 50
-BATCH_SIZE = 25
+CHECKPOINT_INTERVAL = 250
+BATCH_SIZE = 50
 MAX_RETRIES = 10
 REQUEST_TIMEOUT = 600
 ENDPOINT_COOLDOWN = 12
