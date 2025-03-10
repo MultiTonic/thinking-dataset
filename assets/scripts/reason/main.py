@@ -44,13 +44,39 @@ async def main(args, **kwargs):
         
         # Log resume status if applicable
         if arguments.resume and "resume_state" in directories:
-            log(f"Resuming from previous run: {directories['r']}")
             resume_state = directories["resume_state"]
-            log(f"- Last processed split: {resume_state.get('split_name', 'unknown')}")
-            log(f"- Records processed: {resume_state.get('total_processed', 0)}")
-            log(f"- Last batch: {resume_state.get('batch_index', 'unknown')}")
-            log(f"- Source dataset: {resume_state.get('source', 'unknown')}")
-            log(f"- Destination dataset: {resume_state.get('destination', 'unknown')}")
+            
+            # Calculate correct checkpoint file based on checkpoint interval
+            checkpoint_file = None
+            checkpoint_exists = False
+            checkpoint_id = None
+            if "ck" in directories:
+                processed_count = resume_state.get('total_processed', 0)
+                # Calculate the checkpoint ID based on checkpoint interval (default 1000)
+                checkpoint_interval = args.checkpoint_interval or 1000
+                checkpoint_id = (processed_count // checkpoint_interval) * checkpoint_interval
+                checkpoint_file = os.path.join(directories["ck"], f"checkpoint_{checkpoint_id}")
+                checkpoint_exists = os.path.exists(checkpoint_file) if checkpoint_file else False
+            
+            # Log a concise resumption message
+            log(f"Resuming from run: {directories['r']}")
+            log(f"- Split: {resume_state.get('split_name', 'unknown')}")
+            log(f"- Progress: {resume_state.get('total_processed', 0)} records, batch {resume_state.get('batch_index', 0)+1}")
+            
+            if checkpoint_file:
+                if checkpoint_exists:
+                    log(f"- Checkpoint: {os.path.basename(checkpoint_file)} (✓)")
+                    # Calculate the gap between checkpoint and resume point
+                    gap = processed_count - checkpoint_id if checkpoint_id is not None else 0
+                    if gap > 0:
+                        log(f"- Records since checkpoint: {gap}")
+                else:
+                    log(f"- Checkpoint: {os.path.basename(checkpoint_file)} (✗)")
+            else:
+                log(f"- Checkpoint: none")
+                
+            log(f"- Source: {resume_state.get('source', 'unknown')}")
+            log(f"- Destination: {resume_state.get('destination', 'unknown')}")
         elif arguments.resume:
             log("Resume flag specified but no previous state found. Starting as a new run.")
         

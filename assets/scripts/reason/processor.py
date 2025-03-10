@@ -192,41 +192,119 @@ async def proc_1sp(split_name, split_code, source, offset, max_records, director
             resume_processed_count = resume_state.get('total_processed', 0)
             
             if resuming and resume_processed_count > 0:
-                logger(f"Resuming processing of split '{split_name}' from batch {resume_batch_index+2} ({resume_processed_count} records already processed)")
-                # Update success_results and total_processed
-                # We would need to load the checkpoint data here
+                # Calculate how many batches we'll be skipping
+                batches_to_skip = resume_batch_index + 1
+                first_batch_to_process = resume_batch_index + 2
+                first_record = resume_processed_count + 1
+                
+                logger(f"Resuming split '{split_name}' from batch {first_batch_to_process} (records {first_record}-{first_record+batch_size-1})")
                 
                 if "ck" in directories:
-                    checkpoint_file = os.path.join(directories["ck"], f"checkpoint_{resume_processed_count}")
+                    # Simple calculation - find the last checkpoint interval
+                    checkpoint_id = (resume_processed_count // checkpoint_interval_default) * checkpoint_interval_default
+                    checkpoint_file = os.path.join(directories["ck"], f"checkpoint_{checkpoint_id}")
+                    
+                    # No need to log the calculation again - already shown in main.py
+                    
                     if os.path.exists(checkpoint_file):
-                        logger(f"Loading data from checkpoint: {checkpoint_file}")
+                        logger(f"Loading checkpoint data from: {checkpoint_file}")
                         try:
                             # Load checkpoint data and update success_results, failed_results
                             from datasets import DatasetDict
                             checkpoint_ds = DatasetDict.load_from_disk(checkpoint_file)
+                            
+                            # Load successful records
+                            success_count = 0
+                            failed_count = 0
+                            
                             if split_name in checkpoint_ds:
                                 success_records = checkpoint_ds[split_name].to_list()
                                 success_results.extend(success_records)
-                                logger(f"Loaded {len(success_records)} successful records")
+                                success_count = len(success_records)
+                            else:
+                                logger(f"Warning: No successful records found in checkpoint for '{split_name}'")
                             
+                            # Load failed records
                             failed_split = f"{split_name}_failed"
                             if failed_split in checkpoint_ds:
                                 failed_records = checkpoint_ds[failed_split].to_list()
                                 failed_results.extend(failed_records)
-                                logger(f"Loaded {len(failed_records)} failed records")
-                                
-                            # Update telemetry stats
-                            telemetry_stats.successful_generations = len(success_results)
-                            telemetry_stats.failed_generations = len(failed_results)
+                                failed_count = len(failed_records)
+                            
+                            # Update telemetry stats to include checkpoint counts
+                            telemetry_stats.successful_generations = success_count
+                            telemetry_stats.failed_generations = failed_count
+                            telemetry_stats.total_attempts = success_count + failed_count
+                            telemetry_stats.total_expected = total_records
+                            
+                            # Combined success message - simpler and more concise
+                            logger(f"Loaded {success_count} successful and {failed_count} failed records from checkpoint")
+                            
+                            # Log checkpoint vs resume point difference
+                            records_gap = resume_processed_count - checkpoint_id
+                            if records_gap > 0:
+                                logger(f"Note: Will regenerate {records_gap} records processed since last checkpoint")
+                            
+                            # Look for English split data in case_study directory if processing Chinese split
+                            # But only log it, don't add to telemetry as it's a separate split
+                            if split_name == 'chinese':
+                                english_path = os.path.join(directories["cs"], "english")
+                                if os.path.exists(english_path):
+                                    try:
+                                        # Try loading as either Dataset or DatasetDict
+                                        from datasets import Dataset, DatasetDict
+                                        
+                                        # First try as DatasetDict (which is usually how we save it)
+                                        if os.path.exists(os.path.join(english_path, "dataset_dict.json")):
+                                            english_ds = DatasetDict.load_from_disk(english_path)
+                                            english_count = 0
+                                            # Check which split contains the actual data
+                                            if "english" in english_ds:
+                                                english_count = len(english_ds["english"])
+                                            else:
+                                                # Just sum up all records in all splits
+                                                english_count = sum(len(ds) for ds in english_ds.values())
+                                        else:
+                                            # Fall back to Dataset
+                                            english_ds = Dataset.load_from_disk(english_path)
+                                            english_count = len(english_ds)
+                                        
+                                        logger(f"Found {english_count} completed English records (separate split)")
+                                        # DO NOT add English records to Chinese split telemetry
+                                        # We're just informing the user about overall progress
+                                    except Exception as e:
+                                        logger(f"Warning: Could not load English split: {str(e)}")
+                                        # DO NOT try to use records from checkpoint either
+                                else:
+                                    logger(f"No completed English split found in case_study directory")
+                                    # DO NOT look for English records in checkpoint
+                                        
                         except Exception as e:
-                            logger(f"Warning: Could not load checkpoint data: {str(e)}")
+                            logger(f"Error loading checkpoint data: {str(e)}")
+                    else:
+                        logger(f"Warning: No checkpoint file found at {checkpoint_file}")
+                        # List available checkpoints more concisely
+                        checkpoints_dir = directories["ck"]
+                        if os.path.exists(checkpoints_dir):
+                            checkpoint_files = [f for f in os.listdir(checkpoints_dir) 
+                                              if os.path.isdir(os.path.join(checkpoints_dir, f))]
+                            if checkpoint_files:
+                                checkpoint_files.sort(reverse=True)
+                                if len(checkpoint_files) <= 3:
+                                    logger(f"Available checkpoints: {', '.join(checkpoint_files)}")
+                                else:
+                                    logger(f"Available checkpoints: {', '.join(checkpoint_files[:3])} and {len(checkpoint_files)-3} more")
+                            else:
+                                logger(f"No checkpoint files found in directory")
+                
+                logger(f"Skipping {batches_to_skip} previously processed batches ({resume_processed_count} records)")
 
     for start_idx in range(0, total_records, batch_size):
         batch_index = start_idx // batch_size
         
         # Skip batches we've already processed when resuming
         if resuming and batch_index <= resume_batch_index:
-            logger(f"Skipping batch {batch_index+1} as it was already processed")
+            # Don't log each skipped batch - too verbose
             continue
             
         batch_start_time = time.time()
