@@ -459,12 +459,12 @@ async def process_split(split_name: str, src_lang: str, initial_tgt_lang: str, e
         print(f"Saved {tgt_lang} translation to {output_path}")
 
 async def main():
-    api_key = os.getenv("RUNPOD_API_KEY", "rpa_K186FAFL1X9SX7GNOZUTT32MM9EK1RDHXWTSCXR41h5a73")
+    api_key = os.getenv("RUNPOD_API_KEY", "")
     if not api_key:
         print("Error: RUNPOD_API_KEY not set in environment")
         return
 
-    hf_token = os.getenv("HF_TOKEN", "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")
+    hf_token = os.getenv("HF_TOKEN", "")
     if not hf_token:
         print("Error: HF_TOKEN not set in environment. Please set it to access the Hugging Face dataset.")
         return
