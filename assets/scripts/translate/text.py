@@ -1,4 +1,5 @@
 import re
+import time
 from typing import Dict, List, Tuple
 
 from nltk.tokenize import sent_tokenize
@@ -25,26 +26,34 @@ SPECIAL_PATTERNS = {
 }
 
 def preprocess_text(text: str) -> Tuple[str, Dict[str, str], List[Tuple[str, str]]]:
+    start_time = time.time()
+    print(f"[TEXT] Preprocessing text ({len(text)} chars)")
+    
     if not isinstance(text, str) or not text.strip():
+        print("[TEXT] Warning: Empty or invalid text received for preprocessing")
         return text, {}, []
 
     tag_map = {}
     counter = 0
-    structure = []  # List of (type, content) tuples: type can be 'text', 'tag', etc.
-
+    structure = []
+    
     # Process Markdown patterns
+    print("[TEXT] Extracting special patterns")
+    pattern_matches = 0
     for pattern, tag_template in SPECIAL_PATTERNS.items():
         def replace_match(match):
-            nonlocal counter
+            nonlocal counter, pattern_matches
             unique_tag = f"<TAG{counter}>"
             content = match.group(1) if "$1" in tag_template else match.group(0)
             tag_map[unique_tag] = tag_template.replace("$1", content) if "$1" in tag_template else tag_template
             counter += 1
+            pattern_matches += 1
             return unique_tag
         
         text = re.sub(pattern, replace_match, text, flags=re.DOTALL)
 
     # Split into sentences while preserving tags
+    print("[TEXT] Splitting into sentences while preserving markup")
     sentences = []
     current_sentence = ""
     for char in text:
@@ -59,10 +68,17 @@ def preprocess_text(text: str) -> Tuple[str, Dict[str, str], List[Tuple[str, str
     if current_sentence:
         sentences.extend(sent_tokenize(current_sentence))
 
-    return " ".join(sentences), tag_map, structure
+    elapsed = time.time() - start_time
+    result = " ".join(sentences)
+    print(f"[TEXT] Preprocessing complete in {elapsed:.2f}s - Found {pattern_matches} pattern matches and {len(sentences)} sentences")
+    return result, tag_map, structure
 
 def postprocess_text(translated_sentences: List[str], placeholder_map: Dict[str, str], structure: List[Tuple[str, str]]) -> str:
+    start_time = time.time()
+    print(f"[TEXT] Postprocessing {len(translated_sentences)} translated sentences")
+    
     if not translated_sentences or not structure:
+        print("[TEXT] Warning: Empty translated sentences or structure")
         return ""
 
     result = ""
@@ -99,4 +115,6 @@ def postprocess_text(translated_sentences: List[str], placeholder_map: Dict[str,
                 char_idx = 0
                 current_sentence = translated_sentences[sentence_idx]
 
+    elapsed = time.time() - start_time
+    print(f"[TEXT] Postprocessing complete in {elapsed:.2f}s - Result length: {len(result)} chars")
     return result.strip()

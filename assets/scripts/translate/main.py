@@ -14,10 +14,12 @@ from config import Config
 from runpod import (
     RunPodEndpoint, launch_runpods, terminate_runpods,
     startup_runpods, check_runpods_status, shutdown_runpods,
-    get_running_pods # New function to get already running pods
+    get_running_pods
 )
 
-nltk.download('punkt')
+# Download both required NLTK resources
+nltk.download(['punkt', 'punkt_tab'])
+print("NLTK resources downloaded successfully.")
 
 def load_state(state_file: str) -> Dict:
     if os.path.exists(state_file):
@@ -65,16 +67,19 @@ async def handle_translation_batch(endpoint: RunPodEndpoint, batch_texts: List[s
     
     return await _translate_batch()
 
-async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: str, endpoints: List[RunPodEndpoint], state: Dict, config: Config, run_dirs: Dict):
+async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: str, endpoints: List[RunPodEndpoint], state: Dict, config: Config, run_dirs: Dict, data=None):
     # Skip if the source and target languages are the same
     if src_lang.lower() == tgt_lang.lower():
         print(f"Skipping translation from {src_lang} to {tgt_lang} (same language)")
         return
         
-    print(f"Starting translation from {src_lang} to {tgt_lang} for {split_name} split")
+    print(f"[SPLIT: {split_name}] Starting translation from {src_lang} to {tgt_lang}")
     
-    dataset = load_dataset(config.dataset_name, token=config.hf_token)
-    data = dataset[split_name]
+    # Use provided dataset if available, otherwise load it
+    if data is None:
+        print(f"[SPLIT: {split_name}] Loading dataset...")
+        dataset = load_dataset(config.dataset_name, token=config.hf_token)
+        data = dataset[split_name]
     
     # Apply offset and max_records if specified
     total_records = len(data)
@@ -82,8 +87,10 @@ async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: st
     end_idx = min(total_records, start_idx + config.max_records) if config.max_records > 0 else total_records
     
     if start_idx > 0 or end_idx < total_records:
-        print(f"Using records {start_idx} to {end_idx-1} (out of {total_records} total)")
+        print(f"[SPLIT: {split_name}] Using records {start_idx} to {end_idx-1} (out of {total_records} total)")
         data = data.select(range(start_idx, end_idx))
+    
+    print(f"[SPLIT: {split_name}] Creating output DataFrame with {len(data)} records")
     
     # Create output dataframe using columns directly from the dataset
     df = pd.DataFrame({
@@ -105,14 +112,17 @@ async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: st
     output_split_name = f"{split_name}_from_{src_lang.lower()}_to_{tgt_lang.lower()}"
     output_split_dir = os.path.join(run_dirs["output_dir"], f"data/{output_split_name}")
     os.makedirs(output_split_dir, exist_ok=True)
+    print(f"[SPLIT: {split_name}] Output directory created: {output_split_dir}")
     
     # Check if we've already completed this translation
     if f"{split_name}_{src_lang}_{tgt_lang}" in state["completed"]:
-        print(f"Translation from {src_lang} to {tgt_lang} for {split_name} already completed, skipping...")
+        print(f"[SPLIT: {split_name}] Translation from {src_lang} to {tgt_lang} already completed, skipping...")
         return
         
-    print(f"Translating {split_name} split from {src_lang} to {tgt_lang}...")
+    print(f"[SPLIT: {split_name}] Translating from {src_lang} to {tgt_lang}...")
     last_batch_start = state.get("pending", {}).get(f"{split_name}_{src_lang}_{tgt_lang}", {}).get("last_batch_start", 0)
+    if last_batch_start > 0:
+        print(f"[SPLIT: {split_name}] Resuming from record {last_batch_start}")
     
     endpoint_idx = 0
     
@@ -129,39 +139,77 @@ async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: st
     # Each pod can handle 8 concurrent requests
     max_concurrent_tasks = len(endpoints) * 8
     tasks_semaphore = asyncio.Semaphore(max_concurrent_tasks)
-    print(f"Using {max_concurrent_tasks} concurrent tasks across {len(endpoints)} pods")
+    print(f"[SPLIT: {split_name}] Using {max_concurrent_tasks} concurrent tasks across {len(endpoints)} pods (8 requests/pod)")
     
     async def process_record(idx, text, field_name):
         async with tasks_semaphore:
+            record_id = df.iloc[idx].get("id", idx)
             endpoint = endpoints[idx % len(endpoints)]
+            endpoint_name = endpoint.endpoint.split('://')[1].split('.')[0] if '://' in endpoint.endpoint else endpoint.endpoint
             try:
-                return await endpoint.translate_text(text, src_lang, tgt_lang)
+                print(f"[RECORD: {record_id}] Processing '{field_name}' using endpoint {endpoint_name} for {src_lang}->{tgt_lang}")
+                start_time = time.time()
+                result = await endpoint.translate_text(text, src_lang, tgt_lang)
+                duration = time.time() - start_time
+                
+                # Save temp file of the translation result
+                temp_file_path = os.path.join(run_dirs["temp_dir"], f"{run_dirs['run_id']}_{record_id}_{field_name}_{src_lang}_{tgt_lang}.txt")
+                try:
+                    with open(temp_file_path, 'w', encoding='utf-8') as f:
+                        f.write(result)
+                    print(f"[RECORD: {record_id}] Saved temp file: {temp_file_path}")
+                except Exception as e:
+                    print(f"[RECORD: {record_id}] Warning: Failed to save temp file: {str(e)}")
+                
+                print(f"[RECORD: {record_id}] '{field_name}' completed in {duration:.2f}s - {len(result)} chars")
+                return result
             except Exception as e:
                 error_msg = f"{field_name} error: {str(e)}"
-                print(f"Failed to translate {field_name} for row {idx}: {str(e)}")
+                print(f"[RECORD: {record_id}] Failed to translate '{field_name}' for {src_lang}->{tgt_lang}: {str(e)}")
+                
+                # Save error to temp file for debugging
+                error_file_path = os.path.join(run_dirs["temp_dir"], f"{run_dirs['run_id']}_{record_id}_{field_name}_{src_lang}_{tgt_lang}_error.txt")
+                try:
+                    with open(error_file_path, 'w', encoding='utf-8') as f:
+                        f.write(f"Error: {str(e)}\nOriginal text: {text[:1000]}...")
+                    print(f"[RECORD: {record_id}] Saved error details to: {error_file_path}")
+                except Exception as write_err:
+                    print(f"[RECORD: {record_id}] Warning: Failed to save error file: {str(write_err)}")
+                    
                 return error_msg
     
     for i in range(last_batch_start, len(df), config.batch_size):
         batch_start_time = time.time()
         batch_end = min(i + config.batch_size, len(df))
+        batch_id = (i // config.batch_size) + 1
         
-        print(f"Processing batch: records {i+1} to {batch_end} (batch size: {batch_end-i})")
+        print(f"[BATCH: {batch_id}] Processing records {i+1} to {batch_end} (batch size: {batch_end-i})")
         
         # Create tasks for all records in the batch
         batch_tasks = []
         for j in range(i, batch_end):
-            row_idx = j - i
-            batch_tasks.append(process_record(j, df["think"][row_idx], "think"))
-            batch_tasks.append(process_record(j, df["response"][row_idx], "response"))
-            batch_tasks.append(process_record(j, df["query"][row_idx], "query"))
+            row_id = df.iloc[j].get("id", j)
+            print(f"[RECORD: {row_id}] Creating translation tasks for record {j-i+1}/{batch_end-i}")
+            batch_tasks.append(process_record(j, df["think"][j], "think"))
+            batch_tasks.append(process_record(j, df["response"][j], "response"))
+            batch_tasks.append(process_record(j, df["query"][j], "query"))
         
         # Process all tasks
+        print(f"[BATCH: {batch_id}] Executing {len(batch_tasks)} translation tasks")
+        batch_start_execution = time.time()
         batch_results = await asyncio.gather(*batch_tasks)
+        batch_execution_time = time.time() - batch_start_execution
+        print(f"[BATCH: {batch_id}] Task execution completed in {batch_execution_time:.2f}s")
         
         # Process results
+        print(f"[BATCH: {batch_id}] Processing results")
+        batch_success = 0
+        batch_failed = 0
+        
         for j in range(i, batch_end):
             row_idx = (j - i) * 3  # Each record has 3 fields (think, response, query)
             row = df.iloc[j].copy()
+            row_id = row.get("id", j)
             row_failed = False
             
             # Results are in order: think, response, query for each record
@@ -180,22 +228,31 @@ async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: st
             # Add to appropriate list
             if row_failed:
                 failed_records.append(row)
+                batch_failed += 1
+                print(f"[RECORD: {row_id}] Translation failed")
             else:
                 success_records.append(row)
+                batch_success += 1
+                print(f"[RECORD: {row_id}] Translation successful")
         
         # Update record count and show progress
         record_count += (batch_end - i)
         batch_duration = time.time() - batch_start_time
         records_per_second = (batch_end - i) / batch_duration if batch_duration > 0 else 0
         
-        print(f"Completed {record_count}/{total_records_to_process} records " +
+        print(f"[BATCH: {batch_id}] Completed {record_count}/{total_records_to_process} records " +
               f"({record_count/total_records_to_process*100:.1f}%) " +
               f"in {batch_duration:.2f}s ({records_per_second:.2f} records/sec)")
+        print(f"[BATCH: {batch_id}] Success: {batch_success}, Failed: {batch_failed}")
         
         # Only save checkpoint if we've processed enough records
         if (i // config.batch_size) % config.checkpoint_interval == 0 and i > 0:
+            print(f"[BATCH: {batch_id}] Saving checkpoint at record {record_count}")
+            checkpoint_start = time.time()
             combined_df = pd.concat([pd.DataFrame(success_records), pd.DataFrame(failed_records)])
             save_checkpoint(combined_df, output_split_name, tgt_lang, 0, batch_end, state, run_dirs)
+            checkpoint_duration = time.time() - checkpoint_start
+            print(f"[BATCH: {batch_id}] Checkpoint saved in {checkpoint_duration:.2f}s")
     
     # Create dataframes from records
     success_df = pd.DataFrame(success_records) if success_records else pd.DataFrame(columns=df.columns)
@@ -247,6 +304,36 @@ async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: st
     
     print(f"Saved {src_lang} to {tgt_lang} translation for {split_name} (Success rate: {metadata['success_rate']*100:.2f}%)")
 
+# Helper function to load datasets concurrently
+async def load_dataset_splits(config):
+    """Load all dataset splits concurrently"""
+    print("[DATASET] Loading all required dataset splits concurrently...")
+    start_time = time.time()
+    
+    # Create a task for loading the dataset
+    async def _load_dataset():
+        return load_dataset(config.dataset_name, token=config.hf_token)
+    
+    # Load the dataset once and use it for all splits
+    try:
+        dataset = await _load_dataset()
+        duration = time.time() - start_time
+        
+        # Get available splits
+        available_splits = list(dataset.keys())
+        print(f"[DATASET] Loaded dataset in {duration:.2f}s - Available splits: {', '.join(available_splits)}")
+        
+        source_split_names = [lang.lower() for lang in config.source_languages]
+        missing_splits = [split for split in source_split_names if split not in available_splits]
+        
+        if missing_splits:
+            print(f"[DATASET] Warning: The following required splits are missing: {', '.join(missing_splits)}")
+            
+        return dataset
+    except Exception as e:
+        print(f"[DATASET] Error loading dataset: {str(e)}")
+        return None
+
 async def main():
     config = Config(args.config)
     
@@ -254,7 +341,7 @@ async def main():
     if args.workers:
         config.workers = args.workers
     else:
-        config.workers = 32
+        config.workers = 60
         
     # Set max_records and offset if provided
     if args.max_records:
@@ -311,7 +398,12 @@ async def main():
     config.output_dir = run_dirs["output_dir"]
     config.state_file = run_dirs["state_file"]
     
+    # Ensure temp directory exists
+    temp_dir = os.path.join(run_dirs["run_dir"], "temp")
+    os.makedirs(temp_dir, exist_ok=True)
+    run_dirs["temp_dir"] = temp_dir
     print(f"Output directory: {config.output_dir}")
+    print(f"Temp directory: {temp_dir}")
     print(f"State file: {config.state_file}")
     
     if not config.runpod_api_key:
@@ -355,18 +447,44 @@ async def main():
         target_languages = config.target_languages
         source_languages = config.source_languages
         
+        # Log the source and target language configurations
+        print(f"Source languages: {', '.join(source_languages)} ({len(source_languages)} languages)")
+        print(f"Target languages: {', '.join(target_languages)} ({len(target_languages)} languages)")
+        
+        # Load all dataset splits concurrently first
+        print("Loading all dataset splits concurrently...")
+        dataset_collection = await load_dataset_splits(config)
+        
+        if not dataset_collection:
+            raise ValueError("Failed to load dataset collection. Cannot proceed.")
+        
         # Create all translation tasks
         tasks = []
+        task_count_by_source = {}
+        
+        # Create a detailed mapping of all translation tasks we'll perform
+        print("Creating translation tasks matrix:")
+        print("+" + "-" * 60 + "+")
+        print("| {:<12} | {:<44} |".format("Source", "Target Languages"))
+        print("+" + "-" * 60 + "+")
+        
         for split_name in [lang.lower() for lang in source_languages]:
             # Determine source language based on split name, with proper capitalization
             src_lang = next((lang for lang in source_languages 
                             if lang.lower() == split_name), None)
             
-            # Raise error if split name doesn't match any source language - this is a critical error
+            # Raise error if split name doesn't match any source language
             if not src_lang:
                 raise ValueError(f"Critical error: The split '{split_name}' doesn't match any configured source languages in {source_languages}. Please update your configuration.")
             
-            print(f"Processing split '{split_name}' with source language '{src_lang}'")
+            # Skip if split does not exist in dataset
+            if split_name not in dataset_collection:
+                print(f"Warning: Split '{split_name}' not found in dataset. Skipping.")
+                continue
+                
+            # Count how many translation tasks we're creating for this source language
+            tasks_for_source = 0
+            target_list = []
             
             # Translate to all target languages
             for tgt_lang in target_languages:
@@ -374,6 +492,10 @@ async def main():
                 if src_lang.lower() == tgt_lang.lower():
                     continue
                     
+                target_list.append(tgt_lang)
+                tasks_for_source += 1
+                
+                # Create the translation task
                 tasks.append(process_split_to_language(
                     split_name=split_name,
                     src_lang=src_lang,
@@ -381,22 +503,49 @@ async def main():
                     endpoints=endpoints,
                     state=state,
                     config=config,
-                    run_dirs=run_dirs
+                    run_dirs=run_dirs,
+                    data=dataset_collection[split_name]  # Pass the pre-loaded dataset
                 ))
+            
+            # Store task count for this source language
+            task_count_by_source[src_lang] = tasks_for_source
+            
+            # Print source language row of our translation matrix
+            target_str = ", ".join(target_list[:5]) + f"... (+{len(target_list) - 5} more)" if len(target_list) > 5 else ", ".join(target_list)
+            print("| {:<12} | {:<44} |".format(src_lang, target_str))
         
-        # Log total translation task count
-        print(f"Starting {len(tasks)} translation tasks across {len(source_languages)} source splits and {len(target_languages)} target languages")
+        print("+" + "-" * 60 + "+")
         
-        # Execute all translation tasks
-        await asyncio.gather(*tasks)
+        # Calculate total task counts and log
+        total_tasks = len(tasks)
+        total_combinations = sum(len(target_languages) - 1 for _ in source_languages)
+        
+        print(f"\nTask generation summary:")
+        for src_lang, count in task_count_by_source.items():
+            print(f"  • {src_lang}: {count} target languages")
+        
+        print(f"\nStarting {total_tasks} translation tasks ({total_combinations} language combinations)")
+        print(f"  • From {len(source_languages)} source languages to {len(target_languages)} target languages")
+        print(f"  • Each source language is translated to {len(target_languages) - 1} target languages (skipping self-translation)")
+        
+        # Execute all translation tasks with concurrency limiter
+        # Use semaphore to limit total concurrent tasks if needed
+        max_concurrent_splits = min(10, len(tasks))  # Limiting to 10 concurrent splits
+        print(f"Using semaphore to limit concurrent split processing to {max_concurrent_splits}")
+        split_semaphore = asyncio.Semaphore(max_concurrent_splits)
+        
+        async def run_with_semaphore(task):
+            async with split_semaphore:
+                return await task
+        
+        # Wrap each task with the semaphore
+        semaphore_tasks = [run_with_semaphore(task) for task in tasks]
+        
+        # Execute all tasks
+        await asyncio.gather(*semaphore_tasks)
         print(f"Translation process completed! Results saved to: {run_dirs['run_dir']}")
     finally:
-        # Only terminate pods if we were the ones who started them
-        if args.terminate_on_completion:
-            print("Terminating RunPod instances as requested...")
-            terminate_runpods(runpod_info, config)
-        else:
-            print("Leaving RunPod instances running. Use --shutdown to terminate them later.")
+        terminate_runpods(runpod_info, config)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Translate dataset across multiple languages.")
@@ -411,12 +560,10 @@ if __name__ == "__main__":
     parser.add_argument("--test", action="store_true",
                         help="Test mode: Check if grid is operational (assumes already online)")
     parser.add_argument("--workers", type=int, 
-                        help="Number of parallel workers for pod operations (default: 32)")
+                        help="Number of parallel workers for pod operations (default: 60)")
     parser.add_argument("--max-records", type=int, 
                         help="Maximum number of records to process from each split")
     parser.add_argument("--offset", type=int, 
                         help="Starting offset in the source dataset")
-    parser.add_argument("--terminate-on-completion", action="store_true",
-                        help="Terminate RunPod instances after completion")
     args = parser.parse_args()
     asyncio.run(main())

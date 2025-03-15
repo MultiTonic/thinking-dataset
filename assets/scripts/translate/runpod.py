@@ -88,7 +88,7 @@ def launch_runpods(config, pods_to_launch=None):
         list: Tuples of (pod_id, pod_name) for successfully created pods
     """
     if not RunPodClient:
-        print("RunPodClient not available. Running locally.")
+        print("[RUNPOD] RunPodClient not available. Running locally.")
         return []
 
     client = RunPodClient(api_key=config.runpod_api_key)
@@ -97,12 +97,13 @@ def launch_runpods(config, pods_to_launch=None):
     num_pods = pods_to_launch if pods_to_launch is not None else config.num_runpods
 
     if num_pods <= 0:
-        print("No pods needed for launch.")
+        print("[RUNPOD] No pods needed for launch.")
         return []
 
     try:
-        print("Fetching available templates...")
+        print("[RUNPOD] Fetching available templates...")
         templates = client.get_templates()
+        print(f"[RUNPOD] Found {len(templates)} templates")
         ollama_template_id = None
         for template in templates:
             if "ollama/ollama" in template.get("imageName", ""):
@@ -150,7 +151,7 @@ def launch_runpods(config, pods_to_launch=None):
 
         # Set up thread pool for parallel pod creation
         max_workers = min(32, num_pods)  # Default to 32 workers or fewer if fewer pods
-        print(f"Launching {num_pods} pods with A40 GPUs using {max_workers} parallel workers...")
+        print(f"[RUNPOD] Launching {num_pods} pods with A40 GPUs using {max_workers} parallel workers...")
         
         def create_and_start_pod(i):
             pod_name = f"Translation-Pod-{i+1}"
@@ -199,6 +200,8 @@ def launch_runpods(config, pods_to_launch=None):
         # Check status of created pods
         running_pods = {}
         status_start_time = time.time()
+        
+        print(f"[RUNPOD] Starting status checks for {len(pod_info)} pods (max retries: {config.max_retries})")
         
         # Use tenacity retry instead of manual for loop
         @retry(
@@ -252,11 +255,12 @@ def launch_runpods(config, pods_to_launch=None):
             print(f"Maximum retries reached. Proceeding with {len(running_pods)}/{len(pod_info)} pods.")
 
         total_time = time.time() - total_start_time
-        print(f"Total startup process completed in {total_time:.2f}s")
+        print(f"[RUNPOD] Total startup process completed in {total_time:.2f}s")
+        print(f"[RUNPOD] {len(running_pods)} pods are ready to use")
         return [(pod_id, pod_name) for pod_id, pod_name in running_pods.items()]
 
     except Exception as e:
-        print(f"Error launching pods: {str(e)}")
+        print(f"[RUNPOD] Error launching pods: {str(e)}")
         return []
 
 async def find_and_terminate_all_runpods(config) -> int:
@@ -353,7 +357,7 @@ async def test_single_pod(pod_id: str, pod_name: str, max_retries: int = 3, requ
     @retry_decorator
     async def _test_pod():
         try:
-            print(f"Testing pod {pod_id} ({pod_name})...")
+            print(f"[POD: {pod_name}] Testing pod {pod_id} with {max_retries} max retries...")
             start_time = time.time()
             endpoint = RunPodEndpoint(pod_id, is_pod_id=True, request_timeout=request_timeout)
             
@@ -363,40 +367,47 @@ async def test_single_pod(pod_id: str, pod_name: str, max_retries: int = 3, requ
             test_sentence = "Hello"
             expected_result = "你好"  # Standard Chinese greeting
             
+            print(f"[POD: {pod_name}] Sending test translation request: '{test_sentence}' from {src_lang} to {tgt_lang}")
+            
             prompt_template = f"Translate this sentence from {src_lang} to {tgt_lang}:\n{src_lang}: {test_sentence}\n{tgt_lang}:"
             
+            # Including "options" to verify the concurrent request settings
             response = await asyncio.wait_for(
                 endpoint.client.generate(
                     model="gemmax2-custom",
                     prompt=prompt_template,
                     stream=False,
                     options={
-                        "temperature": 0,  # Set temperature to 0 for consistent output
-                        "top_p": 0.95,      # Add top_p parameter for more deterministic output
-                        "num_predict": 50   # Limit token generation for this test
+                        "temperature": 0,
+                        "top_p": 0.95,
+                        "num_predict": 50,
+                        # Note: OLLAMA_NUM_PARALLEL=8 configured in Docker startup ensures 8 concurrent requests
                     }
                 ),
                 timeout=request_timeout
             )
+            
             latency = time.time() - start_time
             
             if response and "response" in response:
                 response_text = response["response"].strip()
                 # Check if the response contains the expected Chinese translation
                 if expected_result in response_text:
+                    print(f"[POD: {pod_name}] Test successful in {latency:.2f}s: '{response_text}'")
                     return True, latency, None, {"pod_id": pod_id, "pod_name": pod_name}
                 else:
-                    print(f"Pod {pod_id} ({pod_name}): Unexpected translation result: '{response_text}'. Expected: '{expected_result}'")
+                    print(f"[POD: {pod_name}] Unexpected translation result: '{response_text}'. Expected: '{expected_result}'")
                     # Still consider it OK if we got any response - we're testing connectivity more than accuracy
                     return True, latency, None, {"pod_id": pod_id, "pod_name": pod_name}
             else:
+                print(f"[POD: {pod_name}] No response content received after {latency:.2f}s")
                 return False, latency, "No response content", {"pod_id": pod_id, "pod_name": pod_name}
                 
         except asyncio.TimeoutError:
-            print(f"Pod {pod_id} ({pod_name}) test timed out after {request_timeout}s")
+            print(f"[POD: {pod_name}] Test timed out after {request_timeout}s")
             return False, None, f"Timeout after {request_timeout}s", {"pod_id": pod_id, "pod_name": pod_name}
         except Exception as e:
-            print(f"Pod {pod_id} ({pod_name}) test error: {type(e).__name__}: {str(e)}")
+            print(f"[POD: {pod_name}] Test error: {type(e).__name__}: {str(e)}")
             return False, None, str(e), {"pod_id": pod_id, "pod_name": pod_name}
     
     return await _test_pod()
@@ -668,27 +679,36 @@ def get_running_pods(config):
         list: Tuples of (pod_id, pod_name) for running pods
     """
     if not RunPodClient:
-        print("RunPodClient not available. Cannot check for running pods.")
+        print("[RUNPOD] RunPodClient not available. Cannot check for running pods.")
         return []
 
     client = RunPodClient(api_key=config.runpod_api_key)
     pod_info = []
     
     try:
-        print("Checking for active RunPod instances...")
+        print("[RUNPOD] Checking for active RunPod instances...")
         pods = client.get_pods()
         
         if not pods:
-            print("No active RunPod instances found.")
+            print("[RUNPOD] No active RunPod instances found.")
             return []
         
         # Filter for our Translation-Pod pattern
         translation_pods = [pod for pod in pods if "Translation-Pod-" in pod.get("name", "")]
+        print(f"[RUNPOD] Found {len(translation_pods)} Translation-Pod instances out of {len(pods)} total pods")
         
         # Only consider pods with RUNNING or STARTING status
         running_pods = [pod for pod in translation_pods if pod.get("desiredStatus") in ["RUNNING", "STARTING"]]
         
-        print(f"Found {len(running_pods)} running Translation-Pod instances out of {len(pods)} total pods")
+        # Count pods by status
+        status_counts = {}
+        for pod in translation_pods:
+            status = pod.get("desiredStatus", "UNKNOWN")
+            status_counts[status] = status_counts.get(status, 0) + 1
+            
+        status_summary = ", ".join([f"{status}: {count}" for status, count in status_counts.items()])
+        print(f"[RUNPOD] Pod status summary: {status_summary}")
+        print(f"[RUNPOD] Found {len(running_pods)} running Translation-Pod instances")
         
         if running_pods:
             # Sort by pod number
@@ -701,10 +721,10 @@ def get_running_pods(config):
                 pod_name = pod.get("name", "Unknown")
                 if pod_id:
                     pod_info.append((pod_id, pod_name))
-                    print(f"  {pod_name} - ID: {pod_id}")
+                    print(f"[RUNPOD] {pod_name} - ID: {pod_id} - Status: {pod.get('desiredStatus', 'UNKNOWN')}")
         
         return pod_info
         
     except Exception as e:
-        print(f"Error checking for running pods: {str(e)}")
+        print(f"[RUNPOD] Error checking for running pods: {str(e)}")
         return []
