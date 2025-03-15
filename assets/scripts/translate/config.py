@@ -31,6 +31,10 @@ class Config:
         self.runpod_api_key = None
         self.hf_token = None
         
+        # New default values
+        self.max_records = 0  # 0 means process all records
+        self.offset = 0
+        
         # Default source and target languages
         self.source_languages = ["English", "Chinese"]
         self.target_languages = [
@@ -39,9 +43,6 @@ class Config:
             "Malay", "Burmese", "Dutch", "Polish", "Portuguese", "Russian", "Thai", "Tagalog",
             "Turkish", "Urdu", "Vietnamese", "Chinese"
         ]
-        
-        # For backward compatibility
-        self.languages = self.target_languages
         
         # Load from file
         self._load_from_file(config_path)
@@ -69,8 +70,6 @@ class Config:
         
         if "target-languages" in config_data:
             self.target_languages = config_data["target-languages"]
-            # For backward compatibility
-            self.languages = self.target_languages
                 
         # Fallback to environment variables for sensitive information
         if not self.runpod_api_key:

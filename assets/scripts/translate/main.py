@@ -8,14 +8,13 @@ from typing import Dict, List
 import pandas as pd
 import nltk
 from datasets import load_dataset
-from tqdm.asyncio import tqdm
 from tenacity import retry, stop_after_attempt, wait_random_exponential, retry_if_exception_type
 
 from config import Config
 from runpod import (
-    RunPodEndpoint, launch_runpods, terminate_runpods, 
-    find_and_terminate_all_runpods, test_runpod_endpoints,
-    startup_runpods, check_runpods_status, shutdown_runpods
+    RunPodEndpoint, launch_runpods, terminate_runpods,
+    startup_runpods, check_runpods_status, shutdown_runpods,
+    get_running_pods # New function to get already running pods
 )
 
 nltk.download('punkt')
@@ -77,6 +76,15 @@ async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: st
     dataset = load_dataset(config.dataset_name, token=config.hf_token)
     data = dataset[split_name]
     
+    # Apply offset and max_records if specified
+    total_records = len(data)
+    start_idx = config.offset if config.offset < total_records else 0
+    end_idx = min(total_records, start_idx + config.max_records) if config.max_records > 0 else total_records
+    
+    if start_idx > 0 or end_idx < total_records:
+        print(f"Using records {start_idx} to {end_idx-1} (out of {total_records} total)")
+        data = data.select(range(start_idx, end_idx))
+    
     # Create output dataframe using columns directly from the dataset
     df = pd.DataFrame({
         "id": list(range(len(data))),
@@ -112,47 +120,61 @@ async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: st
     success_records = []
     failed_records = []
     
-    # Process in batches
-    for i in tqdm(range(last_batch_start, len(df), config.batch_size), desc=f"{split_name}: {src_lang} -> {tgt_lang}"):
+    # Process in batches - remove tqdm and use simple progress tracking
+    last_progress_time = time.time()
+    record_count = 0
+    total_records_to_process = len(df)
+    
+    # Increase concurrency - create a much larger pool of tasks
+    # Each pod can handle 8 concurrent requests
+    max_concurrent_tasks = len(endpoints) * 8
+    tasks_semaphore = asyncio.Semaphore(max_concurrent_tasks)
+    print(f"Using {max_concurrent_tasks} concurrent tasks across {len(endpoints)} pods")
+    
+    async def process_record(idx, text, field_name):
+        async with tasks_semaphore:
+            endpoint = endpoints[idx % len(endpoints)]
+            try:
+                return await endpoint.translate_text(text, src_lang, tgt_lang)
+            except Exception as e:
+                error_msg = f"{field_name} error: {str(e)}"
+                print(f"Failed to translate {field_name} for row {idx}: {str(e)}")
+                return error_msg
+    
+    for i in range(last_batch_start, len(df), config.batch_size):
+        batch_start_time = time.time()
         batch_end = min(i + config.batch_size, len(df))
-        batch_think = df["think"][i:batch_end].tolist()
-        batch_response = df["response"][i:batch_end].tolist()
-        batch_query = df["query"][i:batch_end].tolist()
         
-        endpoint = endpoints[endpoint_idx % len(endpoints)]
-        endpoint_idx += 1
+        print(f"Processing batch: records {i+1} to {batch_end} (batch size: {batch_end-i})")
         
-        # Translate thinking, response, and query with retry logic using config max_retries
-        for j in range(batch_end - i):
-            idx = i + j
-            row = df.iloc[idx].copy()
+        # Create tasks for all records in the batch
+        batch_tasks = []
+        for j in range(i, batch_end):
+            row_idx = j - i
+            batch_tasks.append(process_record(j, df["think"][row_idx], "think"))
+            batch_tasks.append(process_record(j, df["response"][row_idx], "response"))
+            batch_tasks.append(process_record(j, df["query"][row_idx], "query"))
+        
+        # Process all tasks
+        batch_results = await asyncio.gather(*batch_tasks)
+        
+        # Process results
+        for j in range(i, batch_end):
+            row_idx = (j - i) * 3  # Each record has 3 fields (think, response, query)
+            row = df.iloc[j].copy()
             row_failed = False
             
-            try:
-                row["think_translated"] = await endpoint.translate_text(
-                    batch_think[j], src_lang, tgt_lang)
-            except Exception as e:
-                error_msg = f"Think error: {str(e)}"
-                print(f"Failed to translate thinking for row {idx}: {str(e)}")
-                row["think_translated"] = error_msg
+            # Results are in order: think, response, query for each record
+            row["think_translated"] = batch_results[row_idx]
+            if batch_results[row_idx].startswith("Think error:"):
                 row_failed = True
-            
-            try:
-                row["response_translated"] = await endpoint.translate_text(
-                    batch_response[j], src_lang, tgt_lang)
-            except Exception as e:
-                error_msg = f"Response error: {str(e)}"
-                print(f"Failed to translate response for row {idx}: {str(e)}")
-                row["response_translated"] = error_msg
+                
+            row["response_translated"] = batch_results[row_idx + 1]
+            if batch_results[row_idx + 1].startswith("Response error:"):
                 row_failed = True
-            
-            try:
-                row["query_translated"] = await endpoint.translate_text(
-                    batch_query[j], src_lang, tgt_lang)
-            except Exception as e:
-                error_msg = f"Query error: {str(e)}"
-                print(f"Failed to translate query for row {idx}: {str(e)}")
-                row["query_translated"] = error_msg
+                
+            row["query_translated"] = batch_results[row_idx + 2]
+            if batch_results[row_idx + 2].startswith("Query error:"):
                 row_failed = True
             
             # Add to appropriate list
@@ -161,9 +183,17 @@ async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: st
             else:
                 success_records.append(row)
         
-        # Updated to use checkpoint_interval instead of offload_interval
+        # Update record count and show progress
+        record_count += (batch_end - i)
+        batch_duration = time.time() - batch_start_time
+        records_per_second = (batch_end - i) / batch_duration if batch_duration > 0 else 0
+        
+        print(f"Completed {record_count}/{total_records_to_process} records " +
+              f"({record_count/total_records_to_process*100:.1f}%) " +
+              f"in {batch_duration:.2f}s ({records_per_second:.2f} records/sec)")
+        
+        # Only save checkpoint if we've processed enough records
         if (i // config.batch_size) % config.checkpoint_interval == 0 and i > 0:
-            # Convert to DataFrame and save checkpoint
             combined_df = pd.concat([pd.DataFrame(success_records), pd.DataFrame(failed_records)])
             save_checkpoint(combined_df, output_split_name, tgt_lang, 0, batch_end, state, run_dirs)
     
@@ -220,26 +250,58 @@ async def process_split_to_language(split_name: str, src_lang: str, tgt_lang: st
 async def main():
     config = Config(args.config)
     
+    # Set workers parameter if provided
+    if args.workers:
+        config.workers = args.workers
+    else:
+        config.workers = 32
+        
+    # Set max_records and offset if provided
+    if args.max_records:
+        config.max_records = args.max_records
+    else:
+        config.max_records = 0  # 0 means process all records
+        
+    if args.offset:
+        config.offset = args.offset
+    else:
+        config.offset = 0
+
     # Handle special operation modes
     if args.shutdown:
         if not config.runpod_api_key:
             print("Error: runpod_api_key not found in config and RUNPOD_API_KEY not set in environment")
             return
-        await shutdown_runpods(config)
+        start_time = time.time()
+        print(f"Starting RunPod shutdown process at {time.strftime('%H:%M:%S')}")
+        _ = await shutdown_runpods(config)
+        duration = time.time() - start_time
+        print(f"Shutdown process completed in {duration:.2f}s at {time.strftime('%H:%M:%S')}")
         return
     
     if args.startup:
         if not config.runpod_api_key:
             print("Error: runpod_api_key not found in config and RUNPOD_API_KEY not set in environment")
             return
-        await startup_runpods(config)
+        start_time = time.time()
+        print(f"Starting RunPod startup process at {time.strftime('%H:%M:%S')}")
+        _ = await startup_runpods(config)
+        duration = time.time() - start_time
+        print(f"Startup process completed in {duration:.2f}s at {time.strftime('%H:%M:%S')}")
+        print(f"Run --status or --test command to verify pod operational status")
         return
     
-    if args.status:
+    if args.status or args.test:
         if not config.runpod_api_key:
             print("Error: runpod_api_key not found in config and RUNPOD_API_KEY not set in environment")
             return
-        await check_runpods_status(config)
+        start_time = time.time()
+        mode = "Test" if args.test else "Status"
+        print(f"Starting RunPod {mode.lower()} check at {time.strftime('%H:%M:%S')}")
+        print(f"{mode} mode assumes grid is already online and just checks operational status")
+        _ = await check_runpods_status(config)
+        duration = time.time() - start_time
+        print(f"{mode} check completed in {duration:.2f}s at {time.strftime('%H:%M:%S')}")
         return
     
     # Regular processing logic continues below
@@ -260,13 +322,19 @@ async def main():
         print("Error: hf_token not found in config and HF_TOKEN not set in environment")
         return
 
-    # Load state and launch RunPods
+    # Load state and check for existing RunPods first
     state = load_state(run_dirs["state_file"])
-    runpod_info = launch_runpods(config)
+    print("Checking for existing RunPod instances...")
+    runpod_info = get_running_pods(config)
+    
+    # Only launch new pods if needed
+    if not runpod_info:
+        print("No existing RunPod instances found. Launching new ones...")
+        runpod_info = launch_runpods(config)
 
     try:
         if not runpod_info:
-            raise ValueError("No RunPod instances were successfully launched. Cannot proceed.")
+            raise ValueError("No RunPod instances were successfully launched or found. Cannot proceed.")
             
         endpoints = [
             RunPodEndpoint(
@@ -289,7 +357,7 @@ async def main():
         
         # Create all translation tasks
         tasks = []
-        for split_name in ["english", "chinese"]:
+        for split_name in [lang.lower() for lang in source_languages]:
             # Determine source language based on split name, with proper capitalization
             src_lang = next((lang for lang in source_languages 
                             if lang.lower() == split_name), None)
@@ -323,7 +391,12 @@ async def main():
         await asyncio.gather(*tasks)
         print(f"Translation process completed! Results saved to: {run_dirs['run_dir']}")
     finally:
-        terminate_runpods(runpod_info, config)
+        # Only terminate pods if we were the ones who started them
+        if args.terminate_on_completion:
+            print("Terminating RunPod instances as requested...")
+            terminate_runpods(runpod_info, config)
+        else:
+            print("Leaving RunPod instances running. Use --shutdown to terminate them later.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Translate dataset across multiple languages.")
@@ -335,5 +408,15 @@ if __name__ == "__main__":
                         help="Start up RunPod instances without beginning translation")
     parser.add_argument("--status", action="store_true",
                         help="Check status of all RunPod instances")
+    parser.add_argument("--test", action="store_true",
+                        help="Test mode: Check if grid is operational (assumes already online)")
+    parser.add_argument("--workers", type=int, 
+                        help="Number of parallel workers for pod operations (default: 32)")
+    parser.add_argument("--max-records", type=int, 
+                        help="Maximum number of records to process from each split")
+    parser.add_argument("--offset", type=int, 
+                        help="Starting offset in the source dataset")
+    parser.add_argument("--terminate-on-completion", action="store_true",
+                        help="Terminate RunPod instances after completion")
     args = parser.parse_args()
     asyncio.run(main())

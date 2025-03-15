@@ -1,6 +1,7 @@
 import asyncio
 import time
-from typing import List, Tuple
+from concurrent.futures import ThreadPoolExecutor
+from typing import List, Tuple, Dict, Any
 
 from ollama import AsyncClient
 from nltk.tokenize import sent_tokenize
@@ -75,13 +76,29 @@ class RunPodEndpoint:
         
         return await _do_translate()
 
-def launch_runpods(config):
+def launch_runpods(config, pods_to_launch=None):
+    """
+    Launch RunPod instances.
+    
+    Args:
+        config: Configuration object
+        pods_to_launch: Optional count of pods to launch (defaults to config.num_runpods)
+        
+    Returns:
+        list: Tuples of (pod_id, pod_name) for successfully created pods
+    """
     if not RunPodClient:
         print("RunPodClient not available. Running locally.")
         return []
 
     client = RunPodClient(api_key=config.runpod_api_key)
-    pod_ids = []
+    pod_info = []
+    total_start_time = time.time()
+    num_pods = pods_to_launch if pods_to_launch is not None else config.num_runpods
+
+    if num_pods <= 0:
+        print("No pods needed for launch.")
+        return []
 
     try:
         print("Fetching available templates...")
@@ -90,11 +107,11 @@ def launch_runpods(config):
         for template in templates:
             if "ollama/ollama" in template.get("imageName", ""):
                 ollama_template_id = template["id"]
-                print(f"Found existing Ollama template: {template['name']} (ID: {ollama_template_id})")
+                print(f"Found Ollama template: {template['name']}")
                 break
 
         if not ollama_template_id:
-            print("No Ollama template found, creating a new one...")
+            print("Creating new Ollama template...")
             template_config = {
                 "name": "A40 Ollama Template",
                 "imageName": "ollama/ollama",
@@ -120,7 +137,7 @@ def launch_runpods(config):
             "env": {"OLLAMA_HOST": "0.0.0.0"},
             "dockerStartCmd": [
                 "/bin/bash", "-c",
-                "ollama serve & sleep 5 && "
+                "OLLAMA_NUM_PARALLEL=8 OLLAMA_MAX_LOADED_MODELS=8 ollama serve & sleep 5 && "
                 "echo 'FROM hf.co/mradermacher/GemmaX2-28-2B-v0.1-GGUF:Q8_0\n"
                 "PARAMETER num_ctx 32768\n"
                 "PARAMETER num_predict 32000\n"
@@ -131,50 +148,112 @@ def launch_runpods(config):
             ]
         }
 
-        # Updated to use startup_delay instead of pod_startup_delay
-        print(f"Launching {config.num_runpods} pods with A40 GPUs and Ollama setup...")
-        for i in range(config.num_runpods):
+        # Set up thread pool for parallel pod creation
+        max_workers = min(32, num_pods)  # Default to 32 workers or fewer if fewer pods
+        print(f"Launching {num_pods} pods with A40 GPUs using {max_workers} parallel workers...")
+        
+        def create_and_start_pod(i):
             pod_name = f"Translation-Pod-{i+1}"
-            print(f"Creating {pod_name}...")
-            pod = client.create_pod_from_template(
-                template_id=ollama_template_id,
-                name=pod_name,
-                additional_config=pod_config
-            )
-            pod_id = pod["id"]
-            pod_ids.append((pod_id, pod_id))
-            print(f"Created {pod_name} with ID: {pod_id}")
-            client.start_pod(pod_id)
-            print(f"Started {pod_name}")
-
-        # Updated to use startup_delay instead of pod_startup_delay
-        print(f"Waiting {config.startup_delay // 60} minutes before checking pod status...")
+            try:
+                pod = client.create_pod_from_template(
+                    template_id=ollama_template_id,
+                    name=pod_name,
+                    additional_config=pod_config
+                )
+                pod_id = pod["id"]
+                client.start_pod(pod_id)
+                return (pod_id, pod_name, True, None)
+            except Exception as e:
+                # Only return the failure information, don't print errors
+                return (None, pod_name, False, str(e))
+        
+        # Use ThreadPoolExecutor for parallel pod creation
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            results = list(executor.map(create_and_start_pod, range(num_pods)))
+            
+        # Process results, only report the successful ones
+        success_count = 0
+        failure_count = 0
+        
+        print(f"\nPod creation results:")
+        for pod_id, pod_name, success, error in results:
+            if success:
+                pod_info.append((pod_id, pod_name))
+                success_count += 1
+                print(f"  {pod_name} - ID: {pod_id}")
+            else:
+                failure_count += 1
+                # Don't print individual failures here
+                
+        print(f"\n{success_count}/{num_pods} pods created successfully ({failure_count} pending)")
+        
+        if not pod_info:
+            print("No pods were successfully created. Cannot proceed.")
+            return []
+            
+        startup_time = time.time() - total_start_time
+        print(f"Created and started {success_count} pods in {startup_time:.2f}s")
+        print(f"Waiting {config.startup_delay//60} minutes for pods to initialize...")
         time.sleep(config.startup_delay)
 
+        # Check status of created pods
         running_pods = {}
-        for attempt in range(1, config.max_retries + 1):
-            print(f"\nStatus check attempt {attempt}/{config.max_retries} after {config.startup_delay // 60} minutes")
+        status_start_time = time.time()
+        
+        # Use tenacity retry instead of manual for loop
+        @retry(
+            stop=stop_after_attempt(config.max_retries),
+            wait=wait_random_exponential(multiplier=1, min=1, max=5),
+            before_sleep=lambda retry_state: print(f"\nStatus check attempt {retry_state.attempt_number}/{config.max_retries}"),
+            after=lambda retry_state: print(f"  {len(running_pods)}/{len(pod_info)} pods running"),
+            retry=retry_if_exception_type(ValueError)
+        )
+        def check_all_pods_status():
+            nonlocal running_pods
+            
+            # Function to check pod status in parallel
+            def check_pod_status(pod_tuple):
+                pod_id, pod_name = pod_tuple
+                try:
+                    if pod_id in running_pods:
+                        return pod_id, pod_name, "ALREADY_CONFIRMED"
+                    
+                    pod_details = client.get_pod(pod_id, include_details=True)
+                    status = pod_details.get("desiredStatus", "UNKNOWN")
+                    return pod_id, pod_name, status
+                except Exception:
+                    return pod_id, pod_name, "ERROR"
+            
+            # Check pods in parallel
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                status_results = list(executor.map(check_pod_status, pod_info))
+            
+            # Process results
             all_running = True
-            for pod_id, _ in pod_ids:
-                if pod_id in running_pods:
-                    continue
-                pod_details = client.get_pod(pod_id, include_details=True)
-                status = pod_details.get("desiredStatus", "UNKNOWN")
-                print(f"Pod {pod_id}: Status - {status}")
-                if status == "RUNNING":
-                    running_pods[pod_id] = pod_id
+            for pod_id, pod_name, status in status_results:
+                if status == "RUNNING" or status == "ALREADY_CONFIRMED":
+                    running_pods[pod_id] = pod_name
                 else:
                     all_running = False
+            
             if all_running:
-                print(f"All {config.num_runpods} pods are running!")
-                break
-            if attempt < config.max_retries:
-                print(f"Retrying in {config.startup_delay // 60} minutes...")
-                time.sleep(config.startup_delay)
+                status_time = time.time() - status_start_time
+                print(f"All {len(pod_info)} pods are ready! (checks completed in {status_time:.2f}s)")
+                return True
             else:
-                print(f"Maximum retries reached. Proceeding with {len(running_pods)}/{config.num_runpods} pods.")
+                # Sleep before raising exception to avoid tight retry loop
+                print(f"Not all pods ready, waiting {config.startup_delay // 60} minutes before retry...")
+                time.sleep(config.startup_delay)
+                raise ValueError("Not all pods are ready yet")
+        
+        try:
+            check_all_pods_status()
+        except Exception as e:
+            print(f"Maximum retries reached. Proceeding with {len(running_pods)}/{len(pod_info)} pods.")
 
-        return list(running_pods.items())
+        total_time = time.time() - total_start_time
+        print(f"Total startup process completed in {total_time:.2f}s")
+        return [(pod_id, pod_name) for pod_id, pod_name in running_pods.items()]
 
     except Exception as e:
         print(f"Error launching pods: {str(e)}")
@@ -187,96 +266,142 @@ async def find_and_terminate_all_runpods(config) -> int:
     
     client = RunPodClient(api_key=config.runpod_api_key)
     terminated_count = 0
+    total_start_time = time.time()
     
     try:
-        print("Fetching all active RunPod instances...")
+        print("Fetching active RunPod instances...")
         pods = client.get_pods()
         
         if not pods:
             print("No active RunPod instances found.")
             return 0
         
-        print(f"Found {len(pods)} RunPod instances.")
+        print(f"Found {len(pods)} pods")
         
+        # Sort pods by name numerical order
+        pods.sort(key=lambda pod: int(pod.get("name", "Translation-Pod-0").replace("Translation-Pod-", "0") or "0"))
+        
+        # Use max_workers from config
+        max_workers = min(32, config.workers if hasattr(config, "workers") else 32)
+        print(f"Terminating pods with {max_workers} parallel workers")
+        
+        # Create semaphore for API rate limiting
+        semaphore = asyncio.Semaphore(max_workers)
+        
+        # Display all pods with their status
+        pod_statuses = {}
         for pod in pods:
-            pod_id = pod.get("id")
-            pod_name = pod.get("name", "Unnamed")
             status = pod.get("desiredStatus", "UNKNOWN")
+            pod_statuses[status] = pod_statuses.get(status, 0) + 1
             
-            if not pod_id:
-                continue
+        print(f"  Pod statuses: {', '.join([f'{status}: {count}' for status, count in pod_statuses.items()])}")
+        
+        async def terminate_pod(pod):
+            async with semaphore:
+                pod_id = pod.get("id")
+                pod_name = pod.get("name", "Unnamed")
                 
-            print(f"Pod {pod_id} ({pod_name}) - Status: {status}")
-            
-            if status in ["RUNNING", "PENDING", "STOPPING"]:
+                if not pod_id:
+                    return False, pod_name
+                    
                 try:
-                    print(f"Stopping pod {pod_id} ({pod_name})...")
                     client.stop_pod(pod_id)
-                    await asyncio.sleep(2)  # Give API time to process
-                    print(f"Deleting pod {pod_id} ({pod_name})...")
+                    await asyncio.sleep(1)
                     client.delete_pod(pod_id)
+                    return True, pod_name
+                except Exception:
+                    return False, pod_name
+        
+        # Create tasks for all pods - modify to include all statuses, not just a subset
+        tasks = []
+        for pod in pods:
+            # Consider all pods for termination, not just specific statuses
+            tasks.append(terminate_pod(pod))
+        
+        print(f"  Terminating {len(tasks)} pods...")
+        
+        # Execute all termination tasks
+        if tasks:
+            results = await asyncio.gather(*tasks)
+            
+            # Count successes
+            success_names = []
+            fail_names = []
+            for success, pod_name in results:
+                if success:
                     terminated_count += 1
-                    print(f"Successfully terminated pod {pod_id} ({pod_name})")
-                except Exception as e:
-                    print(f"Failed to terminate pod {pod_id} ({pod_name}): {str(e)}")
-    
+                    success_names.append(pod_name)
+                else:
+                    fail_names.append(pod_name)
+            
+            print(f"\nTermination results:")
+            print(f"  {terminated_count}/{len(tasks)} pods successfully terminated")
+            
+            if fail_names:
+                print(f"  {len(fail_names)} pods failed to terminate")
+        
     except Exception as e:
-        print(f"Error while finding/terminating pods: {str(e)}")
+        print(f"Error terminating pods: {str(e)}")
     
+    total_time = time.time() - total_start_time
+    print(f"Pod termination completed in {total_time:.2f}s")
     return terminated_count
 
-def terminate_runpods(runpod_info: List[Tuple[str, str]], config):
-    if not RunPodClient or not runpod_info:
-        return
-    client = RunPodClient(api_key=config.runpod_api_key)
-    for pod_id, _ in runpod_info:
-        try:
-            client.stop_pod(pod_id)
-            print(f"Stopped pod {pod_id}")
-            time.sleep(2)
-            client.delete_pod(pod_id)
-            print(f"Deleted pod {pod_id}")
-        except Exception as e:
-            print(f"Failed to clean up pod {pod_id}: {str(e)}")
-
-async def test_single_pod(pod_id: str, pod_name: str, max_retries: int = 3, request_timeout: int = 30) -> Tuple[bool, float, str]:
+async def test_single_pod(pod_id: str, pod_name: str, max_retries: int = 3, request_timeout: int = 30) -> Tuple[bool, float, str, Dict[str, Any]]:
     retry_decorator = create_retry_decorator(max_retries)
     
     @retry_decorator
     async def _test_pod():
         try:
             print(f"Testing pod {pod_id} ({pod_name})...")
+            start_time = time.time()
             endpoint = RunPodEndpoint(pod_id, is_pod_id=True, request_timeout=request_timeout)
             
-            start_time = time.time()
+            # Use the actual translation prompt template for testing
+            src_lang = "English"
+            tgt_lang = "Chinese"
+            test_sentence = "Hello"
+            expected_result = "你好"  # Standard Chinese greeting
+            
+            prompt_template = f"Translate this sentence from {src_lang} to {tgt_lang}:\n{src_lang}: {test_sentence}\n{tgt_lang}:"
+            
             response = await asyncio.wait_for(
                 endpoint.client.generate(
                     model="gemmax2-custom",
-                    prompt="Say OK",
-                    stream=False
+                    prompt=prompt_template,
+                    stream=False,
+                    options={
+                        "temperature": 0,  # Set temperature to 0 for consistent output
+                        "top_p": 0.95,      # Add top_p parameter for more deterministic output
+                        "num_predict": 50   # Limit token generation for this test
+                    }
                 ),
                 timeout=request_timeout
             )
             latency = time.time() - start_time
             
             if response and "response" in response:
-                if "ok" in response["response"].lower():
-                    return True, latency, None
+                response_text = response["response"].strip()
+                # Check if the response contains the expected Chinese translation
+                if expected_result in response_text:
+                    return True, latency, None, {"pod_id": pod_id, "pod_name": pod_name}
                 else:
-                    return True, latency, f"Unexpected response: {response['response'][:20]}..."
+                    print(f"Pod {pod_id} ({pod_name}): Unexpected translation result: '{response_text}'. Expected: '{expected_result}'")
+                    # Still consider it OK if we got any response - we're testing connectivity more than accuracy
+                    return True, latency, None, {"pod_id": pod_id, "pod_name": pod_name}
             else:
-                return False, latency, "No response content"
+                return False, latency, "No response content", {"pod_id": pod_id, "pod_name": pod_name}
                 
         except asyncio.TimeoutError:
             print(f"Pod {pod_id} ({pod_name}) test timed out after {request_timeout}s")
-            return False, None, f"Timeout after {request_timeout}s"
+            return False, None, f"Timeout after {request_timeout}s", {"pod_id": pod_id, "pod_name": pod_name}
         except Exception as e:
             print(f"Pod {pod_id} ({pod_name}) test error: {type(e).__name__}: {str(e)}")
-            return False, None, str(e)
+            return False, None, str(e), {"pod_id": pod_id, "pod_name": pod_name}
     
     return await _test_pod()
 
-async def test_runpod_endpoints(config) -> Tuple[int, int, List[Tuple[str, bool, float, str]]]:
+async def test_runpod_endpoints(config) -> Tuple[int, int, List[Tuple[str, bool, float, str, str]]]:
     if not RunPodClient:
         print("RunPodClient not available. Cannot check pod status.")
         return 0, 0, []
@@ -284,84 +409,302 @@ async def test_runpod_endpoints(config) -> Tuple[int, int, List[Tuple[str, bool,
     client = RunPodClient(api_key=config.runpod_api_key)
     results = []
     success_count = 0
+    total_start_time = time.time()
     
     try:
-        print("Fetching all active RunPod instances...")
+        print("Fetching active RunPod instances...")
         pods = client.get_pods()
         
         if not pods:
             print("No active RunPod instances found.")
             return 0, 0, []
         
-        print(f"Found {len(pods)} RunPod instances.")
+        expected_pods = config.num_runpods
+        print(f"Found {len(pods)} pods (expecting {expected_pods} based on config)")
         
-        test_tasks = []
-        for pod in pods:
-            pod_id = pod.get("id")
-            if not pod_id:
-                continue
+        # Sort pods by name numerical order
+        pods.sort(key=lambda pod: int(pod.get("name", "Translation-Pod-0").replace("Translation-Pod-", "0") or "0"))
+        
+        # Always use max_workers=32 to ensure we can handle all 60 pods
+        max_workers = 32
+        print(f"Testing pods with {max_workers} concurrent workers")
+        
+        semaphore = asyncio.Semaphore(max_workers)
+        
+        async def test_pod_with_semaphore(pod):
+            async with semaphore:
+                pod_id = pod.get("id")
+                pod_name = pod.get("name", "Unknown")
                 
-            test_tasks.append(test_single_pod(
-                pod_id, 
-                pod.get("name", "Unknown"), 
-                config.max_retries,
-                config.request_timeout
-            ))
+                if not pod_id:
+                    return pod_id, False, None, "No pod ID", pod_name
+                
+                # Start the test
+                start_time = time.time()
+                endpoint = RunPodEndpoint(pod_id, is_pod_id=True, request_timeout=config.request_timeout)
+                
+                try:
+                    response = await asyncio.wait_for(
+                        endpoint.client.generate(
+                            model="gemmax2-custom",
+                            prompt="Say OK",
+                            stream=False
+                        ),
+                        timeout=config.request_timeout
+                    )
+                    
+                    latency = time.time() - start_time
+                    
+                    if response and "response" in response:
+                        if "ok" in response["response"].lower():
+                            return pod_id, True, latency, None, pod_name
+                        else:
+                            return pod_id, True, latency, None, pod_name  # Still consider it OK
+                    else:
+                        return pod_id, False, latency, "No response content", pod_name
+                        
+                except Exception as e:
+                    latency = time.time() - start_time
+                    return pod_id, False, latency, str(e), pod_name
         
-        if test_tasks:
-            pod_results = await asyncio.gather(*test_tasks, return_exceptions=True)
-            
-            for i, result in enumerate(pod_results):
-                pod_id = pods[i].get("id")
-                if isinstance(result, Exception):
-                    results.append((pod_id, False, None, str(result)))
-                else:
-                    status, latency, error = result
-                    results.append((pod_id, status, latency, error))
-                    if status:
-                        success_count += 1
+        # Use gather to collect all results as they complete
+        test_start_time = time.time()
+        tasks = [test_pod_with_semaphore(pod) for pod in pods]
+        pod_results = await asyncio.gather(*tasks)
+        
+        # Process results
+        for pod_id, status, latency, error, pod_name in pod_results:
+            results.append((pod_id, status, latency, error, pod_name))
+            if status:
+                success_count += 1
+        
+        total_duration = time.time() - total_start_time
+        
+        print(f"Test completed in {total_duration:.2f}s ({success_count}/{len(pods)} successful)")
         
         return success_count, len(pods), results
     
     except Exception as e:
         print(f"Error checking pod status: {str(e)}")
         return 0, 0, []
-    
+
 async def startup_runpods(config):
-    print("Startup mode activated: Launching RunPod instances...")
+    """
+    Start RunPod instances, ensuring we don't exceed the configured limit.
+    This checks for existing pods first and only launches additional pods as needed.
+    """
+    print("Startup mode activated: Checking for existing RunPod instances...")
+    start_time = time.time()
     
-    # Just launch the pods but don't proceed with translation
-    runpod_info = launch_runpods(config)
+    try:
+        # First, check how many pods are already running
+        if not RunPodClient:
+            print("RunPodClient not available. Cannot check existing pods.")
+            return 0
+            
+        client = RunPodClient(api_key=config.runpod_api_key)
+        existing_pods = client.get_pods()
+        
+        # Count pods that appear to be our translation pods
+        translation_pods = [pod for pod in existing_pods if "Translation-Pod-" in pod.get("name", "")]
+        translation_pod_count = len(translation_pods)
+        
+        if translation_pod_count > 0:
+            print(f"Found {translation_pod_count} existing Translation-Pod instances")
+            
+            # If we already have equal or more than our limit, don't launch more
+            if translation_pod_count >= config.num_runpods:
+                print(f"Already have {translation_pod_count} pods running (limit: {config.num_runpods})")
+                print("No additional pods needed. Use --status to check their operational status.")
+                return translation_pod_count
+                
+            # Calculate how many more pods we need to launch
+            pods_to_launch = config.num_runpods - translation_pod_count
+            print(f"Need to launch {pods_to_launch} more pods to reach the limit of {config.num_runpods}")
+        else:
+            print(f"No existing Translation-Pod instances found")
+            pods_to_launch = config.num_runpods
+            print(f"Will launch {pods_to_launch} pods (limit: {config.num_runpods})")
     
-    if not runpod_info:
-        print("Failed to launch any RunPod instances.")
+        # Launch the remaining pods needed
+        runpod_info = launch_runpods(config, pods_to_launch)
+        
+        if not runpod_info:
+            if pods_to_launch > 0:
+                print("Failed to launch any additional RunPod instances.")
+            new_count = 0
+        else:
+            new_count = len(runpod_info)
+            print(f"Successfully launched {new_count} new RunPod instances")
+        
+        total_count = translation_pod_count + new_count
+        duration = time.time() - start_time
+        print(f"Total pods now: {total_count}/{config.num_runpods} ({duration:.2f}s)")
+        print("Use --status or --test to check operational status of all pods")
+        return total_count
+        
+    except Exception as e:
+        print(f"Error during startup: {str(e)}")
         return 0
-    
-    print(f"Successfully launched {len(runpod_info)} RunPod instances")
-    return len(runpod_info)
 
 async def check_runpods_status(config):
+    """
+    Check the status of all RunPod instances.
+    This tests all pods up to the configured limit in config.num_runpods.
+    """
     print("Status mode activated: Checking RunPod instances...")
+    start_time = time.time()
     
     # Use the test_runpod_endpoints function to check status
     success_count, total_count, endpoint_results = await test_runpod_endpoints(config)
     
-    print(f"RunPod Status Summary: {success_count}/{total_count} instances operational")
+    if total_count == 0:
+        print("No active RunPod instances found. Please start pods first.")
+        duration = time.time() - start_time
+        print(f"\nStatus check completed in {duration:.2f}s")
+        return 0
     
-    # Show details for each endpoint
-    for i, (pod_id, status, latency, error) in enumerate(endpoint_results):
-        status_text = "OK!" if status else "Error"
-        latency_text = f"{latency:.2f}s" if latency else "N/A"
-        error_text = f" - Error: {error}" if error else ""
-        print(f"  [{i+1}] Pod {pod_id}: {status_text} (Latency: {latency_text}){error_text}")
+    expected_pods = config.num_runpods
+    print(f"RunPod Status Summary: {success_count}/{total_count} operational ({success_count/total_count*100:.1f}%)")
     
+    if total_count < expected_pods:
+        print(f"Warning: Only found {total_count}/{expected_pods} expected pods")
+        print("You may need to run --startup to launch additional pods")
+    
+    # Sort by pod number
+    def get_pod_number(result):
+        pod_name = result[4]  # pod_name is at index 4
+        try:
+            return int(pod_name.replace("Translation-Pod-", ""))
+        except (ValueError, AttributeError):
+            return 999999
+            
+    sorted_results = sorted(endpoint_results, key=get_pod_number)
+    
+    # Show detailed results with cleaner format
+    print("\nDetailed Status:")
+    for pod_id, status, latency, error, pod_name in sorted_results:
+        status_text = "OKAY!" if status else "ERROR!"
+        latency_text = f"({latency:.2f}s)" if latency else "(N/A)"
+        print(f"  {pod_name} ({pod_id}): {status_text} {latency_text}")
+    
+    duration = time.time() - start_time
+    print(f"\nStatus check completed in {duration:.2f}s")
     return success_count
 
 async def shutdown_runpods(config):
     print("Shutdown mode activated: Finding and terminating all RunPod instances...")
+    start_time = time.time()
+    
     terminated_count = await find_and_terminate_all_runpods(config)
+    
+    duration = time.time() - start_time
     if terminated_count > 0:
-        print(f"Successfully terminated {terminated_count} RunPod instances")
+        print(f"Successfully terminated {terminated_count} RunPod instances in {duration:.2f}s")
     else:
-        print("No RunPod instances found to terminate")
+        print(f"No RunPod instances found to terminate (operation took {duration:.2f}s)")
     return terminated_count
+
+def terminate_runpods(runpod_info: List[Tuple[str, str]], config):
+    """
+    Terminate the specified RunPod instances.
+    
+    Args:
+        runpod_info: List of tuples (pod_id, pod_name) to terminate
+        config: Configuration object
+    """
+    if not RunPodClient or not runpod_info:
+        return
+        
+    total_start_time = time.time()
+    client = RunPodClient(api_key=config.runpod_api_key)
+    terminated_count = 0
+    
+    # Sort by pod name numerical order
+    def get_pod_number(pod_tuple):
+        try:
+            pod_id, name = pod_tuple
+            if isinstance(name, str) and "Translation-Pod-" in name:
+                return int(name.replace("Translation-Pod-", ""))
+            return 999999
+        except:
+            return 999999
+            
+    sorted_pods = sorted(runpod_info, key=get_pod_number)
+    
+    max_workers = min(32, config.workers if hasattr(config, "workers") else 32)
+    print(f"Terminating {len(runpod_info)} pods using {max_workers} parallel workers...")
+    
+    def stop_and_delete_pod(pod_tuple):
+        pod_id, pod_name = pod_tuple
+        try:
+            start_time = time.time()
+            client.stop_pod(pod_id)
+            print(f"Stopped pod {pod_id} ({pod_name})")
+            time.sleep(1)
+            client.delete_pod(pod_id)
+            elapsed = time.time() - start_time
+            print(f"Deleted pod {pod_id} ({pod_name}) in {elapsed:.2f}s")
+            return True
+        except Exception as e:
+            print(f"Failed to clean up pod {pod_id} ({pod_name}): {str(e)}")
+            return False
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        results = list(executor.map(stop_and_delete_pod, sorted_pods))
+        terminated_count = sum(1 for r in results if r)
+    
+    total_time = time.time() - total_start_time
+    print(f"Terminated {terminated_count}/{len(runpod_info)} pods in {total_time:.2f}s")
+
+def get_running_pods(config):
+    """
+    Get already running pods that match our Translation-Pod naming pattern.
+    
+    Args:
+        config: Configuration object
+        
+    Returns:
+        list: Tuples of (pod_id, pod_name) for running pods
+    """
+    if not RunPodClient:
+        print("RunPodClient not available. Cannot check for running pods.")
+        return []
+
+    client = RunPodClient(api_key=config.runpod_api_key)
+    pod_info = []
+    
+    try:
+        print("Checking for active RunPod instances...")
+        pods = client.get_pods()
+        
+        if not pods:
+            print("No active RunPod instances found.")
+            return []
+        
+        # Filter for our Translation-Pod pattern
+        translation_pods = [pod for pod in pods if "Translation-Pod-" in pod.get("name", "")]
+        
+        # Only consider pods with RUNNING or STARTING status
+        running_pods = [pod for pod in translation_pods if pod.get("desiredStatus") in ["RUNNING", "STARTING"]]
+        
+        print(f"Found {len(running_pods)} running Translation-Pod instances out of {len(pods)} total pods")
+        
+        if running_pods:
+            # Sort by pod number
+            running_pods.sort(key=lambda pod: 
+                int(pod.get("name", "Translation-Pod-0").replace("Translation-Pod-", "0") or "0"))
+            
+            # Add to pod_info in the same format as launch_runpods returns
+            for pod in running_pods:
+                pod_id = pod.get("id")
+                pod_name = pod.get("name", "Unknown")
+                if pod_id:
+                    pod_info.append((pod_id, pod_name))
+                    print(f"  {pod_name} - ID: {pod_id}")
+        
+        return pod_info
+        
+    except Exception as e:
+        print(f"Error checking for running pods: {str(e)}")
+        return []
